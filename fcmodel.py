@@ -1,13 +1,12 @@
 import numpy as np
 import scipy.integrate as spi
-import matplotlib.pyplot as plt
-pi=np.pi
+pi = np.pi
+##########################################################################################
 
 
 
 
-
-
+##########################################################################################
 def INTR(a1,a2,a3,a4,r):
 	a0 = 1.0 - a1 - a2 - a3 - a4
 	RR = (1.0-r**2)**(1.0/4)
@@ -37,18 +36,6 @@ def INTCENT(a1,a2,a3,a4,p,z,ww1,ww2):
 
 
 def INTPLUS(a1,a2,a3,a4,p,z,ww1,rr1,ww2,rr2):
-	""" WHAT THE HELL IS HAPPENING
-	
-	:param a1: what is a1
-	:type a1: int
-	
-	:return: an array
-	:rtype: 
-	
-	MATHS IF NEEDED
-	
-	
-	"""
 	if len(z) == 0:
 		return []
 	w1 = np.min([ww1,ww2],0)
@@ -113,9 +100,10 @@ def position(P,A,E,I,W,WW,T0,tt):
 
 ### THE MODEL FUNCTION
 
-def model(a1,a2,a3,a4,p,P,A,E,I,W,WW,T0,tt):
+def model(a1,a2,a3,a4,RP,P,A,E,I,W,WW,T0,tt):
+	p = RP
 	## projected distance
-	pos	=	position(P,A,E,I,W,WW,T0,tt)
+	pos	=	position(P,A,E,I*pi/180,W*pi/180,WW*pi/180,T0,tt)
 	fx	=	pos[0]
 	fy	=	pos[1]
 	fz	=	pos[2]
@@ -135,9 +123,9 @@ def model(a1,a2,a3,a4,p,P,A,E,I,W,WW,T0,tt):
 	ones = np.ones_like(z)
 	parr = ones*float(p)
 	piar = ones*pi
-	th = np.arcsin(p/z)
-	ro = np.sqrt( z**2 - p**2 )
-	ph = np.arccos( ( 1.0 - p**2 + z**2 )/( 2.0*z ) )
+	th = np.arcsin(np.where(p/z>1.0,1.0,p/z))
+	ro = np.sqrt( abs(z**2 - p**2) )
+	ph = np.arccos( np.where(( 1.0 - p**2 + z**2 )/( 2.0*z )>1.0,1.0,( 1.0 - p**2 + z**2 )/( 2.0*z )) )
 	## flux
 	plusflux = np.zeros(len(z))
 	plusflux[case1]	= INTCENT(a1,a2,a3,a4,p,z[case1]	,zero[case1]	,2*piar[case1]	)
@@ -157,46 +145,5 @@ def model(a1,a2,a3,a4,p,P,A,E,I,W,WW,T0,tt):
 	starflux[case7]	= INTCENT(a1,a2,a3,a4,1,z[case7]	,zero[case7]	,ph[case7]		)
 	starflux[case8]	= INTCENT(a1,a2,a3,a4,1,z[case8]	,zero[case8]	,ph[case8]		)
 	F0 				= INTCENT(a1,a2,a3,a4,1,0			,0.0			,2.0*pi			)
-	plt.plot(tt,plusflux)
-	plt.plot(tt,minsflux)
-	plt.plot(tt,starflux)
-	plt.show()
 	return np.array( 1 - 2.0*( plusflux + starflux - minsflux )/F0 )
 ### THE MODEL FUNCTION
-
-
-
-
-
-#planet1
-prex=0.15
-pex=2.2
-aex=9.0
-eex=0.0
-iex=87.5*pi/180
-wex=0*pi/180
-wwex=0*pi/180
-t0ex=132.74052
-#coeff
-a1ex=0.6023
-a2ex=-0.5110
-a3ex=0.4655
-a4ex=-0.1752
-import time
-#### test1
-xx=np.arange(t0ex-pex/2,t0ex+pex/2,0.001)
-t0=time.time()
-yy=model(a1ex,a2ex,a3ex,a4ex,prex,pex,aex,eex,iex,wex,wwex,t0ex,xx)
-print time.time()-t0
-plt.plot(xx,yy,'k-',ms=2)
-plt.xlabel(r'$time\,(t)\,[days]$')
-plt.ylabel(r'$relative\,flux\,(f(t))$')
-plt.ylim((plt.ylim()[0],1.001))
-plt.xlim((xx[0],xx[-1]))
-plt.show()
-#### test1
-
-
-
-
-
