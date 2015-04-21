@@ -1,1 +1,0 @@
-# lightcurve_model

@@ -1,7 +1,37 @@
 import numpy as np
 import scipy.integrate as spi
+import glob
+import os
 pi = np.pi
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 ##########################################################################################
+
+
+
+
+
+##########################################################################################
+def ldcoeff(Mett,Teff,Logg,Filter):
+	filterlist			=	[	['u','v','b','y','U','B','V','R','I','J','H','K'],
+								[4  ,5  ,6  ,7  ,8  ,9  ,10 ,11 ,12 ,13 ,14 ,15 ]
+							]
+	Filter				=	filterlist[1][filterlist[0].index(Filter)]
+	tables, mett		=	np.loadtxt(glob.glob(__location__+'/*claretinfo*')[0],usecols=(0,4),unpack=True)
+	Table				=	str(int(tables[np.argmin(abs(Mett-mett))]))
+	File				=	glob.glob(__location__+'/*/TABLE'+Table)[0]
+	logglist, tefflist	=	np.loadtxt(File,usecols=(1,2),unpack=True,skiprows=5)
+	Teff				=	tefflist[np.argmin(abs(Teff-tefflist))]
+	Logg				=	logglist[np.argmin(abs(Logg-logglist))]
+	Final				=	[]
+	for i in open(File).readlines()[5:]:
+		coef = float(i.split()[Filter])
+		logg = float(i.split()[1])
+		teff = float(i.split()[2])
+		if ( logg == Logg and teff == Teff ):
+			Final.append(coef)
+	return Final
+##########################################################################################
+
 
 
 
@@ -100,7 +130,7 @@ def position(P,A,E,I,W,WW,T0,tt):
 
 ### THE MODEL FUNCTION
 
-def model(a1,a2,a3,a4,RP,P,A,E,I,W,WW,T0,tt):
+def model((a1,a2,a3,a4),RP,P,A,E,I,W,WW,T0,tt):
 	p = RP
 	## projected distance
 	pos	=	position(P,A,E,I*pi/180,W*pi/180,WW*pi/180,T0,tt)
