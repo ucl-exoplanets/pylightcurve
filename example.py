@@ -40,4 +40,5 @@ plt.ylim((plt.ylim()[0],1.002))
 plt.xlim((x1[0],x2[-1]))
 plt.show()
 
-
+# wrong filter test
+y2	=	fcmodel.model(fcmodel.ldcoeff(metall,teff,logg,'a'),prex,pex,aex,eex,iex,wex,wwex,t0ex,x2)

@@ -15,6 +15,11 @@ def ldcoeff(Mett,Teff,Logg,Filter):
 	filterlist			=	[	['u','v','b','y','U','B','V','R','I','J','H','K'],
 								[4  ,5  ,6  ,7  ,8  ,9  ,10 ,11 ,12 ,13 ,14 ,15 ]
 							]
+	if Filter not in filterlist[0]:
+		print	'Error: Wrong filter indicator.'
+		print	'V filter has been automatically chosen.'
+		print	'Other available filters: u, v, b, y, U, B, V, R, I, J, H, K'
+		Filter = 'V'		
 	Filter				=	filterlist[1][filterlist[0].index(Filter)]
 	tables, mett		=	np.loadtxt(glob.glob(__location__+'/*claretinfo*')[0],usecols=(0,4),unpack=True)
 	Table				=	str(int(tables[np.argmin(abs(Mett-mett))]))
