@@ -127,7 +127,6 @@ def position(P,A,E,I,W,WW,T0,tt):
 	return [X,Y,Z]
 
 
-
 ### THE MODEL FUNCTION
 
 def model((a1,a2,a3,a4),RP,P,A,E,I,W,WW,T0,tt):
