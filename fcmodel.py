@@ -25,7 +25,7 @@ def ldcoeff(Z, Teff, Logg, Filter="V"):
                   ( 4,   5,   6,   7,   8,   9,   10,  11,  12,  13,  14,  15)
                   )
     if Filter not in filterlist[0]:
-        raise PyLC_FilterError("Invalid filter, got {} must be in {}".format(Filter, filterlist[0]))
+        raise PyLCFilterError("Invalid filter, got {} must be in {}".format(Filter, filterlist[0]))
 
     # This could probably all be cleaned up by importing to a pandas dataframe
     Filter = filterlist[1][filterlist[0].index(Filter)]
@@ -49,7 +49,7 @@ class PyLCError(BaseException):
     pass
 
 
-class PyLC_FilterError(PyLCError):
+class PyLCFilterError(PyLCError):
     pass
 
 
@@ -144,6 +144,18 @@ def position(P, A, E, I, W, WW, T0, tt):
 
 
 def model((a1, a2, a3, a4), RP, P, A, E, I, W, WW, T0, tt):
+    """ Generates the lightcurve model
+    :param RP:
+    :param P:
+    :param A:
+    :param E:
+    :param I:
+    :param W:
+    :param WW:
+    :param T0:
+    :param tt:
+    :return:
+    """
     p = RP
     ## projected distance
     pos = position(P, A, E, I * pi / 180, W * pi / 180, WW * pi / 180, T0, tt)
@@ -152,7 +164,7 @@ def model((a1, a2, a3, a4), RP, P, A, E, I, W, WW, T0, tt):
     fz = pos[2]
     z = np.sqrt(fy ** 2 + fz ** 2)
     ## cases
-    case0 = np.where((fx <= 0) | (z >= 1 + p))
+    case0 = np.where((fx <= 0) | (z >= 1 + p))  # why is this not being used anywhere?
     case1 = np.where((fx > 0) & (z == 0  ))
     case2 = np.where((fx > 0) & (z < p  ))
     case3 = np.where((fx > 0) & (z == p  ))
