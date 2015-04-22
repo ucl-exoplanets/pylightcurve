@@ -21,13 +21,13 @@ install:
   - conda create -n myenv --yes $deps "python=$TRAVIS_PYTHON_VERSION"
 # - conda install --yes -c dan_blanchard python-coveralls nose-cov
   - source activate myenv
-#  - pip install
-# while WFC3Sim is not a python package, add current dir to python path (needed for tests)
+  - pip install coveralls
+# while pylightcurve is not a python package, add current dir to python path (needed for tests)
   - ln -s `pwd` $(dirname `which python`)/../lib/python2.7/site-packages/pylightcurve
 
 script:
-  - nosetests tests --logging-level=INFO
+  - nosetests tests --logging-level=INFO --with-coverage --cover-package=pylightcurve
 
 # Calculate coverage
-# after_success:
-  # - coveralls --config_file .coveragerc
+after_success:
+  - coveralls --config_file .coveragerc
