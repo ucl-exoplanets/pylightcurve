@@ -111,7 +111,7 @@ def INTMINS(a1, a2, a3, a4, p, z, ww1, rr1, ww2, rr2):
     return PARTA + PARTB + PARTC - PARTD
 
 
-def position(P, A, E, I, W, WW, T0, tt):
+def position(P, A, E, I, W, T0, tt, WW=0):
     #
     if W < pi / 2:
         AA = 1.0 * pi / 2 - W
@@ -143,36 +143,39 @@ def position(P, A, E, I, W, WW, T0, tt):
     return [X, Y, Z]
 
 
-def model((a1, a2, a3, a4), RP, P, A, E, I, W, WW, T0, tt):
+def model((a1, a2, a3, a4), transit_depth, P, a, e, i, W, T0, tt, WW=0):
     """ Generates the lightcurve model
-    :param RP:
-    :param P:
-    :param A:
-    :param E:
-    :param I:
-    :param W:
-    :param WW:
-    :param T0:
-    :param tt:
-    :return:
+
+    :param transit_depth: [dimensionless]
+    :param P: Period [days]
+    :param a: Semi-major axis/ Rstar [dimensionless]
+    :param e: eccentricity [no units]
+    :param i: inclination [degrees]
+    :param W: argument of periastron [degrees]
+    :param T0: epoch [JD] (units must match tt)
+    :param tt: time array [JD] (units must match T0)
+    :param WW: Omega [degrees]
+    :return: transit depth for each element tt
     """
-    p = RP
+
+    p = transit_depth
     ## projected distance
-    pos = position(P, A, E, I * pi / 180, W * pi / 180, WW * pi / 180, T0, tt)
+    pos = position(P, a, e, i * pi / 180, W * pi / 180, T0, tt, WW * pi / 180)
     fx = pos[0]
     fy = pos[1]
     fz = pos[2]
     z = np.sqrt(fy ** 2 + fz ** 2)
     ## cases
-    case0 = np.where((fx <= 0) | (z >= 1 + p))  # why is this not being used anywhere?
-    case1 = np.where((fx > 0) & (z == 0  ))
-    case2 = np.where((fx > 0) & (z < p  ))
-    case3 = np.where((fx > 0) & (z == p  ))
-    case4 = np.where((fx > 0) & (z > p  ) & (z < 1 - p))
+    # case0 = np.where((fx <= 0) | (z >= 1 + p))  # out of transit .'. = 1.
+    case1 = np.where((fx > 0) & (z == 0))
+    case2 = np.where((fx > 0) & (z < p))
+    case3 = np.where((fx > 0) & (z == p))
+    case4 = np.where((fx > 0) & (z > p) & (z < 1 - p))
     case5 = np.where((fx > 0) & (z == 1 - p))
     case6 = np.where((fx > 0) & (z > 1 - p) & (z ** 2 - p ** 2 < 1))
     case7 = np.where((fx > 0) & (z ** 2 - p ** 2 == 1))
     case8 = np.where((fx > 0) & (z ** 2 - p ** 2 > 1) & (z < 1 + p))
+
     ## cross points
     zero = np.zeros(len(z))
     ones = np.ones_like(z)
@@ -181,7 +184,7 @@ def model((a1, a2, a3, a4), RP, P, A, E, I, W, WW, T0, tt):
     th = np.arcsin(np.where(p / z > 1.0, 1.0, p / z))
     ro = np.sqrt(abs(z ** 2 - p ** 2))
     ph = np.arccos(
-        np.where(( 1.0 - p ** 2 + z ** 2 ) / ( 2.0 * z ) > 1.0, 1.0, ( 1.0 - p ** 2 + z ** 2 ) / ( 2.0 * z )))
+        np.where((1.0 - p ** 2 + z ** 2) / (2.0 * z) > 1.0, 1.0, (1.0 - p ** 2 + z ** 2) / (2.0 * z)))
     ## flux
     plusflux = np.zeros(len(z))
     plusflux[case1] = INTCENT(a1, a2, a3, a4, p, z[case1], zero[case1], 2 * piar[case1])

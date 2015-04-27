@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import timeit
 
 import fcmodel
 
@@ -32,8 +33,8 @@ x2 = np.arange(t0ex - pex / 20, t0ex + pex / 20, 0.0005)[1::2]
 
 start_time = time.clock()
 
-y1 = fcmodel.model((a1ex, a2ex, a3ex, a4ex), prex, pex, aex, eex, iex, wex, wwex, t0ex, x1)
-y2 = fcmodel.model(fcmodel.ldcoeff(metall, teff, logg, filter), prex, pex, aex, eex, iex, wex, wwex, t0ex, x2)
+y1 = fcmodel.model((a1ex, a2ex, a3ex, a4ex), prex, pex, aex, eex, iex, wex, t0ex, x1, wwex)
+y2 = fcmodel.model(fcmodel.ldcoeff(metall, teff, logg, filter), prex, pex, aex, eex, iex, wex, t0ex, x2,  wwex)
 
 runtime = time.clock() - start_time
 print "Took {} s to generate the two models".format(runtime)
@@ -44,4 +45,9 @@ plt.xlabel(r'$time\,(t)\,[days]$')
 plt.ylabel(r'$relative\,flux\,(f(t))$')
 plt.ylim((plt.ylim()[0], 1.002))
 plt.xlim((x1[0], x2[-1]))
+
+print "Benchmarking 500 generations ~ 1m30"
+benchtime = timeit.timeit("fcmodel.model((a1ex, a2ex, a3ex, a4ex), prex, pex, aex, eex, iex, wex, t0ex, x1)", setup="from __main__ import *", number=500)
+print "Took average of {}ms per lightcurve".format(benchtime/500*1000)  # 500 samples, 1000ms
+
 plt.show()
