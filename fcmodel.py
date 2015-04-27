@@ -1,5 +1,6 @@
 import glob
 import os
+import math
 
 import numpy as np
 import scipy.integrate as spi
@@ -50,6 +51,10 @@ class PyLCError(BaseException):
 
 
 class PyLCFilterError(PyLCError):
+    pass
+
+
+class PyLCOptimiseError(PyLCError):
     pass
 
 
@@ -124,14 +129,22 @@ def position(P, A, E, I, W, T0, tt, WW=0):
     #
     M = (tt - T0 - np.int_((tt - T0) / P) * P) * 2.0 * pi / P
     u0 = M
+
     stop = False
-    while stop == False:
+    for i in xrange(1000):  # setting a limit of 1k iterations - arbitrary limit
         u1 = u0 - (u0 - E * np.sin(u0) - M) / (1 - E * np.cos(u0))
         stop = (np.abs(u1 - u0) < 10 ** (-7)).all()
-        if stop == True:
+        if stop:
             break
         else:
             u0 = u1
+
+            if math.isnan(stop):
+                raise ValueError("Nan produced in loop, check inputs")
+
+    if not stop:
+        raise PyLCOptimiseError("Failed to find a solution in 1000 loops")
+
     vv = 2 * np.arctan(np.sqrt((1 + E) / (1 - E)) * np.tan(u1 / 2))
     #
     rr = A * (1 - (E ** 2)) / (np.ones_like(vv) + E * np.cos(vv))
@@ -143,7 +156,7 @@ def position(P, A, E, I, W, T0, tt, WW=0):
     return [X, Y, Z]
 
 
-def model((a1, a2, a3, a4), transit_depth, P, a, e, i, W, T0, tt, WW=0):
+def model(ldcoeffs, transit_depth, P, a, e, i, W, T0, tt, WW=0):
     """ Generates the lightcurve model
 
     :param transit_depth: [dimensionless]
@@ -158,7 +171,12 @@ def model((a1, a2, a3, a4), transit_depth, P, a, e, i, W, T0, tt, WW=0):
     :return: transit depth for each element tt
     """
 
-    p = transit_depth
+    a1, a2, a3, a4 = ldcoeffs
+
+    if math.isnan(W):
+        W = 0.
+
+    p = np.sqrt(transit_depth)
     ## projected distance
     pos = position(P, a, e, i * pi / 180, W * pi / 180, T0, tt, WW * pi / 180)
     fx = pos[0]
