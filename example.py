@@ -30,13 +30,16 @@ filter = 'J'
 x1 = np.arange(t0ex - pex / 20, t0ex + pex / 20, 0.0005)[::2]
 x2 = np.arange(t0ex - pex / 20, t0ex + pex / 20, 0.0005)[1::2]
 
-start_time = time.clock()
-
+start_time1 = time.clock()
 y1 = fcmodel.model((a1ex, a2ex, a3ex, a4ex), prex, pex, aex, eex, iex, wex, wwex, t0ex, x1)
-y2 = fcmodel.model(fcmodel.ldcoeff(metall, teff, logg, filter), prex, pex, aex, eex, iex, wex, wwex, t0ex, x2)
+runtime1 = time.clock() - start_time1
 
-runtime = time.clock() - start_time
-print "Took {} s to generate the two models".format(runtime)
+start_time2 = time.clock()
+y2 = fcmodel.model(fcmodel.ldcoeff(metall, teff, logg, filter), prex, pex, aex, eex, iex, wex, wwex, t0ex, x2)
+runtime2 = time.clock() - start_time2
+
+print "Took {} s to generate the the model without searching for limb-darkening coefficients".format(runtime1)
+print "Took {} s to generate the the model including searching for limb-darkening coefficients".format(runtime2)
 
 plt.plot(x1, y1, 'ko')
 plt.plot(x2, y2, 'ro')
