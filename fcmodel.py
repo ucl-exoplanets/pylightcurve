@@ -64,17 +64,33 @@ def INTR(a1, a2, a3, a4, r):
     return AA4 + AA5 + AA6 + AA7 + AA8
 
 
-def num(r, a1, a2, a3, a4, p, z):
-    return (1.0 - a1 * (1.0 - (1.0 - r ** 2) ** (1.0 / 4)) - a2 * (1.0 - (1.0 - r ** 2) ** (1.0 / 2)) - a3 * (
-    1.0 - (1.0 - r ** 2) ** (3.0 / 4)) - a4 * (1.0 - (1.0 - r ** 2)) ) * r * np.arccos(
-        ( -p ** 2 + z ** 2 + r ** 2 ) / ( 2.0 * z * r ))
+# def num(r, a1, a2, a3, a4, p, z):
+#     return (1.0 - a1 * (1.0 - (1.0 - r ** 2) ** (1.0 / 4)) - a2 * (1.0 - (1.0 - r ** 2) ** (1.0 / 2)) - a3 * (
+#     1.0 - (1.0 - r ** 2) ** (3.0 / 4)) - a4 * (1.0 - (1.0 - r ** 2)) ) * r * np.arccos(
+#         ( -p ** 2 + z ** 2 + r ** 2 ) / ( 2.0 * z * r ))
+# 
+# 
+# def intr0(a1, a2, a3, a4, p, z, r1, r2):
+#     return spi.quad(num, r1, r2, args=(a1, a2, a3, a4, p, z))[0]
+# 
+# 
+# intr = np.vectorize(intr0)
+
+def num(r,a1,a2,a3,a4,p,z):
+	arccos	=	(( -p**2 + z**2 +r**2 )/( 2.0*z*r ))
+	arccos	=	np.where(arccos>1,1,arccos)
+	return ( 1.0 - a1*(1.0 - (1.0 - r**2)**(1.0/4)) - a2*(1.0 - (1.0 - r**2)**(1.0/2)) - a3*(1.0 - (1.0 - r**2)**(3.0/4)) - a4*(1.0 - (1.0 - r**2)) )*r*np.arccos( arccos )
 
 
-def intr0(a1, a2, a3, a4, p, z, r1, r2):
-    return spi.quad(num, r1, r2, args=(a1, a2, a3, a4, p, z))[0]
-
-
-intr = np.vectorize(intr0)
+def intr(a1,a2,a3,a4,p,z,r1,r2):
+	bins	=	30.0
+	h		=	(r2-r1)/bins
+	test1	=	np.meshgrid(r1,range(int(bins)))
+	test1	=	test1[0] + h*test1[1]
+	test2	=	test1 + h
+	z		=	np.meshgrid(z,range(int(bins)))[0]
+	result	=	((test2-test1)/6.0)*(num(test1,a1,a2,a3,a4,p,z)+4.0*num((test1+test2)/2.0,a1,a2,a3,a4,p,z)+num(test2,a1,a2,a3,a4,p,z))
+	return np.sum(result,0)
 
 
 def INTCENT(a1, a2, a3, a4, p, z, ww1, ww2):
