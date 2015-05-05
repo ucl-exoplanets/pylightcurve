@@ -48,3 +48,11 @@ plt.ylabel(r'$relative\,flux\,(f(t))$')
 plt.ylim((plt.ylim()[0], 1.002))
 plt.xlim((x1[0], x2[-1]))
 plt.show()
+
+
+start_time1 = time.clock()
+for i in range(1000):
+	y1 = fcmodel.model((a1ex, a2ex, a3ex, a4ex), prex, pex, aex, eex, iex, wex, wwex, t0ex, x1)
+runtime1 = time.clock() - start_time1
+
+print "Mean time from 1000 iterations = {} s".format(runtime1/1000)
