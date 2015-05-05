@@ -1,5 +1,6 @@
 import glob
 import os
+import math
 
 import numpy as np
 import scipy.integrate as spi
@@ -50,6 +51,10 @@ class PyLCError(BaseException):
 
 
 class PyLCFilterError(PyLCError):
+    pass
+
+
+class PyLCOptimiseError(PyLCError):
     pass
 
 
@@ -127,7 +132,7 @@ def INTMINS(a1, a2, a3, a4, p, z, ww1, rr1, ww2, rr2):
     return PARTA + PARTB + PARTC - PARTD
 
 
-def position(P, A, E, I, W, WW, T0, tt):
+def position(P, A, E, I, W, T0, tt, WW=0):
     #
     if W < pi / 2:
         AA = 1.0 * pi / 2 - W
@@ -140,14 +145,22 @@ def position(P, A, E, I, W, WW, T0, tt):
     #
     M = (tt - T0 - np.int_((tt - T0) / P) * P) * 2.0 * pi / P
     u0 = M
+
     stop = False
-    while stop == False:
+    for i in xrange(1000):  # setting a limit of 1k iterations - arbitrary limit
         u1 = u0 - (u0 - E * np.sin(u0) - M) / (1 - E * np.cos(u0))
         stop = (np.abs(u1 - u0) < 10 ** (-7)).all()
-        if stop == True:
+        if stop:
             break
         else:
             u0 = u1
+
+            if math.isnan(stop):
+                raise ValueError("Nan produced in loop, check inputs")
+
+    if not stop:
+        raise PyLCOptimiseError("Failed to find a solution in 1000 loops")
+
     vv = 2 * np.arctan(np.sqrt((1 + E) / (1 - E)) * np.tan(u1 / 2))
     #
     rr = A * (1 - (E ** 2)) / (np.ones_like(vv) + E * np.cos(vv))
@@ -159,31 +172,38 @@ def position(P, A, E, I, W, WW, T0, tt):
     return [X, Y, Z]
 
 
-def model((a1, a2, a3, a4), RP, P, A, E, I, W, WW, T0, tt):
+def model(ldcoeffs, RpRs, P, a, e, i, W, T0, tt, WW=0):
     """ Generates the lightcurve model
-    :param RP:
-    :param P:
-    :param A:
-    :param E:
-    :param I:
-    :param W:
-    :param WW:
-    :param T0:
-    :param tt:
-    :return:
+
+    :param RpRs: [dimensionless]
+    :param P: Period [days]
+    :param a: Semi-major axis/ Rstar [dimensionless]
+    :param e: eccentricity [no units]
+    :param i: inclination [degrees]
+    :param W: argument of periastron [degrees]
+    :param T0: epoch [JD] (units must match tt)
+    :param tt: time array [JD] (units must match T0)
+    :param WW: Omega [degrees]
+    :return: transit depth for each element tt
     """
-    p = RP
+
+    a1, a2, a3, a4 = ldcoeffs
+
+    if math.isnan(W):
+        W = 0.
+
+    p =RpRs
     ## projected distance
-    pos = position(P, A, E, I * pi / 180, W * pi / 180, WW * pi / 180, T0, tt)
+    pos = position(P, a, e, i * pi / 180, W * pi / 180, T0, tt, WW * pi / 180)
     fx = pos[0]
     fy = pos[1]
     fz = pos[2]
     z = np.sqrt(fy ** 2 + fz ** 2)
     ## cases
-    case1 = np.where((fx > 0) & (z == 0  ))
-    case2 = np.where((fx > 0) & (z < p  ))
-    case3 = np.where((fx > 0) & (z == p  ))
-    case4 = np.where((fx > 0) & (z > p  ) & (z < 1 - p))
+    case1 = np.where((fx > 0) & (z == 0))
+    case2 = np.where((fx > 0) & (z < p))
+    case3 = np.where((fx > 0) & (z == p))
+    case4 = np.where((fx > 0) & (z > p) & (z < 1 - p))
     case5 = np.where((fx > 0) & (z == 1 - p))
     case6 = np.where((fx > 0) & (z > 1 - p) & (z ** 2 - p ** 2 < 1))
     case7 = np.where((fx > 0) & (z ** 2 - p ** 2 == 1))
@@ -192,7 +212,7 @@ def model((a1, a2, a3, a4), RP, P, A, E, I, W, WW, T0, tt):
     th = np.arcsin(np.where(p / z > 1.0, 1.0, p / z))
     ro = np.sqrt(abs(z ** 2 - p ** 2))
     ph = np.arccos(
-        np.where(( 1.0 - p ** 2 + z ** 2 ) / ( 2.0 * z ) > 1.0, 1.0, ( 1.0 - p ** 2 + z ** 2 ) / ( 2.0 * z )))
+        np.where((1.0 - p ** 2 + z ** 2) / (2.0 * z) > 1.0, 1.0, (1.0 - p ** 2 + z ** 2) / (2.0 * z)))
     ## flux
     plusflux = np.zeros(len(z))
     plusflux[case1] = INTCENT(a1, a2, a3, a4, p, z[case1], 0.0, 2 * pi)
