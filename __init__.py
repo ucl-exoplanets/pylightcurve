@@ -1,2 +1,2 @@
-__all__ = ['fcmodel']
+__all__ = ['fcmodel','mcmc']
 __version__ = 0.1
