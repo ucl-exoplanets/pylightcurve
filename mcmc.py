@@ -73,7 +73,10 @@ def model_fit(data,iter,burn,ldcoeffs,RP,RPvar,P,A,Avar,E,I,Ivar,W,T0,WW=0):
 	print 'Plotting model' 
 	plt.subplot2grid((4,1), (0,0), rowspan=3)
 	plt.plot(phase,datay,'bo',mec='b')
-	plt.plot(phase,model_lc,'rD',mec='r',ms=3)
+	datax2 = np.arange(datax[0],datax[-1],(datax[1]-datax[0])/100)
+	phase2 = (datax2-mtp)/P
+	model_lc2 = fcmodel.model((a1,a2,a3,a4),np.mean(result[0]),P,np.mean(result[1]),E,np.mean(result[2]),W,mtp,datax2,WW)
+	plt.plot(phase2,model_lc2,'r-')
 	xlim = np.max(np.abs([plt.xlim()[0],plt.xlim()[1]]))
 	plt.xlim(-xlim,xlim)
 	plt.text(	plt.xlim()[0]+0.02*(plt.xlim()[-1]-plt.xlim()[0]),
