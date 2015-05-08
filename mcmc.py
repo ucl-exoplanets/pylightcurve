@@ -56,7 +56,7 @@ def model_fit(data,iter,burn,ldcoeffs,RP,RPvar,P,A,Avar,E,I,Ivar,W,T0,WW=0):
 	w.write('param \tinitial \tfinal \terror\n')
 	w.write('RPORS\t{}\t{}\t{}\n'.format(RP,np.mean(result[0]),np.std(result[0])))
 	mtp			=	T0 + np.mean(result[3])
-	w.write('MTP\t{}\t{}.{}\t{}\n'.format(T0,int(mtp),str(mtp).split('.')[-1],np.std(result[3])))
+	w.write('MTP\t{}\t{:.15}\t{}\n'.format(T0,mtp,np.std(result[3])))
 	w.write('INCL\t{}\t{}\t{}\n'.format(I,np.mean(result[2]),np.std(result[2])))
 	w.write('SMAORS\t{}\t{}\t{}\n'.format(A,np.mean(result[1]),np.std(result[1])))
 	w.write('LDA1\t{}\n'.format(a1))
@@ -66,7 +66,7 @@ def model_fit(data,iter,burn,ldcoeffs,RP,RPvar,P,A,Avar,E,I,Ivar,W,T0,WW=0):
 	w.close()
 	phase = (datax-mtp)/P
 	model_lc = fcmodel.model((a1,a2,a3,a4),np.mean(result[0]),P,np.mean(result[1]),E,np.mean(result[2]),W,mtp,datax,WW)
-	model_rs = model_lc-datay
+	model_rs = datay-model_lc
 	np.savetxt('model_lc.txt',np.swapaxes([datax,phase,datay,model_lc,model_rs],0,1))
 	np.savetxt('resultlists.txt',np.swapaxes(result,0,1))
 	## plot
