@@ -43,7 +43,7 @@ def model_fit(data,iter,burn,ldcoeffs,RP,RPvar,P,A,Avar,E,I,Ivar,W,T0,WW=0):
 	M.isample(iter, burn = burn, verbose = 1)
 	M.db.close()
 	count1 = time.time()
-	print 'Sampling finished in {0} mins ( {1} points, {2} iterations ) \n'.format((count1-count0)/60,len(datax),iter)
+	print 'Sampling finished in {0:.5}mins ( {1} points, {2} iterations ) \n'.format((count1-count0)/60,len(datax),iter)
 	rpchain = M.trace('rp')[:]
 	achain  = M.trace('a' )[:]
 	ichain  = M.trace('i' )[:]
