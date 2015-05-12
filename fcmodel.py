@@ -150,6 +150,8 @@ def num(r,a1,a2,a3,a4,p,z):
 
 def intr(a1,a2,a3,a4,p,z,r1,r2):
 	gauss	=	gauss30
+	r1		=	np.clip(r1, 0, 1)
+	r2		=	np.clip(r2, 0, 1)
 	x1		=	(r2-r1)/2
 	x2		=	(r2+r1)/2
 	x1, l	=	np.meshgrid(x1,gauss[1])
@@ -164,9 +166,13 @@ def INTCENT(a1, a2, a3, a4, p, z, ww1, ww2):
     return ( INTR(a1, a2, a3, a4, p) - INTR(a1, a2, a3, a4, 0.0) ) * ( w2 - w1 )
 
 
-def INTPLUS(a1, a2, a3, a4, p, z, ww1, rr1, ww2, rr2):
+def INTPLUS(a1, a2, a3, a4, p, z, ww1, ww2):
     if len(z) == 0:
         return []
+    rr1 = z*np.cos(ww1) + np.sqrt(np.maximum(p**2-(z*np.sin(ww1))**2,0))
+    rr1 = np.clip(rr1,0,1)
+    rr2 = z*np.cos(ww2) + np.sqrt(np.maximum(p**2-(z*np.sin(ww2))**2,0))
+    rr2 = np.clip(rr2,0,1)
     w1 = np.minimum(ww1, ww2)
     r1 = np.minimum(rr1, rr2)
     w2 = np.maximum(ww1, ww2)
@@ -175,12 +181,17 @@ def INTPLUS(a1, a2, a3, a4, p, z, ww1, rr1, ww2, rr2):
     PARTB = INTR(a1, a2, a3, a4, r1) * (  w2 )
     PARTC = INTR(a1, a2, a3, a4, r2) * ( -w1 )
     PARTD = intr(a1, a2, a3, a4, p, z, r1, r2)
+    zero_case = np.where(z==0)
+    PARTD[zero_case] = INTCENT(a1, a2, a3, a4, p, z[zero_case], 0.0, 2*pi ) - PARTA - PARTB - PARTC
     return PARTA + PARTB + PARTC + PARTD
 
-
-def INTMINS(a1, a2, a3, a4, p, z, ww1, rr1, ww2, rr2):
+def INTMINS(a1, a2, a3, a4, p, z, ww1, ww2):
     if len(z) == 0:
         return []
+    rr1 = z*np.cos(ww1) - np.sqrt(np.maximum(p**2-(z*np.sin(ww1))**2,0))
+    rr1 = np.clip(rr1,0,1)
+    rr2 = z*np.cos(ww2) - np.sqrt(np.maximum(p**2-(z*np.sin(ww2))**2,0))
+    rr2 = np.clip(rr2,0,1)
     w1 = np.minimum(ww1, ww2)
     r1 = np.minimum(rr1, rr2)
     w2 = np.maximum(ww1, ww2)
@@ -268,25 +279,35 @@ def model(ldcoeffs, RpRs, P, a, e, i, W, T0, tt, WW=0):
     case6 = np.where((fx > 0) & (z > 1 - p) & (z ** 2 - p ** 2 < 1))
     case7 = np.where((fx > 0) & (z ** 2 - p ** 2 == 1))
     case8 = np.where((fx > 0) & (z ** 2 - p ** 2 > 1) & (z < 1 + p))
+    pcase = np.concatenate((case1[0],case2[0],case3[0],case4[0],case5[0],case6[0]))
+    mcase = np.concatenate((case4[0],case5[0],case6[0],case7[0],case8[0]))
+    scase = np.concatenate((case6[0],case7[0],case8[0]))
     ## cross points
     th = np.arcsin(np.where(p / z > 1.0, 1.0, p / z))
-    ro = np.sqrt(abs(z ** 2 - p ** 2))
     ph = np.arccos(
         np.where((1.0 - p ** 2 + z ** 2) / (2.0 * z) > 1.0, 1.0, (1.0 - p ** 2 + z ** 2) / (2.0 * z)))
-    ## flux
-    plusflux = np.zeros(len(z))
-    plusflux[case1] = INTCENT(a1, a2, a3, a4, p, z[case1], 0.0, 2 * pi)
-    plusflux[case2] = INTPLUS(a1, a2, a3, a4, p, z[case2], 0.0, p + z[case2], pi, p - z[case2])
-    plusflux[case3] = INTPLUS(a1, a2, a3, a4, p, z[case3], 0.0, 2 * p, pi / 2, 0.0)
-    plusflux[case4] = INTPLUS(a1, a2, a3, a4, p, z[case4], 0.0, p + z[case4], th[case4], ro[case4])
-    plusflux[case5] = INTPLUS(a1, a2, a3, a4, p, z[case5], 0.0, 1.0, th[case5], ro[case5])
-    plusflux[case6] = INTPLUS(a1, a2, a3, a4, p, z[case6], ph[case6], 1.0, th[case6], ro[case6])
-    minsflux = np.zeros(len(z))
-    minscase = np.concatenate((case4[0],case5[0],case6[0],case7[0]))
-    minsflux[minscase] = INTMINS(a1, a2, a3, a4, p, z[minscase], 0.0, z[minscase] - p, th[minscase], ro[minscase])
-    minsflux[case8] = INTMINS(a1, a2, a3, a4, p, z[case8], 0.0, z[case8] - p, ph[case8], 1.0)
-    starflux = np.zeros(len(z))
-    starcase = np.concatenate((case6[0],case7[0],case8[0]))
-    starflux[starcase] = INTCENT(a1, a2, a3, a4, 1, z[starcase], 0.0, ph[starcase])
+    ## flux_upper
+    plusflux		=	np.zeros(len(z))
+    theta_1			=	np.zeros(len(z))
+    theta_1[case6]	=	ph[case6]
+    theta_2			=	np.full_like(th,th)
+    theta_2[case1]	=	2.0*pi
+    theta_2[case2]	=	pi
+    theta_2[case3]	=	pi/2.0
+    plusflux[pcase]	=	INTPLUS(a1, a2, a3, a4, p, z[pcase], theta_1[pcase], theta_2[pcase] )
+    ## flux_lower
+    minsflux		=	np.zeros(len(z))
+    theta_2			=	np.full_like(th,th)
+    theta_2[case8]	=	ph[case8]
+    minsflux[mcase]	=	INTMINS(a1, a2, a3, a4, p, z[mcase], 0.0, theta_2[mcase] )
+    ## flux_star
+    starflux		=	np.zeros(len(z))
+    starflux[scase]	=	INTCENT(a1, a2, a3, a4, 1, z[scase], 0.0, ph[scase] )
+    ## flux_final
     F0 = INTCENT(a1, a2, a3, a4, 1, 0, 0.0, 2.0 * pi)
     return np.array(1 - 2.0 * ( plusflux + starflux - minsflux ) / F0)
+
+
+
+
+
