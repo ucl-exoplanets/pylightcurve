@@ -33,9 +33,9 @@ a1ex, a2ex, a3ex, a4ex = fcmodel.ldcoeff(metall, teff, logg, filter)
 
 
 # transit parameters
-# period [ days ]
-prex = 0.15
 # planet radius / stellar radius [ no units]
+prex = 0.15
+# period [ days ]
 pex = 2.2
 # semi-major axis / stellar radius [ no units ]
 aex = 9.0
@@ -71,7 +71,7 @@ print "\n{:.5}ms per lightcurve ( from {} iterations )\n".format(benchtime/iter*
 
 plt.show()
 
-
+# exit()
 
 # create a fake observation with noise to test fitting
 noise = 0.0005

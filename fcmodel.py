@@ -169,6 +169,10 @@ def INTCENT(a1, a2, a3, a4, p, z, ww1, ww2):
 def INTPLUS(a1, a2, a3, a4, p, z, ww1, ww2):
     if len(z) == 0:
         return []
+    try:
+    	a = len(ww1)
+    except:
+    	ww1 = np.ones_like(z)*ww1
     rr1 = z*np.cos(ww1) + np.sqrt(np.maximum(p**2-(z*np.sin(ww1))**2,0))
     rr1 = np.clip(rr1,0,1)
     rr2 = z*np.cos(ww2) + np.sqrt(np.maximum(p**2-(z*np.sin(ww2))**2,0))
@@ -182,7 +186,10 @@ def INTPLUS(a1, a2, a3, a4, p, z, ww1, ww2):
     PARTC = INTR(a1, a2, a3, a4, r2) * ( -w1 )
     PARTD = intr(a1, a2, a3, a4, p, z, r1, r2)
     zero_case = np.where(z==0)
-    PARTD[zero_case] = INTCENT(a1, a2, a3, a4, p, z[zero_case], 0.0, 2*pi ) - PARTA - PARTB - PARTC
+    PARTA[zero_case] = 0
+    PARTB[zero_case] = 0 
+    PARTC[zero_case] = 0
+    PARTD[zero_case] = INTCENT(a1, a2, a3, a4, p, z[zero_case], 0.0, 2*pi )
     return PARTA + PARTB + PARTC + PARTD
 
 def INTMINS(a1, a2, a3, a4, p, z, ww1, ww2):
