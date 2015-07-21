@@ -1,2 +1,5 @@
-__all__ = ['fcmodel','mcmc']
-__version__ = 0.1
+__version__ = 1.0
+
+
+from lc import *
+from models import *
