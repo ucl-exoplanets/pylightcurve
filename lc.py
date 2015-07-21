@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import ephem
 
 import models
+import mcmc
 import animation
 import tasks
 
@@ -41,11 +42,10 @@ class Planet:
                 '   inclination [deg]  = %g \n'
                 '   omega       [deg]  = %g \n'
                 '   Omega       [deg]  = %g \n'
-                '   mid_transit [days] = %g \n'
+                '   mid_transit [jd]   = %g \n'
                 % (self.rp_rs, self.period,
                     self.a_rs, self.eccentricity, self.inclination,
-                    self.omega, self.Omega, self.mid_transit)
-                )
+                    self.omega, self.Omega, self.mid_transit))
 
     def set_example(self):
         self.rp_rs = 0.15
@@ -75,21 +75,25 @@ class Planet:
         if np.isnan(self.mid_transit):
             raise PyLCValueError("mid_transit is not set")
 
-    def next_transit(self, number):
+    def next_transit(self, timezone, number):
         self.test()
-        # ww = self.omega * np.pi / 180
-        # ii = self.inclination * np.pi / 180
-        #
-        # ro_pt = (1 - e ** 2)/(1+e*np.sin(ww))
-        # b_pt = a*ro_pt*np.cos(ii)
-        # s_ps = 1.0 + RpRs
-        # df = np.arcsin(np.sqrt((s_ps**2-b_pt**2)/((a**2)*(ro_pt**2)-b_pt**2)))
-        # aprox = (P*(ro_pt**2))/(np.pi*np.sqrt(1-e**2))*df
+        ww = self.omega * np.pi / 180
+        ii = self.inclination * np.pi / 180
+        ee = self.eccentricity
+        aa = self.a_rs
+        ro_pt = (1 - ee ** 2) / (1 + ee * np.sin(ww))
+        b_pt = aa * ro_pt * np.cos(ii)
+        s_ps = 1.0 + self.rp_rs
+        df = np.arcsin(np.sqrt((s_ps ** 2 - b_pt ** 2) / ((aa ** 2) * (ro_pt ** 2) - b_pt ** 2)))
+        duration = (self.period * (ro_pt ** 2)) / (np.pi * np.sqrt(1 - ee ** 2)) * df
         now = float(ephem.now())
         t0 = self.mid_transit - 2415020.0
         next_transit = t0 + (int((now - t0) / self.period) + 1) * self.period
         for i in range(number):
-            print ephem.date(next_transit + i * self.period)
+            transit_start = ephem.date(next_transit + i * self.period - duration + timezone / 24.0)
+            transit_midle = ephem.date(next_transit + i * self.period + timezone / 24.0)
+            transit_close = ephem.date(next_transit + i * self.period + duration + timezone / 24.0)
+            print transit_start, transit_midle, transit_close
 
 
 class Star:
@@ -113,8 +117,7 @@ class Star:
                 '   ld_3               = %g \n'
                 '   ld_4               = %g \n'
                 % (self.temperature, self.metallicity, self.logg,
-                   self.ld_1, self.ld_2, self.ld_3, self.ld_4)
-                )
+                   self.ld_1, self.ld_2, self.ld_3, self.ld_4))
 
     def set_example(self):
         self.temperature = 6590
@@ -157,64 +160,58 @@ class Star:
         if np.isnan(self.ld_1):
             raise PyLCValueError("limb darkening coefficients are not set")
 
-    def transit_lightcurve(self, planet, time_seq):
+    def transit_lightcurve(self, planet, time_seq, plot=False, save=False, file_name='Lightcurve'):
         self.test()
         planet.test()
-        return models.transit((self.ld_1, self.ld_2, self.ld_3, self.ld_4),
-                              planet.rp_rs, planet.period, planet.a_rs, planet.eccentricity,
-                              planet.inclination, planet.omega, planet.Omega, planet.mid_transit,
-                              time_seq
-                              )
-    
-    def plot_transit_lightcurve(self, planet, time_seq, save=False, file_name='Lightcurve'):
         lightcurve = models.transit((self.ld_1, self.ld_2, self.ld_3, self.ld_4),
                                     planet.rp_rs, planet.period, planet.a_rs, planet.eccentricity,
                                     planet.inclination, planet.omega, planet.Omega, planet.mid_transit,
-                                    time_seq
-                                    )
-        plt.plot((time_seq - planet.mid_transit) / planet.period, lightcurve, 'k-', lw=2)
-        plt.xlabel(r'$ phase $')
-        plt.ylabel(r'$ relative \, flux $')
-        plt.ylim((plt.ylim()[0], 1.002))
-        if save:
-            plt.savefig(file_name, dpi=200)
-        else:
-            plt.show()
+                                    time_seq)
+        if plot:
+            plt.plot((time_seq - planet.mid_transit) / planet.period, lightcurve, 'k-', lw=2)
+            plt.xlabel(r'$ phase $')
+            plt.ylabel(r'$ relative \, flux $')
+            plt.ylim((plt.ylim()[0], 1.002))
+            if save:
+                plt.savefig(file_name, dpi=200)
+            else:
+                plt.show()
+            plt.close()
+        return lightcurve
     
     def animate_transit_lightcurve(self, planet, time_seq, save=False, file_name='Animation'):
         animation.animation((self.ld_1, self.ld_2, self.ld_3, self.ld_4),
                             planet.rp_rs, planet.period, planet.a_rs, planet.eccentricity,
                             planet.inclination, planet.omega, planet.Omega, planet.mid_transit,
-                            time_seq, save, file_name
-                            )
+                            time_seq, save, file_name)
 
 
-#
-#
-# ##########################################################################################
-# class Observation:
-#     def __init__(self,data):
-#         if isinstance(data, basestring):
-#             self.time, self.flux = np.loadtxt(data,usecols=[0,1],unpack=True)
-#         else:
-#             self.time, self.flux = data
-#
-#     def __repr__(self):
-#         return '<Observation object from {0} to {1}>'.format(self.time[0],self.time[-1])
-#
-#     def Compare(self, Star, Planet, save=False):
-#         model = Star.Lightcurve(Planet, self.time)
-#         plt.plot((self.time-Planet.mid_transit)/Planet.period, self.flux, 'bo')
-#         plt.plot((self.time-Planet.mid_transit)/Planet.period, model, 'r-')
-#         plt.xlabel(r'$ phase $')
-#         plt.ylabel(r'$ relative \, flux $')
-#         if save:
-#             plt.savefig('Compare.png',dpi=200)
-#         plt.show()
-#
-#     def MCMC(self, Star, Planet, Iterations, Burn, RPvar, Avar, Ivar):
-#         fcmodel.model_fit((self.time, self.flux), Iterations, Burn,
-#                     (Star.ld_1, Star.ld_2, Star.ld_3, Star.ld_4),
-#                     Planet.rp_rs, RPvar, Planet.period, Planet.a_rs, Avar, Planet.eccentricity,
-#                     Planet.inclination, Ivar, Planet.omega, Planet.Omega, Planet.mid_transit)
-# ##########################################################################################
+class Data:
+    def __init__(self, data):
+        if isinstance(data, basestring):
+            self.time, self.flux = np.loadtxt(data, usecols=[0, 1], unpack=True)
+        else:
+            self.time, self.flux = data
+
+    def __repr__(self):
+        return '<Observation object from {0} to {1}>'.format(self.time[0], self.time[-1])
+
+    def compare(self, star, planet):
+        model = star.transit_lightcurve(planet, self.time)
+        plt.plot((self.time - planet.mid_transit) / planet.period, self.flux, 'bo')
+        plt.plot((self.time - planet.mid_transit) / planet.period, model, 'r-')
+        plt.xlabel(r'$ phase $')
+        plt.ylabel(r'$ relative \, flux $')
+        plt.show()
+
+    def transit_fitting(self, star, planet, iterations, burn, binning, rpvar, avar, ivar, fit_limb_darkening=False):
+        if fit_limb_darkening:
+            mcmc.transit_ld((self.time, self.flux), iterations, burn, binning,
+                                    (star.ld_1, star.ld_2, star.ld_3, star.ld_4),
+                                    planet.rp_rs, rpvar, planet.period, planet.a_rs, avar, planet.eccentricity,
+                                    planet.inclination, ivar, planet.omega, planet.Omega, planet.mid_transit)
+        else:
+            mcmc.transit((self.time, self.flux), iterations, burn, binning,
+                                 (star.ld_1, star.ld_2, star.ld_3, star.ld_4),
+                                 planet.rp_rs, rpvar, planet.period, planet.a_rs, avar, planet.eccentricity,
+                                 planet.inclination, ivar, planet.omega, planet.Omega, planet.mid_transit)
