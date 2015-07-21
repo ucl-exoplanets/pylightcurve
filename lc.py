@@ -77,19 +77,19 @@ class Planet:
 
     def next_transit(self, number):
         self.test()
-        ww = self.omega * np.pi / 180
-        ii = self.inclination * np.pi / 180
-
-        ro_pt = (1 - e ** 2)/(1+e*np.sin(ww))
-        b_pt = a*ro_pt*np.cos(ii)
-        s_ps = 1.0 + RpRs
-        df = np.arcsin(np.sqrt((s_ps**2-b_pt**2)/((a**2)*(ro_pt**2)-b_pt**2)))
-        aprox = (P*(ro_pt**2))/(np.pi*np.sqrt(1-e**2))*df
+        # ww = self.omega * np.pi / 180
+        # ii = self.inclination * np.pi / 180
+        #
+        # ro_pt = (1 - e ** 2)/(1+e*np.sin(ww))
+        # b_pt = a*ro_pt*np.cos(ii)
+        # s_ps = 1.0 + RpRs
+        # df = np.arcsin(np.sqrt((s_ps**2-b_pt**2)/((a**2)*(ro_pt**2)-b_pt**2)))
+        # aprox = (P*(ro_pt**2))/(np.pi*np.sqrt(1-e**2))*df
         now = float(ephem.now())
         t0 = self.mid_transit - 2415020.0
-        next = t0 + (int((now - t0) / self.period) + 1) * self.period
+        next_transit = t0 + (int((now - t0) / self.period) + 1) * self.period
         for i in range(number):
-            print ephem.date(next + i * self.period)
+            print ephem.date(next_transit + i * self.period)
 
 
 class Star:
@@ -189,37 +189,32 @@ class Star:
                             )
 
 
-
-
-
-
-
-##########################################################################################
-class Observation:
-    def __init__(self,data):
-        if isinstance(data, basestring):
-            self.time, self.flux = np.loadtxt(data,usecols=[0,1],unpack=True)
-        else:
-            self.time, self.flux = data
-    
-    def __repr__(self):
-        return '<Observation object from {0} to {1}>'.format(self.time[0],self.time[-1])
-    
-    def Compare(self, Star, Planet, save=False):
-        model = Star.Lightcurve(Planet, self.time)
-        plt.plot((self.time-Planet.mid_transit)/Planet.period, self.flux, 'bo')
-        plt.plot((self.time-Planet.mid_transit)/Planet.period, model, 'r-')
-        plt.xlabel(r'$ phase $')
-        plt.ylabel(r'$ relative \, flux $')
-        if save:
-            plt.savefig('Compare.png',dpi=200)
-        plt.show()
-    
-    def MCMC(self, Star, Planet, Iterations, Burn, RPvar, Avar, Ivar):
-        fcmodel.model_fit((self.time, self.flux), Iterations, Burn,
-                    (Star.ld_1, Star.ld_2, Star.ld_3, Star.ld_4),
-                    Planet.rp_rs, RPvar, Planet.period, Planet.a_rs, Avar, Planet.eccentricity, 
-                    Planet.inclination, Ivar, Planet.omega, Planet.Omega, Planet.mid_transit)
-##########################################################################################
-
-
+#
+#
+# ##########################################################################################
+# class Observation:
+#     def __init__(self,data):
+#         if isinstance(data, basestring):
+#             self.time, self.flux = np.loadtxt(data,usecols=[0,1],unpack=True)
+#         else:
+#             self.time, self.flux = data
+#
+#     def __repr__(self):
+#         return '<Observation object from {0} to {1}>'.format(self.time[0],self.time[-1])
+#
+#     def Compare(self, Star, Planet, save=False):
+#         model = Star.Lightcurve(Planet, self.time)
+#         plt.plot((self.time-Planet.mid_transit)/Planet.period, self.flux, 'bo')
+#         plt.plot((self.time-Planet.mid_transit)/Planet.period, model, 'r-')
+#         plt.xlabel(r'$ phase $')
+#         plt.ylabel(r'$ relative \, flux $')
+#         if save:
+#             plt.savefig('Compare.png',dpi=200)
+#         plt.show()
+#
+#     def MCMC(self, Star, Planet, Iterations, Burn, RPvar, Avar, Ivar):
+#         fcmodel.model_fit((self.time, self.flux), Iterations, Burn,
+#                     (Star.ld_1, Star.ld_2, Star.ld_3, Star.ld_4),
+#                     Planet.rp_rs, RPvar, Planet.period, Planet.a_rs, Avar, Planet.eccentricity,
+#                     Planet.inclination, Ivar, Planet.omega, Planet.Omega, Planet.mid_transit)
+# ##########################################################################################
