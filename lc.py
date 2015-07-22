@@ -1,12 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import glob
 
 import ephem
 
 import models
 import mcmc
 import animation
-import tasks
+
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+pi = np.pi
 
 
 class PyLCError(BaseException):
@@ -19,6 +23,43 @@ class PyLCValueError(PyLCError):
 
 class PyLCFilterError(PyLCError):
     pass
+
+
+def ldcoeff(metall, teff, logg, phot_filter):
+    """ Looks up the non quadtractic limb darkening coefficients in the Claret table
+
+    :param metall: stellar metallicity (Fe/H)
+    :param teff: Effective temperature of the star (Kelvin)
+    :param logg: log(g) of the star
+    :param phot_filter: which filter to retreive the coefficents for out of u, v, b, y, U, B, V, R, I, J, H, K
+
+    :return: The 4 non quadratic limb darkening coefficients
+    :rtype: (a1, a2 ,a3, a4)
+
+    :raises PyLC_FilterError: If invalid filter is given
+    """
+    filterlist = (('u', 'v', 'b', 'y', 'U', 'B', 'V', 'R', 'I', 'J', 'H', 'K'),
+                  (4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15))
+
+    if phot_filter not in filterlist[0]:
+        raise PyLCFilterError("Invalid filter, got {} must be in {}".format(phot_filter, filterlist[0]))
+
+    # This could probably all be cleaned up by importing to a pandas dataframe
+    phot_filter = filterlist[1][filterlist[0].index(phot_filter)]
+    tables, mett = np.loadtxt(glob.glob(__location__ + '/*claretinfo*')[0], usecols=(0, 4), unpack=True)
+    table = str(int(tables[np.argmin(abs(metall - mett))]))
+    table_file = glob.glob(__location__ + '/*/TABLE' + table)[0]
+    logglist, tefflist = np.loadtxt(table_file, usecols=(1, 2), unpack=True, skiprows=5)
+    teff0 = tefflist[np.argmin(abs(teff - tefflist))]
+    logg0 = logglist[np.argmin(abs(logg - logglist))]
+    ld_coeffs = []
+    for i in open(table_file).readlines()[5:]:
+        coef = float(i.split()[phot_filter])
+        logg = float(i.split()[1])
+        teff = float(i.split()[2])
+        if logg == logg0 and teff == teff0:
+            ld_coeffs.append(coef)
+    return tuple(ld_coeffs)
 
 
 class Planet:
@@ -60,19 +101,19 @@ class Planet:
     def test(self):
         if np.isnan(self.rp_rs):
             raise PyLCValueError("rp_rs is not set")
-        if np.isnan(self.period):
+        elif np.isnan(self.period):
             raise PyLCValueError("period is not set")
-        if np.isnan(self.a_rs):
+        elif np.isnan(self.a_rs):
             raise PyLCValueError("a_rs is not set")
-        if np.isnan(self.eccentricity):
+        elif np.isnan(self.eccentricity):
             raise PyLCValueError("eccentricity is not set")
-        if np.isnan(self.inclination):
+        elif np.isnan(self.inclination):
             raise PyLCValueError("inclination is not set")
-        if np.isnan(self.omega):
+        elif np.isnan(self.omega):
             raise PyLCValueError("omega is not set")
-        if np.isnan(self.Omega):
+        elif np.isnan(self.Omega):
             raise PyLCValueError("Omega is not set")
-        if np.isnan(self.mid_transit):
+        elif np.isnan(self.mid_transit):
             raise PyLCValueError("mid_transit is not set")
 
     def next_transit(self, timezone, number):
@@ -97,68 +138,64 @@ class Planet:
 
 
 class Star:
-    def __init__(self):
-        self.temperature = np.nan
-        self.metallicity = np.nan
-        self.logg = np.nan
-        self.ld_1 = np.nan
-        self.ld_2 = np.nan
-        self.ld_3 = np.nan
-        self.ld_4 = np.nan
-    
+    def __init__(self, coefficients=None, properties=None):
+        coeficients_set = False
+        if isinstance(coefficients, tuple):
+            if len(coefficients) == 4:
+                self.metallicity, self.temperature, self.logg, self.filter = (np.nan, np.nan, np.nan, 'np.nan')
+                self.ld_1 = coefficients[0]
+                self.ld_2 = coefficients[1]
+                self.ld_3 = coefficients[2]
+                self.ld_4 = coefficients[3]
+                coeficients_set = True
+        if isinstance(properties, tuple):
+            if len(properties) == 4:
+                self.metallicity, self.temperature, self.logg, self.filter = properties
+                coefficients = ldcoeff(self.metallicity, self.temperature, self.logg, self.filter)
+                self.ld_1 = coefficients[0]
+                self.ld_2 = coefficients[1]
+                self.ld_3 = coefficients[2]
+                self.ld_4 = coefficients[3]
+                coeficients_set = True
+        if not coeficients_set:
+            raise PyLCValueError("\n The coefficients parameter should be a tuple with four elements "
+                                 "(the four limb darkening coefisients) or"
+                                 "\n the properties parameter should be a tuple with four elements "
+                                 "(metallicity, teff, logg)")
+
     def __repr__(self):
         """Present Star parameters."""
         return ('Stellar parameters: \n'
                 '   temperature [K]    = %g \n'
                 '   metallicity [Fe/H] = %g \n'
                 '   logg        [cgs]  = %g \n'
+                '   filter             = %s \n'
                 '   ld_1               = %g \n'
                 '   ld_2               = %g \n'
                 '   ld_3               = %g \n'
                 '   ld_4               = %g \n'
-                % (self.temperature, self.metallicity, self.logg,
+                % (self.temperature, self.metallicity, self.logg, self.filter,
                    self.ld_1, self.ld_2, self.ld_3, self.ld_4))
 
     def set_example(self):
         self.temperature = 6590
         self.metallicity = 0.01
         self.logg = 4.1
-
-    def set_limb_darkening(self, coefficients):
-        if isinstance(coefficients, str):
-            if np.isnan(self.temperature):
-                raise PyLCValueError("temperature is not set")
-            if np.isnan(self.metallicity):
-                raise PyLCValueError("metallicity is not set")
-            if np.isnan(self.logg):
-                raise PyLCValueError("logg is not set")
-            filterlist = ['u', 'v', 'b', 'y', 'U', 'B', 'V', 'R', 'I', 'J', 'H', 'K']
-            if coefficients not in filterlist:
-                raise PyLCFilterError("Invalid filter, got {} must be in \n {}".format(coefficients, filterlist))
-            else:
-                coefficients = tasks.ldcoeff(self.metallicity, self.temperature, self.logg, coefficients)
-                self.ld_1 = coefficients[0]
-                self.ld_2 = coefficients[1]
-                self.ld_3 = coefficients[2]
-                self.ld_4 = coefficients[3]
-        else:
-            if len(coefficients) != 4:
-                raise PyLCFilterError("Should give 4 coefficients")
-            else:
-                self.ld_1 = coefficients[0]
-                self.ld_2 = coefficients[1]
-                self.ld_3 = coefficients[2]
-                self.ld_4 = coefficients[3]
+        coefficients = ldcoeff(self.metallicity, self.temperature, self.logg, 'V')
+        self.ld_1 = coefficients[0]
+        self.ld_2 = coefficients[1]
+        self.ld_3 = coefficients[2]
+        self.ld_4 = coefficients[3]
 
     def test(self):
-        if np.isnan(self.temperature):
-            raise PyLCValueError("temperature is not set")
-        if np.isnan(self.metallicity):
-            raise PyLCValueError("metallicity is not set")
-        if np.isnan(self.logg):
-            raise PyLCValueError("logg is not set")
         if np.isnan(self.ld_1):
-            raise PyLCValueError("limb darkening coefficients are not set")
+            raise PyLCValueError("not all limb darkening coefficients are not set")
+        elif np.isnan(self.ld_1):
+            raise PyLCValueError("not all limb darkening coefficients are not set")
+        elif np.isnan(self.ld_1):
+            raise PyLCValueError("not all limb darkening coefficients are not set")
+        elif np.isnan(self.ld_1):
+            raise PyLCValueError("not all limb darkening coefficients are not set")
 
     def transit_lightcurve(self, planet, time_seq, plot=False, save=False, file_name='Lightcurve'):
         self.test()
@@ -207,11 +244,11 @@ class Data:
     def transit_fitting(self, star, planet, iterations, burn, binning, rpvar, avar, ivar, fit_limb_darkening=False):
         if fit_limb_darkening:
             mcmc.transit_ld((self.time, self.flux), iterations, burn, binning,
-                                    (star.ld_1, star.ld_2, star.ld_3, star.ld_4),
-                                    planet.rp_rs, rpvar, planet.period, planet.a_rs, avar, planet.eccentricity,
-                                    planet.inclination, ivar, planet.omega, planet.Omega, planet.mid_transit)
+                            (star.ld_1, star.ld_2, star.ld_3, star.ld_4),
+                            planet.rp_rs, rpvar, planet.period, planet.a_rs, avar, planet.eccentricity,
+                            planet.inclination, ivar, planet.omega, planet.Omega, planet.mid_transit)
         else:
             mcmc.transit((self.time, self.flux), iterations, burn, binning,
-                                 (star.ld_1, star.ld_2, star.ld_3, star.ld_4),
-                                 planet.rp_rs, rpvar, planet.period, planet.a_rs, avar, planet.eccentricity,
-                                 planet.inclination, ivar, planet.omega, planet.Omega, planet.mid_transit)
+                         (star.ld_1, star.ld_2, star.ld_3, star.ld_4),
+                         planet.rp_rs, rpvar, planet.period, planet.a_rs, avar, planet.eccentricity,
+                         planet.inclination, ivar, planet.omega, planet.Omega, planet.mid_transit)

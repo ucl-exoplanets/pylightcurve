@@ -1,5 +1,47 @@
-from tasks import *
+import numpy as np
 pi = np.pi
+
+
+class PyLCError(BaseException):
+    pass
+
+
+class PyLCOptimiseError(PyLCError):
+    pass
+
+
+def position(p, a, e, i, w, ww, t0, tt):
+    if w < pi / 2:
+        aa = 1.0 * pi / 2 - w
+    else:
+        aa = 5.0 * pi / 2 - w
+    bb = 2 * np.arctan(np.sqrt((1 - e) / (1 + e)) * np.tan(aa / 2))
+    if bb < 0:
+        bb += 2 * pi
+    t0 -= (p / 2.0 / pi) * (bb - e * np.sin(bb))
+    m = (tt - t0 - np.int_((tt - t0) / p) * p) * 2.0 * pi / p
+    u0 = m
+    stop = False
+    u1 = 0
+    for ii in xrange(10000):  # setting a limit of 1k iterations - arbitrary limit
+        u1 = u0 - (u0 - e * np.sin(u0) - m) / (1 - e * np.cos(u0))
+        stop = (np.abs(u1 - u0) < 10 ** (-7)).all()
+        if stop:
+            break
+        else:
+            u0 = u1
+    if not stop:
+        raise PyLCOptimiseError("Failed to find a solution in 10000 loops")
+    vv = 2 * np.arctan(np.sqrt((1 + e) / (1 - e)) * np.tan(u1 / 2))
+    #
+    rr = a * (1 - (e ** 2)) / (np.ones_like(vv) + e * np.cos(vv))
+    aa = np.cos(vv + w)
+    bb = np.sin(vv + w)
+    x = rr * bb * np.sin(i)
+    y = rr * (-aa * np.cos(ww) + bb * np.sin(ww) * np.cos(i))
+    z = rr * (-aa * np.sin(ww) - bb * np.cos(ww) * np.cos(i))
+    return [x, y, z]
+
 
 gauss30 = [
     [0.1028526528935588, -0.0514718425553177],
@@ -33,7 +75,6 @@ gauss30 = [
     [0.0079681924961666, -0.9968934840746495],
     [0.0079681924961666, 0.9968934840746495]
 ]
-
 gauss30 = np.swapaxes(gauss30, 0, 1)
 
 
