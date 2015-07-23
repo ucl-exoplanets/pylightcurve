@@ -161,7 +161,7 @@ class Star:
             raise PyLCValueError("\n The coefficients parameter should be a tuple with four elements "
                                  "(the four limb darkening coefisients) or"
                                  "\n the properties parameter should be a tuple with four elements "
-                                 "(metallicity, teff, logg)")
+                                 "(metallicity, teff, logg, photometric filter)")
 
     def __repr__(self):
         """Present Star parameters."""
@@ -187,18 +187,7 @@ class Star:
         self.ld_3 = coefficients[2]
         self.ld_4 = coefficients[3]
 
-    def test(self):
-        if np.isnan(self.ld_1):
-            raise PyLCValueError("not all limb darkening coefficients are not set")
-        elif np.isnan(self.ld_1):
-            raise PyLCValueError("not all limb darkening coefficients are not set")
-        elif np.isnan(self.ld_1):
-            raise PyLCValueError("not all limb darkening coefficients are not set")
-        elif np.isnan(self.ld_1):
-            raise PyLCValueError("not all limb darkening coefficients are not set")
-
     def transit_lightcurve(self, planet, time_seq, plot=False, save=False, file_name='Lightcurve'):
-        self.test()
         planet.test()
         lightcurve = models.transit((self.ld_1, self.ld_2, self.ld_3, self.ld_4),
                                     planet.rp_rs, planet.period, planet.a_rs, planet.eccentricity,
