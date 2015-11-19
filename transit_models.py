@@ -1,4 +1,8 @@
 import numpy as np
+import os
+import glob
+
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 pi = np.pi
 
 
@@ -8,6 +12,40 @@ class PyLCError(BaseException):
 
 class PyLCOptimiseError(PyLCError):
     pass
+
+
+class PyLCValueError(PyLCError):
+    pass
+
+
+class PyLCFilterError(PyLCError):
+    pass
+
+
+def ldcoeff(metall, teff, logg, phot_filter):
+
+    filterlist = (('u', 'v', 'b', 'y', 'U', 'B', 'V', 'R', 'I', 'J', 'H', 'K'),
+                  (4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15))
+
+    if phot_filter not in filterlist[0]:
+        raise PyLCFilterError("Invalid filter, got {} must be in {}".format(phot_filter, filterlist[0]))
+
+    # This could probably all be cleaned up by importing to a pandas dataframe
+    phot_filter = filterlist[1][filterlist[0].index(phot_filter)]
+    tables, mett = np.loadtxt(glob.glob(__location__ + '/*/*claretinfo*')[0], usecols=(0, 4), unpack=True)
+    table = str(int(tables[np.argmin(abs(metall - mett))]))
+    table_file = glob.glob(__location__ + '/*/*/TABLE' + table)[0]
+    logglist, tefflist = np.loadtxt(table_file, usecols=(1, 2), unpack=True, skiprows=5)
+    teff0 = tefflist[np.argmin(abs(teff - tefflist))]
+    logg0 = logglist[np.argmin(abs(logg - logglist))]
+    ld_coeffs = []
+    for i in open(table_file).readlines()[5:]:
+        coef = float(i.split()[phot_filter])
+        logg = float(i.split()[1])
+        teff = float(i.split()[2])
+        if logg == logg0 and teff == teff0:
+            ld_coeffs.append(coef)
+    return tuple(ld_coeffs)
 
 
 def position(p, a, e, i, w, ww, t0, tt):
