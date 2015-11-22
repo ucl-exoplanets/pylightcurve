@@ -49,6 +49,16 @@ def ldcoeff(metall, teff, logg, phot_filter):
 
 
 def position(p, a, e, i, w, ww, t0, tt):
+
+    if e == 0 and ww == 0:
+        vv = (tt - t0) * (2 * np.pi / p)
+        aa = -np.sin(vv)
+        bb = np.cos(vv)
+        x = a * bb * np.sin(i)
+        y = a * (-aa)
+        z = a * (-bb * np.cos(i))
+        return [x, y, z]
+
     if w < pi / 2:
         aa = 1.0 * pi / 2 - w
     else:
