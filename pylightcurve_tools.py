@@ -1,24 +1,21 @@
-import numpy as np
-import os
 import glob
+import os
+
+import numpy as np
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 pi = np.pi
 
 
-class PyLCError(BaseException):
+class PYLCError(BaseException):
     pass
 
 
-class PyLCOptimiseError(PyLCError):
+class PYLCOptimiseError(PYLCError):
     pass
+    
 
-
-class PyLCValueError(PyLCError):
-    pass
-
-
-class PyLCFilterError(PyLCError):
+class PYLCFilterError(PYLCError):
     pass
 
 
@@ -28,13 +25,13 @@ def ldcoeff(metall, teff, logg, phot_filter):
                   (4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15))
 
     if phot_filter not in filterlist[0]:
-        raise PyLCFilterError("Invalid filter, got {} must be in {}".format(phot_filter, filterlist[0]))
+        raise PYLCFilterError("Invalid filter, got {} must be in {}".format(phot_filter, filterlist[0]))
 
     # This could probably all be cleaned up by importing to a pandas dataframe
     phot_filter = filterlist[1][filterlist[0].index(phot_filter)]
-    tables, mett = np.loadtxt(glob.glob(__location__ + '/*/*claretinfo*')[0], usecols=(0, 4), unpack=True)
+    tables, mett = np.loadtxt(glob.glob(__location__ + '/claret/claretinfo.txt')[0], usecols=(0, 4), unpack=True)
     table = str(int(tables[np.argmin(abs(metall - mett))]))
-    table_file = glob.glob(__location__ + '/*/*/TABLE' + table)[0]
+    table_file = glob.glob(__location__ + '/claret/claret_tables/TABLE' + table)[0]
     logglist, tefflist = np.loadtxt(table_file, usecols=(1, 2), unpack=True, skiprows=5)
     teff0 = tefflist[np.argmin(abs(teff - tefflist))]
     logg0 = logglist[np.argmin(abs(logg - logglist))]
@@ -49,16 +46,6 @@ def ldcoeff(metall, teff, logg, phot_filter):
 
 
 def position(p, a, e, i, w, ww, t0, tt):
-
-    if e == 0 and ww == 0:
-        vv = (tt - t0) * (2 * np.pi / p)
-        aa = -np.sin(vv)
-        bb = np.cos(vv)
-        x = a * bb * np.sin(i)
-        y = a * (-aa)
-        z = a * (-bb * np.cos(i))
-        return [x, y, z]
-
     if w < pi / 2:
         aa = 1.0 * pi / 2 - w
     else:
@@ -79,7 +66,7 @@ def position(p, a, e, i, w, ww, t0, tt):
         else:
             u0 = u1
     if not stop:
-        raise PyLCOptimiseError("Failed to find a solution in 10000 loops")
+        raise PYLCOptimiseError("Failed to find a solution in 10000 loops")
     vv = 2 * np.arctan(np.sqrt((1 + e) / (1 - e)) * np.tan(u1 / 2))
     #
     rr = a * (1 - (e ** 2)) / (np.ones_like(vv) + e * np.cos(vv))
@@ -228,33 +215,38 @@ def integral_minus(a1, a2, a3, a4, rprs, z, ww1, ww2):
 
 
 def single_model(ldcoeffs, rprs, xyz, tt):
+
     if len(tt) == 0:
         return np.array([])
+
     a1, a2, a3, a4 = ldcoeffs
+
     # projected distance
     fx, fy, fz = xyz
-    z = np.sqrt(fy ** 2 + fz ** 2)
+    z = np.sqrt(fy * fy + fz * fz)
+
     # cases
+    sum_z_rprs = z + rprs
+    dif_z_rprs = rprs - z
+    sqr_dif_z_rprs = z * z - rprs ** 2
     case0 = np.where((fx > 0) & (z == 0) & (rprs <= 1))
-    case1 = np.where((fx > 0) & (z < rprs) & (z + rprs <= 1))
-    casea = np.where((fx > 0) & (z < rprs) & (z + rprs > 1) & (rprs - z < 1))
-    caseb = np.where((fx > 0) & (z < rprs) & (z + rprs > 1) & (rprs - z > 1))
-    case2 = np.where((fx > 0) & (z == rprs) & (z + rprs <= 1))
-    casec = np.where((fx > 0) & (z == rprs) & (z + rprs > 1))
-    case3 = np.where((fx > 0) & (z > rprs) & (z + rprs < 1))
-    case4 = np.where((fx > 0) & (z > rprs) & (z + rprs == 1))
-    case5 = np.where((fx > 0) & (z > rprs) & (z + rprs > 1) & (z ** 2 - rprs ** 2 < 1))
-    case6 = np.where((fx > 0) & (z > rprs) & (z + rprs > 1) & (z ** 2 - rprs ** 2 == 1))
-    case7 = np.where((fx > 0) & (z > rprs) & (z + rprs > 1) & (z ** 2 - rprs ** 2 > 1) & (z < 1 + rprs))
+    case1 = np.where((fx > 0) & (z < rprs) & (sum_z_rprs <= 1))
+    casea = np.where((fx > 0) & (z < rprs) & (sum_z_rprs > 1) & (dif_z_rprs < 1))
+    caseb = np.where((fx > 0) & (z < rprs) & (sum_z_rprs > 1) & (dif_z_rprs > 1))
+    case2 = np.where((fx > 0) & (z == rprs) & (sum_z_rprs <= 1))
+    casec = np.where((fx > 0) & (z == rprs) & (sum_z_rprs > 1))
+    case3 = np.where((fx > 0) & (z > rprs) & (sum_z_rprs < 1))
+    case4 = np.where((fx > 0) & (z > rprs) & (sum_z_rprs == 1))
+    case5 = np.where((fx > 0) & (z > rprs) & (sum_z_rprs > 1) & (sqr_dif_z_rprs < 1))
+    case6 = np.where((fx > 0) & (z > rprs) & (sum_z_rprs > 1) & (sqr_dif_z_rprs == 1))
+    case7 = np.where((fx > 0) & (z > rprs) & (sum_z_rprs > 1) & (sqr_dif_z_rprs > 1) & (-1 < dif_z_rprs))
     plus_case = np.concatenate((case1[0], case2[0], case3[0], case4[0], case5[0], casea[0], casec[0]))
     minus_case = np.concatenate((case3[0], case4[0], case5[0], case6[0], case7[0]))
     star_case = np.concatenate((case5[0], case6[0], case7[0], casea[0], casec[0]))
+
     # cross points
-    th = np.arcsin(np.where(rprs / z > 1.0, 1.0, rprs / z))
-    arccos = np.clip((1.0 - rprs ** 2 + z ** 2) / (2.0 * z), -1, 1)
-    ph = np.arccos(arccos)
-    # flux_upper
-    plusflux = np.zeros(len(z))
+    th = np.arcsin(np.minimum(rprs / z, 1))
+    ph = np.arccos(np.clip((1.0 - rprs ** 2 + z * z) / (2.0 * z), -1, 1))
     theta_1 = np.zeros(len(z))
     theta_1[case5] = ph[case5]
     theta_1[casea] = ph[casea]
@@ -264,35 +256,25 @@ def single_model(ldcoeffs, rprs, xyz, tt):
     theta_2[case2] = pi / 2.0
     theta_2[casea] = pi
     theta_2[casec] = pi / 2.0
+    theta_2[case7] = ph[case7]
+
+    # flux_upper
+    plusflux = np.zeros(len(z))
     plusflux[plus_case] = integral_plus(a1, a2, a3, a4, rprs, z[plus_case], theta_1[plus_case], theta_2[plus_case])
     if len(case0[0]) > 0:
         plusflux[case0] = integral_centred(a1, a2, a3, a4, rprs, 0.0, pi)
     if len(caseb[0]) > 0:
         plusflux[caseb] = integral_centred(a1, a2, a3, a4, 1, 0.0, pi)
+
     # flux_lower
     minsflux = np.zeros(len(z))
-    theta_2 = np.full_like(th, th)
-    theta_2[case7] = ph[case7]
     minsflux[minus_case] = integral_minus(a1, a2, a3, a4, rprs, z[minus_case], 0.0, theta_2[minus_case])
+
     # flux_star
     starflux = np.zeros(len(z))
     starflux[star_case] = integral_centred(a1, a2, a3, a4, 1, 0.0, ph[star_case])
-    # flux_final
-    finalflux = 2.0 * (plusflux + starflux - minsflux)
-    # return
+
+    # flux_total
     total_flux = integral_centred(a1, a2, a3, a4, 1, 0.0, 2.0 * pi)
-    return 1 - finalflux / total_flux
 
-
-def transit(ldcoeffs, rprs, p, a, e, i, w, t0, tt, ww=0):
-    if np.isnan(w):
-        w = 0.
-    xyz = position(p, a, e, i * pi / 180, w * pi / 180, ww * pi / 180, t0, tt)
-    return single_model(ldcoeffs, rprs, xyz, tt)
-
-
-def eclipse(fpfs, rprs, p, a, e, i, w, t0, tt, ww=0):
-    if np.isnan(w):
-        w = 0.
-    xyz = position(p, -a / rprs, e, i * pi / 180, w * pi / 180, ww * pi / 180, t0, tt)
-    return (1.0 + fpfs * single_model((0, 0, 0, 0), 1 / rprs, xyz, tt)) / (1.0 + fpfs)
+    return 1 - (2.0 / total_flux) * (plusflux + starflux - minsflux)
