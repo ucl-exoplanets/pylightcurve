@@ -110,49 +110,43 @@ gauss30 = [
     [0.0079681924961666, -0.9968934840746495],
     [0.0079681924961666, 0.9968934840746495]
 ]
-gauss30 = np.swapaxes(gauss30, 0, 1)
+gausstab = np.swapaxes(gauss30, 0, 1)
 
 
 def integral_r(a1, a2, a3, a4, r):
-    a0 = 1.0 - a1 - a2 - a3 - a4
-    rr = (1.0 - r ** 2) ** (1.0 / 4)
-    aa4 = - (2.0 / 4) * a0 * (rr ** 4.0)
-    aa5 = - (2.0 / 5) * a1 * (rr ** 5.0)
-    aa6 = - (2.0 / 6) * a2 * (rr ** 6.0)
-    aa7 = - (2.0 / 7) * a3 * (rr ** 7.0)
-    aa8 = - (2.0 / 8) * a4 * (rr ** 8.0)
-    return aa4 + aa5 + aa6 + aa7 + aa8
+    mu44 = 1.0 - r * r
+    mu24 = np.sqrt(mu44)
+    mu14 = np.sqrt(mu24)
+    return - (2.0 * (1.0 - a1 - a2 - a3 - a4) / 4) * mu44 \
+           - (2.0 * a1 / 5) * mu44 * mu14 \
+           - (2.0 * a2 / 6) * mu44 * mu24 \
+           - (2.0 * a3 / 7) * mu44 * mu24 * mu14 \
+           - (2.0 * a4 / 8) * mu44 * mu44
 
 
 def num(r, a1, a2, a3, a4, rprs, z):
-    arccos = (-rprs ** 2 + z ** 2 + r ** 2) / (2.0 * z * r)
-    arccos = np.where(arccos > 1, 1, arccos)
-    return (1.0 - a1 * (1.0 - (1.0 - r ** 2) ** (1.0 / 4)) - a2 * (1.0 - (1.0 - r ** 2) ** (1.0 / 2))
-            - a3 * (1.0 - (1.0 - r ** 2) ** (3.0 / 4)) - a4 * (1.0 - (1.0 - r ** 2))) * r * np.arccos(arccos)
+    rsq = r * r
+    mu44 = 1.0 - rsq
+    mu24 = np.sqrt(mu44)
+    mu14 = np.sqrt(mu24)
+    return ((1.0 - a1 - a2 - a3 - a4) + a1 * mu14 + a2 * mu24 + a3 * mu24 * mu14 + a4 * mu44) \
+        * r * np.arccos(np.minimum((-rprs ** 2 + z * z + rsq) / (2.0 * z * r), 1.0))
 
 
 def integral_r_f(a1, a2, a3, a4, rprs, z, r1, r2):
-    gauss = gauss30
-    r1 = np.clip(r1, 0, 1)
-    r2 = np.clip(r2, 0, 1)
     x1 = (r2 - r1) / 2
     x2 = (r2 + r1) / 2
-    x1, l = np.meshgrid(x1, gauss[1])
-    x2, w = np.meshgrid(x2, gauss[0])
-    result = np.sum(w * num(x1 * l + x2, a1, a2, a3, a4, rprs, z), 0)
-    return ((r2 - r1) / 2) * result
+    return x1 * np.sum(gausstab[0][:, None] * num(x1[None, :] * gausstab[1][:, None] + x2[None, :],
+                                                  a1, a2, a3, a4, rprs, z), 0)
 
 
 def integral_centred(a1, a2, a3, a4, rprs, ww1, ww2):
-    w1 = np.minimum(ww1, ww2)
-    w2 = np.maximum(ww1, ww2)
-    final = (integral_r(a1, a2, a3, a4, rprs) - integral_r(a1, a2, a3, a4, 0.0)) * (w2 - w1)
-    return final
+    return (integral_r(a1, a2, a3, a4, rprs) - integral_r(a1, a2, a3, a4, 0.0)) * np.abs(ww2 - ww1)
 
 
 def integral_plus_core(a1, a2, a3, a4, rprs, z, ww1, ww2):
     if len(z) == 0:
-        return []
+        return z
     rr1 = z * np.cos(ww1) + np.sqrt(np.maximum(rprs ** 2 - (z * np.sin(ww1)) ** 2, 0))
     rr1 = np.clip(rr1, 0, 1)
     rr2 = z * np.cos(ww2) + np.sqrt(np.maximum(rprs ** 2 - (z * np.sin(ww2)) ** 2, 0))
@@ -165,15 +159,13 @@ def integral_plus_core(a1, a2, a3, a4, rprs, z, ww1, ww2):
     partb = integral_r(a1, a2, a3, a4, r1) * w2
     partc = integral_r(a1, a2, a3, a4, r2) * (-w1)
     partd = integral_r_f(a1, a2, a3, a4, rprs, z, r1, r2)
-    final = parta + partb + partc + partd
-    return final
+    return parta + partb + partc + partd
 
 
 def integral_plus(a1, a2, a3, a4, rprs, z, ww1, ww2):
     split = np.where(ww1 * ww2 < 0)
     if len(split[0]) == 0:
-        intplus = integral_plus_core(a1, a2, a3, a4, rprs, z, np.abs(ww1), np.abs(ww2))
-        return intplus
+        return integral_plus_core(a1, a2, a3, a4, rprs, z, np.abs(ww1), np.abs(ww2))
     else:
         w1 = np.minimum(ww1, ww2)
         w2 = np.maximum(ww1, ww2)
@@ -184,7 +176,7 @@ def integral_plus(a1, a2, a3, a4, rprs, z, ww1, ww2):
 
 def integral_minus_core(a1, a2, a3, a4, rprs, z, ww1, ww2):
     if len(z) == 0:
-        return []
+        return z
     rr1 = z * np.cos(ww1) - np.sqrt(np.maximum(rprs ** 2 - (z * np.sin(ww1)) ** 2, 0))
     rr1 = np.clip(rr1, 0, 1)
     rr2 = z * np.cos(ww2) - np.sqrt(np.maximum(rprs ** 2 - (z * np.sin(ww2)) ** 2, 0))
@@ -197,15 +189,13 @@ def integral_minus_core(a1, a2, a3, a4, rprs, z, ww1, ww2):
     partb = integral_r(a1, a2, a3, a4, r1) * (-w1)
     partc = integral_r(a1, a2, a3, a4, r2) * w2
     partd = integral_r_f(a1, a2, a3, a4, rprs, z, r1, r2)
-    final = parta + partb + partc - partd
-    return final
+    return parta + partb + partc - partd
 
 
 def integral_minus(a1, a2, a3, a4, rprs, z, ww1, ww2):
     split = np.where(ww1 * ww2 < 0)
     if len(split[0]) == 0:
-        intmins = integral_minus_core(a1, a2, a3, a4, rprs, z, np.abs(ww1), np.abs(ww2))
-        return intmins
+        return integral_minus_core(a1, a2, a3, a4, rprs, z, np.abs(ww1), np.abs(ww2))
     else:
         w1 = np.minimum(ww1, ww2)
         w2 = np.maximum(ww1, ww2)
@@ -224,11 +214,12 @@ def single_model(ldcoeffs, rprs, xyz, tt):
     # projected distance
     fx, fy, fz = xyz
     z = np.sqrt(fy * fy + fz * fz)
+    zsq = z * z
 
     # cases
     sum_z_rprs = z + rprs
     dif_z_rprs = rprs - z
-    sqr_dif_z_rprs = z * z - rprs ** 2
+    sqr_dif_z_rprs = zsq - rprs ** 2
     case0 = np.where((fx > 0) & (z == 0) & (rprs <= 1))
     case1 = np.where((fx > 0) & (z < rprs) & (sum_z_rprs <= 1))
     casea = np.where((fx > 0) & (z < rprs) & (sum_z_rprs > 1) & (dif_z_rprs < 1))
@@ -246,7 +237,7 @@ def single_model(ldcoeffs, rprs, xyz, tt):
 
     # cross points
     th = np.arcsin(np.minimum(rprs / z, 1))
-    ph = np.arccos(np.clip((1.0 - rprs ** 2 + z * z) / (2.0 * z), -1, 1))
+    ph = np.arccos(np.clip((1.0 - rprs ** 2 + zsq) / (2.0 * z), -1, 1))
     theta_1 = np.zeros(len(z))
     theta_1[case5] = ph[case5]
     theta_1[casea] = ph[casea]
@@ -260,7 +251,7 @@ def single_model(ldcoeffs, rprs, xyz, tt):
 
     # flux_upper
     plusflux = np.zeros(len(z))
-    plusflux[plus_case] = integral_plus(a1, a2, a3, a4, rprs, z[plus_case], theta_1[plus_case], theta_2[plus_case])
+    plusflux[plus_case] = integral_plus_core(a1, a2, a3, a4, rprs, z[plus_case], theta_1[plus_case], theta_2[plus_case])
     if len(case0[0]) > 0:
         plusflux[case0] = integral_centred(a1, a2, a3, a4, rprs, 0.0, pi)
     if len(caseb[0]) > 0:
@@ -268,7 +259,7 @@ def single_model(ldcoeffs, rprs, xyz, tt):
 
     # flux_lower
     minsflux = np.zeros(len(z))
-    minsflux[minus_case] = integral_minus(a1, a2, a3, a4, rprs, z[minus_case], 0.0, theta_2[minus_case])
+    minsflux[minus_case] = integral_minus_core(a1, a2, a3, a4, rprs, z[minus_case], 0.0, theta_2[minus_case])
 
     # flux_star
     starflux = np.zeros(len(z))
