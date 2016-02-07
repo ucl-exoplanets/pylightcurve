@@ -290,7 +290,8 @@ def flux_drop(limb_darkening_coefficients, rp_over_rs, z_over_rs):
 
     # flux_upper
     plusflux = np.zeros(len(z_over_rs))
-    plusflux[plus_case] = integral_plus_core(a1, a2, a3, a4, rp_over_rs, z_over_rs[plus_case], theta_1[plus_case], theta_2[plus_case])
+    plusflux[plus_case] = integral_plus_core(a1, a2, a3, a4, rp_over_rs,
+                                             z_over_rs[plus_case], theta_1[plus_case], theta_2[plus_case])
     if len(case0[0]) > 0:
         plusflux[case0] = integral_centred(a1, a2, a3, a4, rp_over_rs, 0.0, pi)
     if len(caseb[0]) > 0:
@@ -298,7 +299,8 @@ def flux_drop(limb_darkening_coefficients, rp_over_rs, z_over_rs):
 
     # flux_lower
     minsflux = np.zeros(len(z_over_rs))
-    minsflux[minus_case] = integral_minus_core(a1, a2, a3, a4, rp_over_rs, z_over_rs[minus_case], 0.0, theta_2[minus_case])
+    minsflux[minus_case] = integral_minus_core(a1, a2, a3, a4, rp_over_rs,
+                                               z_over_rs[minus_case], 0.0, theta_2[minus_case])
 
     # flux_star
     starflux = np.zeros(len(z_over_rs))
@@ -551,5 +553,3 @@ def save_traces(names, traces):
     for var in range(len(names)):
         if len(traces[var]) > 1:
             np.savetxt('trace_' + names[var] + '.txt', traces[var])
-
-

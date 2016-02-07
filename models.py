@@ -15,10 +15,10 @@ class PYLCMcmcError(PYLCError):
 
 
 def transit(limb_darkening_coefficients, rp_over_rs,
-            period, sma_over_rs, eccenticity, inclination, periastron, mid_time, time_array):
+            period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array):
 
     position_vector = pylightcurve_tools.position_vector(period, sma_over_rs,
-                                                         eccenticity, inclination, periastron, mid_time, time_array)
+                                                         eccentricity, inclination, periastron, mid_time, time_array)
 
     projected_distance = np.where(
         position_vector[0] < 0, 1.0 + 5.0 * rp_over_rs,
@@ -27,10 +27,10 @@ def transit(limb_darkening_coefficients, rp_over_rs,
     return pylightcurve_tools.flux_drop(limb_darkening_coefficients, rp_over_rs, projected_distance)
 
 
-def eclipse(fp_over_fs, rp_over_rs, period, sma_over_rs, eccenticity, inclination, periastron, mid_time, time_array):
+def eclipse(fp_over_fs, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array):
 
     position_vector = pylightcurve_tools.position_vector(period, -sma_over_rs / rp_over_rs,
-                                                         eccenticity, inclination, periastron, mid_time, time_array)
+                                                         eccentricity, inclination, periastron, mid_time, time_array)
 
     projected_distance = np.where(
         position_vector[0] < 0, 1.0 + 5.0 * rp_over_rs,
@@ -45,6 +45,25 @@ def mcmc_transit(limb_darkening_coefficients, rp_over_rs,
                  data, fit_rp_over_rs, iterations, burn, directory, detrend_order=0,
                  fit_period=None, fit_sma_over_rs=None, fit_eccentricity=None,
                  fit_inclination=None, fit_periastron=None, fit_mid_time=None):
+
+    if len(limb_darkening_coefficients) != 4:
+        raise PYLCMcmcError('limb_darkening_coefficients argument must be a 4-item array-like object')
+
+    try:
+        iterations = int(iterations)
+    except:
+        raise PYLCMcmcError('iterations argument must be an integer')
+
+    try:
+        burn = int(burn)
+    except:
+        raise PYLCMcmcError('burn argument must be an integer')
+
+    if not isinstance(directory, basestring):
+        raise PYLCMcmcError('directory argument must be a string')
+
+    if detrend_order not in [0, 1, 2]:
+        raise PYLCMcmcError('detrend_order argument must be 0, 1, or 2')
 
     if not os.path.isdir(directory):
         os.mkdir(directory)
@@ -83,9 +102,6 @@ def mcmc_transit(limb_darkening_coefficients, rp_over_rs,
         datadt = np.append(datadt, datasetx - datasetx[0])
 
     datai = np.int_(datai)
-
-    if detrend_order not in [0, 1, 2]:
-        raise PYLCMcmcError('Value for detrend_order must be 0, 1, or 2')
 
     names = []
     initial = []
@@ -129,9 +145,21 @@ def mcmc_transit(limb_darkening_coefficients, rp_over_rs,
                fit_eccentricity, fit_inclination, fit_periastron, fit_mid_time]
 
     for var in range(len(names)):
+
+        try:
+            initial[var] = float(initial[var])
+        except:
+            raise PYLCMcmcError('Improper value for ' + names[var])
+
         if limits[var] is None:
             variables.append(initial[var])
         else:
+            try:
+                if len(limits[var]) != 2:
+                    raise PYLCMcmcError('Improper limits for ' + names[var])
+            except:
+                raise PYLCMcmcError('Improper limits for ' + names[var])
+
             if initial[var] < limits[var][0] or initial[var] > limits[var][1]:
                 raise PYLCMcmcError('Initial value for ' + names[var] + ' is outside the range of the prior')
             else:
