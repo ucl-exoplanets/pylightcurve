@@ -41,7 +41,7 @@ def eclipse(fp_over_fs, rp_over_rs, period, sma_over_rs, eccenticity, inclinatio
 
 
 def mcmc_transit(limb_darkening_coefficients, rp_over_rs,
-                 period, sma_over_rs, eccenticity, inclination, periastron, mid_time,
+                 period, sma_over_rs, eccentricity, inclination, periastron, mid_time,
                  data, fit_rp_over_rs, iterations, burn, directory, detrend_order=0,
                  fit_period=None, fit_sma_over_rs=None, fit_eccentricity=None,
                  fit_inclination=None, fit_periastron=None, fit_mid_time=None):
@@ -124,7 +124,7 @@ def mcmc_transit(limb_darkening_coefficients, rp_over_rs,
             limits.append(None)
 
     names += ['rp', 'P', 'a', 'e', 'i', 'w', 'mt']
-    initial += [rp_over_rs, period, sma_over_rs, eccenticity, inclination, periastron, mid_time]
+    initial += [rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron, mid_time]
     limits += [fit_rp_over_rs, fit_period, fit_sma_over_rs,
                fit_eccentricity, fit_inclination, fit_periastron, fit_mid_time]
 
