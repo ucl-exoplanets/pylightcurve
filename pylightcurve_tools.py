@@ -475,7 +475,7 @@ def plot_traces(names, traces, results, errors):
                    r'$\pm{0:.{width}f}$'.format(errors[var], width=abs(int(np.log10(errors[var]))) + 2), fontsize=15)
 
         if var != all_var - 1:
-            plt.xticks(plt.xticks()[0], np.ones_like(plt.yticks()[0]))
+            plt.xticks(plt.xticks()[0], np.ones_like(plt.xticks()[0]))
             plt.tick_params(labelbottom='off')
         else:
             plt.xlabel(r'$\mathrm{iteration}$', fontsize=20)
@@ -487,11 +487,11 @@ def plot_traces(names, traces, results, errors):
     plt.close()
 
 
-def plot_model(datax, datay, model):
+def plot_model(datax, datay, model, set_number):
 
     plt.subplot2grid((4, 1), (0, 0), rowspan=3)
 
-    plt.plot(datax, datay, 'bo', mec='b')
+    plt.plot(datax, datay, 'ko', ms=3)
     datax2 = np.arange(datax[0], datax[-1], (datax[1] - datax[0]) / 100)
     plt.plot(datax2, model(datax2), 'r-')
 
@@ -500,14 +500,19 @@ def plot_model(datax, datay, model):
     plt.yticks(np.round(ticks, 4), np.round(ticks, 4))
     plt.ylim(plt.ylim()[0] - di / 2, plt.ylim()[1] + di / 2)
     plt.ylabel(r'$\mathrm{relative} \ \mathrm{flux}$', fontsize=20)
+
+    plt.xticks(plt.xticks()[0], np.ones_like(plt.xticks()[0]))
     plt.tick_params(labelbottom='off')
 
     plt.text(plt.xlim()[0] + 0.02 * (plt.xlim()[-1] - plt.xlim()[0]),
              plt.ylim()[0] + 0.02 * (plt.ylim()[-1] - plt.ylim()[0]),
              r'$\mathrm{rms}_\mathrm{res} = %.3e$' % np.std(datay - model(datax)))
 
+    xlimits = [plt.xlim()[0], plt.xlim()[1]]
+
     plt.subplot(4, 1, 4)
-    plt.axhline(0, color='k')
+    plt.cla()
+    plt.axhline(0, color='r')
     plt.plot(datax, datay - model(datax), 'ko', ms=3)
 
     di = plt.yticks()[0][1] - plt.yticks()[0][0]
@@ -515,11 +520,14 @@ def plot_model(datax, datay, model):
     plt.yticks(np.round(ticks, 4), np.round(ticks, 4))
     plt.ylim(plt.ylim()[0] - di / 2, plt.ylim()[1] + di / 2)
 
-    plt.xlabel(r'$\mathrm{time} \ \mathrm{days}$', fontsize=20)
+    plt.xlabel(r'$\mathrm{time} \ [\mathrm{days}]$', fontsize=20)
     plt.ylabel(r'$\mathrm{residuals}$', fontsize=20)
 
+    plt.xlim(xlimits[0], xlimits[1])
+
+    plt.suptitle('dataset' + str(set_number), fontsize=20)
     plt.subplots_adjust(hspace=0.0)
-    plt.savefig('model.pdf', bbox_inches='tight', dpi=200)
+    plt.savefig('model_dataset' + str(set_number) + '.pdf', bbox_inches='tight', dpi=200)
 
 
 def save_results(names, results, errors):
@@ -532,9 +540,10 @@ def save_results(names, results, errors):
     w.close()
 
 
-def save_model(datax, datay, final_model):
+def save_model(datax, datay, final_model, set_number):
 
-    np.savetxt('model.txt', np.swapaxes([datax, datay, final_model(datax), datay - final_model(datax)], 0, 1))
+    np.savetxt('model_dataset' + str(set_number) + '.txt',
+               np.swapaxes([datax, datay, final_model(datax), datay - final_model(datax)], 0, 1))
 
 
 def save_traces(names, traces):
