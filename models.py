@@ -33,7 +33,7 @@ def eclipse(fp_over_fs, rp_over_rs, period, sma_over_rs, eccentricity, inclinati
                                                          eccentricity, inclination, periastron, mid_time, time_array)
 
     projected_distance = np.where(
-        position_vector[0] < 0, 1.0 + 5.0 * rp_over_rs,
+        position_vector[0] < 0, 1.0 + 5.0 / rp_over_rs,
         np.sqrt(position_vector[1] * position_vector[1] + position_vector[2] * position_vector[2]))
 
     return (1.0 + fp_over_fs * pylightcurve_tools.flux_drop((0, 0, 0, 0), 1 / rp_over_rs, projected_distance)) \
