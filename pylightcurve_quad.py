@@ -64,7 +64,7 @@ def integral_r(a1, a2, a3, a4, r):
 def num(r, a1, a2, a3, a4, rprs, z):
     rsq = r * r
     cc = 1.0 - np.sqrt(1.0 - rsq)
-    return (1.0 - a2 * cc + a4 * cc * cc) \
+    return (1.0 - a2 * cc - a4 * cc * cc) \
         * r * np.arccos(np.minimum((-rprs ** 2 + z * z + rsq) / (2.0 * z * r), 1.0))
 
 
