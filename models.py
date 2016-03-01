@@ -1,4 +1,4 @@
-__all__ = ['transit', 'eclipse', 'mcmc_transit']
+__all__ = ['transit', 'transit_quad', 'eclipse', 'mcmc_transit', 'mcmc_transit_quad']
 
 import pylightcurve_tools
 import pylightcurve_quad
@@ -415,7 +415,7 @@ def mcmc_transit_quad(limb_darkening_coefficients, rp_over_rs,
             d_time = time_array - time_array[0]
             return results[3 * set_n] \
                 * (1 + results[3 * set_n + 1] * d_time + results[3 * set_n + 2] * d_time * d_time) \
-                * transit(limb_darkening_coefficients, *results[3 * sets_n:], time_array=time_array)
+                * transit_quad(limb_darkening_coefficients, *results[3 * sets_n:], time_array=time_array)
 
         pylightcurve_tools.save_model(datasetx, datasety, final_model, set_n)
         pylightcurve_tools.plot_model(datasetx, datasety, final_model, set_n)
