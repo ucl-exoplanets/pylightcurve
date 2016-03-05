@@ -71,7 +71,7 @@ def position_vector(period, sma_over_rs, eccentricity, inclination, periastron, 
     bb = 2 * np.arctan(np.sqrt((1 - eccentricity) / (1 + eccentricity)) * np.tan(aa / 2))
     if bb < 0:
         bb += 2 * pi
-    mid_time = mid_time - (period / 2.0 / pi) * (bb - eccentricity * np.sin(bb))
+    mid_time = float(mid_time) - (period / 2.0 / pi) * (bb - eccentricity * np.sin(bb))
     m = (time_array - mid_time - np.int_((time_array - mid_time) / period) * period) * 2.0 * pi / period
     u0 = m
     stop = False
@@ -253,7 +253,7 @@ def plot_correlations(names, traces, results, errors):
 
     plt.subplots_adjust(hspace=0, wspace=0)
     plt.savefig('traces_correlations.pdf', bbox_inches='tight', dpi=200)
-    plt.close()
+    plt.close('all')
 
 
 def plot_traces(names, traces, results, errors):
@@ -298,7 +298,7 @@ def plot_traces(names, traces, results, errors):
 
     plt.subplots_adjust(hspace=0, wspace=0)
     plt.savefig('traces_all.pdf', bbox_inches='tight', dpi=200)
-    plt.close()
+    plt.close('all')
 
 
 def plot_model(datax, datay, final_model, final_systematics_model, set_number):
@@ -343,17 +343,20 @@ def plot_model(datax, datay, final_model, final_systematics_model, set_number):
     plt.suptitle('dataset' + str(set_number), fontsize=20)
     plt.subplots_adjust(hspace=0.0)
     plt.savefig('model_dataset' + str(set_number) + '.pdf', bbox_inches='tight', dpi=200)
+    plt.close('all')
 
 
 def save_results(names, initial, results, errors, limb_darkening_coefficients):
 
     w = open('fitting_results.txt', 'w')
 
+    w.write('# variable\tinitial\tfinal\tuncertainty\n')
+
     for var in range(len(names)):
         w.write('{0}\t{1}\t{2}\t{3}\n'.format(names[var], initial[var], results[var], errors[var]))
 
     for i in range(4):
-        w.write('limb_darkening_coefficient_{0}\t{1}\n'.format(i+1, limb_darkening_coefficients[i]))
+        w.write('# limb_darkening_coefficient_{0}\t{1}\n'.format(i+1, limb_darkening_coefficients[i]))
 
     w.close()
 
