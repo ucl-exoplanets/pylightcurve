@@ -1,16 +1,5 @@
-__all__ = ['limb_darkening', 'position_vector', 'flux_drop']
-
-import glob
-import os
-
 import numpy as np
 
-from scipy.optimize import curve_fit
-
-import matplotlib.pyplot as plt
-
-
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 pi = np.pi
 
 gauss30 = [
@@ -49,22 +38,13 @@ gausstab = np.swapaxes(gauss30, 0, 1)
 
 
 def integral_r(a1, a2, a3, a4, r):
-    return (1.0 / 12) * (-6 + 6 * a2 + 9 * a4 + 6 * r * r - 6 * a2 * r * r - 12 * a4 * r * r + 3 * a4 * (r ** 4) -
-                         4 * a2 * ((1 - r * r) ** (3.0 / 2)) - 8 * a4 * ((1 - r * r) ** (3.0 / 2)))
-    # mu44 = 1.0 - r * r
-    # mu24 = np.sqrt(mu44)
-    # mu14 = np.sqrt(mu24)
-    # return - (2.0 * (1.0 - a1 - a2 - a3 - a4) / 4) * mu44 \
-    #        - (2.0 * a1 / 5) * mu44 * mu14 \
-    #        - (2.0 * a2 / 6) * mu44 * mu24 \
-    #        - (2.0 * a3 / 7) * mu44 * mu24 * mu14 \
-    #        - (2.0 * a4 / 8) * mu44 * mu44
+    musq = 1 - r * r
+    return (-1.0 / 6) * musq * (3.0 + a1 * (-3.0 + 2.0 * np.sqrt(musq)))
 
 
 def num(r, a1, a2, a3, a4, rprs, z):
     rsq = r * r
-    cc = 1.0 - np.sqrt(1.0 - rsq)
-    return (1.0 - a2 * cc - a4 * cc * cc) \
+    return (1.0 - a1 * (1.0 - np.sqrt(1.0 - rsq))) \
         * r * np.arccos(np.minimum((-rprs ** 2 + z * z + rsq) / (2.0 * z * r), 1.0))
 
 
@@ -144,9 +124,7 @@ def flux_drop(limb_darkening_coefficients, rp_over_rs, z_over_rs):
     if len(z_over_rs) == 0:
         return np.array([])
 
-    a2, a4 = limb_darkening_coefficients
-    a1 = 0
-    a3 = 0
+    a1, a2, a3, a4 = limb_darkening_coefficients
 
     # cases
     zsq = z_over_rs * z_over_rs
