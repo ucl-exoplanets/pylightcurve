@@ -11,7 +11,7 @@ p	z	c1	c2	c3	c4	depth_wolfram		depth_mycode
 0.5	0.6	0.0	0.0	0.0	0.9	0.255363492624757	0.255363492625		PERFECT
 
 
-NEW CODE: setting precision=0 (27 april 2016)
+NEW CODE: pylightcurve, setting precision=0 (27 april 2016)
 p	z	c1	c2	c3	c4	depth_wolfram		depth_mycode		DISCREPANCIES
 0.15	0.4	0.6023	-0.5110	0.4655	-0.1752	0.023672010166127	0.0236721718844 	~2*10^-7
 0.15	0.15	0.6023	-0.5110	0.4655	-0.1752	0.023930512384295	0.0239308242359		~3*10^-7
