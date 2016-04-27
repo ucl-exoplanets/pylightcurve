@@ -1,10 +1,8 @@
-__all__ = ['transit_linear', 'transit_quad', 'transit_sqrt', 'transit_claret', 'eclipse', 'mcmc_transit']
+__all__ = ['transit', 'eclipse', 'mcmc_transit']
 
 import pylightcurve_tools
-import flux_linear
-import flux_quad
-import flux_sqrt
-import flux_claret
+import flux
+import position
 
 import numpy as np
 import os
@@ -19,89 +17,43 @@ class PYLCMcmcError(PYLCError):
     pass
 
 
-def transit_linear(limb_darkening_coefficients, rp_over_rs,
-                   period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array):
+def transit(limb_darkening_coefficients, rp_over_rs,
+            period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array,
+            method='claret', precision=0):
 
-    position_vector = pylightcurve_tools.position_vector(period, sma_over_rs,
-                                                         eccentricity, inclination, periastron, mid_time, time_array)
-
-    projected_distance = np.where(
-        position_vector[0] < 0, 1.0 + 5.0 * rp_over_rs,
-        np.sqrt(position_vector[1] * position_vector[1] + position_vector[2] * position_vector[2]))
-
-    return flux_linear.flux_drop(limb_darkening_coefficients, rp_over_rs, projected_distance)
-
-
-def transit_quad(limb_darkening_coefficients, rp_over_rs,
-                 period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array):
-
-    position_vector = pylightcurve_tools.position_vector(period, sma_over_rs,
-                                                         eccentricity, inclination, periastron, mid_time, time_array)
+    position_vector = position.position_vector(period, sma_over_rs,
+                                               eccentricity, inclination, periastron, mid_time, time_array)
 
     projected_distance = np.where(
         position_vector[0] < 0, 1.0 + 5.0 * rp_over_rs,
         np.sqrt(position_vector[1] * position_vector[1] + position_vector[2] * position_vector[2]))
 
-    return flux_quad.flux_drop(limb_darkening_coefficients, rp_over_rs, projected_distance)
-
-
-def transit_sqrt(limb_darkening_coefficients, rp_over_rs,
-                 period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array):
-
-    position_vector = pylightcurve_tools.position_vector(period, sma_over_rs,
-                                                         eccentricity, inclination, periastron, mid_time, time_array)
-
-    projected_distance = np.where(
-        position_vector[0] < 0, 1.0 + 5.0 * rp_over_rs,
-        np.sqrt(position_vector[1] * position_vector[1] + position_vector[2] * position_vector[2]))
-
-    return flux_sqrt.flux_drop(limb_darkening_coefficients, rp_over_rs, projected_distance)
-
-
-def transit_claret(limb_darkening_coefficients, rp_over_rs,
-                   period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array):
-
-    position_vector = pylightcurve_tools.position_vector(period, sma_over_rs,
-                                                         eccentricity, inclination, periastron, mid_time, time_array)
-
-    projected_distance = np.where(
-        position_vector[0] < 0, 1.0 + 5.0 * rp_over_rs,
-        np.sqrt(position_vector[1] * position_vector[1] + position_vector[2] * position_vector[2]))
-
-    return flux_claret.flux_drop(limb_darkening_coefficients, rp_over_rs, projected_distance)
+    return flux.flux_drop(limb_darkening_coefficients, rp_over_rs, projected_distance,
+                          method=method, precision=precision)
 
 
 def eclipse(fp_over_fs, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array):
 
-    position_vector = pylightcurve_tools.position_vector(period, -sma_over_rs / rp_over_rs,
-                                                         eccentricity, inclination, periastron, mid_time, time_array)
+    position_vector = position.position_vector(period, -sma_over_rs / rp_over_rs,
+                                               eccentricity, inclination, periastron, mid_time, time_array)
 
     projected_distance = np.where(
         position_vector[0] < 0, 1.0 + 5.0 / rp_over_rs,
         np.sqrt(position_vector[1] * position_vector[1] + position_vector[2] * position_vector[2]))
 
-    return (1.0 + fp_over_fs * flux_claret.flux_drop((0, 0, 0, 0), 1 / rp_over_rs, projected_distance)) \
+    return (1.0 + fp_over_fs * flux.flux_drop((0, 0, 0, 0), 1 / rp_over_rs, projected_distance)) \
         / (1.0 + fp_over_fs)
 
 
-def mcmc_transit(method, limb_darkening_coefficients, rp_over_rs,
+def mcmc_transit(limb_darkening_coefficients, rp_over_rs,
                  period, sma_over_rs, eccentricity, inclination, periastron, mid_time,
                  data, fit_rp_over_rs, iterations, burn, directory, detrend_order=0,
                  fit_period=None, fit_sma_over_rs=None, fit_eccentricity=None,
                  fit_inclination=None, fit_periastron=None, fit_mid_time=None,
-                 exp_time=0, time_factor=1):
+                 method='claret', precision=0, exp_time=0, time_factor=1):
 
     if method not in ['linear', 'quad', 'sqrt', 'claret']:
         raise PYLCMcmcError('method argument must be linear, quad, sqrt or claret')
-    else:
-        if method == 'linear':
-            transit = transit_linear
-        elif method == 'quad':
-            transit = transit_quad
-        elif method == 'sqrt':
-            transit = transit_sqrt
-        else:
-            transit = transit_claret
 
     if len(limb_darkening_coefficients) != 4:
         raise PYLCMcmcError('limb_darkening_coefficients argument must be a 4-item array-like object')
@@ -174,13 +126,6 @@ def mcmc_transit(method, limb_darkening_coefficients, rp_over_rs,
 
     datai = np.int_(datai)
 
-    if exp_time == 0:
-        high_res_time = datax
-    else:
-        high_res_time = np.array([])
-        for i in range(time_factor):
-            high_res_time = np.append(high_res_time, datax - exp_time / 2.0 + (i + 0.5) * exp_time / time_factor)
-
     names = []
     initial = []
     limits = []
@@ -250,22 +195,45 @@ def mcmc_transit(method, limb_darkening_coefficients, rp_over_rs,
             else:
                 variables.append(pymc.Uniform(names[var], limits[var][0], limits[var][1], value=initial[var]))
 
-    @pymc.deterministic
-    def mcmc_f(model_variables=variables):
+    if exp_time == 0:
 
-        detrend_zero = np.array([model_variables[3 * xx] for xx in range(sets_n)])
-        detrend_zero = detrend_zero[datai]
-        detrend_one = np.array([model_variables[3 * xx + 1] for xx in range(sets_n)])
-        detrend_one = detrend_one[datai]
-        detrend_two = np.array([model_variables[3 * xx + 2] for xx in range(sets_n)])
-        detrend_two = detrend_two[datai]
+        @pymc.deterministic
+        def mcmc_f(model_variables=variables):
 
-        detrend = detrend_zero * (1 + detrend_one * datadt + detrend_two * datadt * datadt)
-        transit_model = transit(limb_darkening_coefficients, *model_variables[3 * sets_n:],
-                                time_array=high_res_time)
-        transit_model = np.mean(np.reshape(transit_model, (time_factor, len(datax))), 0)
+            detrend_zero = np.array([model_variables[3 * xx] for xx in range(sets_n)])
+            detrend_zero = detrend_zero[datai]
+            detrend_one = np.array([model_variables[3 * xx + 1] for xx in range(sets_n)])
+            detrend_one = detrend_one[datai]
+            detrend_two = np.array([model_variables[3 * xx + 2] for xx in range(sets_n)])
+            detrend_two = detrend_two[datai]
 
-        return detrend * transit_model
+            detrend = detrend_zero * (1 + detrend_one * datadt + detrend_two * datadt * datadt)
+            transit_model = transit(limb_darkening_coefficients, *model_variables[3 * sets_n:],
+                                    time_array=datax, method=method, precision=precision)
+
+            return detrend * transit_model
+
+    else:
+        datax_hr = np.array([])
+        for i in range(time_factor):
+            datax_hr = np.append(datax_hr, datax - exp_time / 2.0 + (i + 0.5) * exp_time / time_factor)
+
+        @pymc.deterministic
+        def mcmc_f(model_variables=variables):
+
+            detrend_zero = np.array([model_variables[3 * xx] for xx in range(sets_n)])
+            detrend_zero = detrend_zero[datai]
+            detrend_one = np.array([model_variables[3 * xx + 1] for xx in range(sets_n)])
+            detrend_one = detrend_one[datai]
+            detrend_two = np.array([model_variables[3 * xx + 2] for xx in range(sets_n)])
+            detrend_two = detrend_two[datai]
+
+            detrend = detrend_zero * (1 + detrend_one * datadt + detrend_two * datadt * datadt)
+            transit_model = transit(limb_darkening_coefficients, *model_variables[3 * sets_n:],
+                                    time_array=datax_hr, method=method, precision=precision)
+            transit_model = np.mean(np.reshape(transit_model, (time_factor, len(datax))), 0)
+
+            return detrend * transit_model
 
     y = pymc.Normal('y', mu=mcmc_f, tau=dataz ** (-2), observed=True, value=datay)
     mcmc = pymc.MCMC([variables, mcmc_f, y], db='pickle', dbname='model.pickle')
@@ -299,14 +267,15 @@ def mcmc_transit(method, limb_darkening_coefficients, rp_over_rs,
         def final_model(time_array):
 
             if exp_time == 0:
-                high_res_time = time_array
+                time_array_hr = time_array
             else:
-                high_res_time = np.array([])
-                for i in range(time_factor):
-                    high_res_time = np.append(high_res_time, time_array - exp_time / 2.0 + (i + 0.5) * exp_time / time_factor)
+                time_array_hr = np.array([])
+                for ii in range(time_factor):
+                    time_array_hr = \
+                        np.append(time_array_hr, time_array - exp_time / 2.0 + (ii + 0.5) * exp_time / time_factor)
 
             transit_model = transit(limb_darkening_coefficients, *results[3 * sets_n:],
-                                    time_array=high_res_time)
+                                    time_array=time_array_hr, method=method, precision=precision)
             transit_model = np.mean(np.reshape(transit_model, (time_factor, len(time_array))), 0)
             return transit_model
 
@@ -317,7 +286,8 @@ def mcmc_transit(method, limb_darkening_coefficients, rp_over_rs,
                 * (1 + results[3 * set_n + 1] * d_time + results[3 * set_n + 2] * d_time * d_time)
 
         pylightcurve_tools.save_model(datasetx, datasety, final_model, final_systematics_model, set_n)
-        pylightcurve_tools.plot_model(datasetx, datasety, names, initial, results, errors, final_model, final_systematics_model, set_n)
+        pylightcurve_tools.plot_model(datasetx, datasety, names, initial, results, errors, final_model,
+                                      final_systematics_model, set_n)
 
     print 'Saving results...'
     pylightcurve_tools.save_results(names, initial, results, errors, limb_darkening_coefficients)

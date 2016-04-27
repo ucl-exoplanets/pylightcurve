@@ -114,24 +114,24 @@ periastron                  = 0.0
 mid_time                    = 2452826.625521
 time_array                  = np.arange(2452826.625521 - 0.11, 2452826.625521 + 0.11, 1.0/60.0/60/24)
 
-transit_light_curve = plc.transit_linear((1.1584, 0, 0, 0), rp_over_rs, period, 
+transit_light_curve = plc.transit((1.1584), rp_over_rs, period,
                                   sma_over_rs, eccentricity, inclination, periastron, 
-                                  mid_time , time_array)
+                                  mid_time , time_array, method='linear')
 plt.plot(time_array, transit_light_curve, c='b', lw=2)
 
-transit_light_curve = plc.transit_quad((1.9571, -0.9669, 0, 0), rp_over_rs, period, 
+transit_light_curve = plc.transit((1.9571, -0.9669), rp_over_rs, period,
                                   sma_over_rs, eccentricity, inclination, periastron, 
-                                  mid_time , time_array)
+                                  mid_time , time_array, method='quad')
 plt.plot(time_array, transit_light_curve, c='r', lw=2)
 
-transit_light_curve = plc.transit_sqrt((2.2223, -1.4052, 0, 0), rp_over_rs, period, 
+transit_light_curve = plc.transit((2.2223, -1.4052), rp_over_rs, period,
                                   sma_over_rs, eccentricity, inclination, periastron, 
-                                  mid_time , time_array)
+                                  mid_time , time_array, method='sqrt')
 plt.plot(time_array, transit_light_curve, c='g', lw=2)
 
-transit_light_curve = plc.transit_claret((-0.1725, 0.5323, -0.5748, 1.1889), rp_over_rs, period, 
+transit_light_curve = plc.transit((-0.1725, 0.5323, -0.5748, 1.1889), rp_over_rs, period,
                                   sma_over_rs, eccentricity, inclination, periastron, 
-                                  mid_time , time_array)
+                                  mid_time , time_array, method='claret')
 plt.plot(time_array, transit_light_curve, c='c', lw=2)
 
 

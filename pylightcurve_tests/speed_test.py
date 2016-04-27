@@ -1,7 +1,5 @@
 import numpy as np
 import timeit
-import pyfits as pf
-from scipy.optimize import curve_fit
 
 import pylightcurve
 
@@ -26,7 +24,7 @@ tt = np.arange(99.9, 100.1, 0.0005)
 
 
 iterations = 10000
-benchtime = timeit.timeit("pylightcurve.transit_claret( ldcoeffs, RpRs, P, a, e, i, w, T, tt )",
+benchtime = timeit.timeit("pylightcurve.transit( ldcoeffs, RpRs, P, a, e, i, w, T, tt )",
                           setup="from __main__ import *", number=iterations)
 print "\n{:.5}s total time\n".format(benchtime)
 print "\n{:.5}ms per lightcurve ( from {} iterations )\n".format(benchtime / iterations * 1000, iterations)
@@ -59,10 +57,10 @@ except ImportError:
         return inner
 
 
-@do_profile(follow=[pylightcurve.flux_claret.flux_drop])
+@do_profile(follow=[pylightcurve.flux.flux_drop])
 def expensive_function():
     for i in range(1000):
-        pylightcurve.transit_claret(ldcoeffs, RpRs, P, a, e, i, w, T, tt)
+        pylightcurve.transit(ldcoeffs, RpRs, P, a, e, i, w, T, tt)
 
 result = expensive_function()
 
