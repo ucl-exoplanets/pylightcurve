@@ -152,6 +152,7 @@ def mcmc_transit(method, limb_darkening_coefficients, rp_over_rs,
     datai = np.array([])
     datadt = np.array([])
 
+    data_mid_time = 0
     for set_n in range(sets_n):
         dataset = data[set_n]
 
@@ -160,7 +161,10 @@ def mcmc_transit(method, limb_darkening_coefficients, rp_over_rs,
         else:
             datasetx, datasety = dataset
             datasetz = np.ones_like(datasetx) * \
-                np.sqrt(np.mean((datasety[1:-1] - 0.5 * (datasety[:-2] + datasety[2:])) ** 2))
+                np.std(datasety[1:-1] - 0.5 * (datasety[:-2] + datasety[2:]))
+
+        if set_n == 0:
+            data_mid_time = np.mean(datasetx)
 
         datax = np.append(datax, datasetx)
         datay = np.append(datay, datasety)
@@ -213,6 +217,10 @@ def mcmc_transit(method, limb_darkening_coefficients, rp_over_rs,
         else:
             limits.append(None)
 
+    time_shift = round((data_mid_time - mid_time) / period)
+    mid_time += time_shift * period
+    fit_mid_time = [fit_mid_time[0] + time_shift * period, fit_mid_time[1] + time_shift * period]
+
     names += ['rp', 'P', 'a', 'e', 'i', 'w', 'mt']
     initial += [rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron, mid_time]
     limits += [fit_rp_over_rs, fit_period, fit_sma_over_rs,
@@ -227,6 +235,9 @@ def mcmc_transit(method, limb_darkening_coefficients, rp_over_rs,
 
         if limits[var] is None:
             variables.append(initial[var])
+        elif isinstance(limits[var], float):
+            variables.append(pymc.Normal(names[var], initial[var], 1.0 / (limits[var] ** 2)))
+            limits[var] = None
         else:
             try:
                 if len(limits[var]) != 2:
@@ -258,7 +269,7 @@ def mcmc_transit(method, limb_darkening_coefficients, rp_over_rs,
 
     y = pymc.Normal('y', mu=mcmc_f, tau=dataz ** (-2), observed=True, value=datay)
     mcmc = pymc.MCMC([variables, mcmc_f, y], db='pickle', dbname='model.pickle')
-    mcmc.isample(iterations, burn=burn, verbose=1)
+    mcmc.sample(iterations, burn=burn)
 
     for var in range(len(names)):
         if limits[var] is None:
@@ -306,7 +317,7 @@ def mcmc_transit(method, limb_darkening_coefficients, rp_over_rs,
                 * (1 + results[3 * set_n + 1] * d_time + results[3 * set_n + 2] * d_time * d_time)
 
         pylightcurve_tools.save_model(datasetx, datasety, final_model, final_systematics_model, set_n)
-        pylightcurve_tools.plot_model(datasetx, datasety, final_model, final_systematics_model, set_n)
+        pylightcurve_tools.plot_model(datasetx, datasety, names, initial, results, errors, final_model, final_systematics_model, set_n)
 
     print 'Saving results...'
     pylightcurve_tools.save_results(names, initial, results, errors, limb_darkening_coefficients)

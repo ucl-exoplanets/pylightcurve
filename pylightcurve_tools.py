@@ -224,9 +224,11 @@ def plot_correlations(names, traces, results, errors):
         plt.xticks(plt.xticks()[0], np.ones_like(plt.yticks()[0]))
         plt.yticks(plt.yticks()[0], np.ones_like(plt.yticks()[0]))
         plt.tick_params(left='off', right='off', top='off', bottom='off', labelbottom='off', labelleft='off')
+        digit = abs(int(np.log10(errors[var]))) + 1
+        done = 1 / int(errors[var] * (10 ** digit))
         plt.xlabel(r'${0}$'.format(names[var]) + '\n' +
-                   r'${0:.{width}f}$'.format(results[var], width=abs(int(np.log10(errors[var]))) + 2) + '\n' +
-                   r'$\pm{0:.{width}f}$'.format(errors[var], width=abs(int(np.log10(errors[var]))) + 2), fontsize=15)
+                   r'${0:.{width}f}$'.format(results[var], width=digit + done) + '\n' +
+                   r'$\pm{0:.{width}f}$'.format(errors[var], width=digit + done), fontsize=15)
 
         plt.xlim(results[var] - 6 * errors[var], results[var] + 6 * errors[var])
 
@@ -284,9 +286,11 @@ def plot_traces(names, traces, results, errors):
 
         plt.yticks(plt.yticks()[0], np.ones_like(plt.yticks()[0]))
         plt.tick_params(left='off', right='off', labelleft='off')
+        digit = abs(int(np.log10(errors[var]))) + 1
+        done = 1 / int(errors[var] * (10 ** digit))
         plt.ylabel(r'${0}$'.format(names[var]) + '\n' +
-                   r'${0:.{width}f}$'.format(results[var], width=abs(int(np.log10(errors[var]))) + 2) + '\n' +
-                   r'$\pm{0:.{width}f}$'.format(errors[var], width=abs(int(np.log10(errors[var]))) + 2), fontsize=15)
+                   r'${0:.{width}f}$'.format(results[var], width=digit + done) + '\n' +
+                   r'$\pm{0:.{width}f}$'.format(errors[var], width=digit + done), fontsize=15)
 
         if var != all_var - 1:
             plt.xticks(plt.xticks()[0], np.ones_like(plt.xticks()[0]))
@@ -301,48 +305,160 @@ def plot_traces(names, traces, results, errors):
     plt.close('all')
 
 
-def plot_model(datax, datay, final_model, final_systematics_model, set_number):
+def transit_duration(period, rp_rs, semimajoraxis, inclination, eccentricity, periastron):
+    ww = periastron * np.pi / 180
+    ii = inclination * np.pi / 180
+    ee = eccentricity
+    aa = semimajoraxis
+    ro_pt = (1 - ee ** 2) / (1 + ee * np.sin(ww))
+    b_pt = aa * ro_pt * np.cos(ii)
+    if b_pt > 1:
+        b_pt = 0.5
+    s_ps = 1.0 + rp_rs
+    df = np.arcsin(np.sqrt((s_ps ** 2 - b_pt ** 2) / ((aa ** 2) * (ro_pt ** 2) - b_pt ** 2)))
+    abs_value = (period * (ro_pt ** 2)) / (np.pi * np.sqrt(1 - ee ** 2)) * df
+    return abs_value
+
+
+def plot_model(datax, datay, names, initial, results, errors, final_model, final_systematics_model, set_number):
+
+    rp = results[names.index('rp')]
+    rp_e = errors[names.index('rp')]
+    mt = results[names.index('mt')] + \
+        round((np.mean(datax) - results[names.index('mt')]) / results[names.index('P')]) * results[names.index('P')]
+    mt_e = errors[names.index('mt')]
+    period = results[names.index('P')]
+
+    prediction = initial[names.index('mt')] + \
+        round((np.mean(datax) - initial[names.index('mt')]) / initial[names.index('P')]) * initial[names.index('P')]
+
+    duration = transit_duration(initial[names.index('P')], initial[names.index('rp')], initial[names.index('a')],
+                                initial[names.index('i')], initial[names.index('e')], initial[names.index('w')])
+
+    ingress = prediction - duration / 2
+    egress = prediction + duration / 2
+
+    # plot1
 
     plt.subplot2grid((4, 1), (0, 0), rowspan=3)
 
-    plt.plot(datax, datay, 'ko', ms=3)
+    plt.plot((datax - mt) / period, datay, 'ko', ms=3)
     datax2 = np.arange(datax[0], datax[-1], (datax[1] - datax[0]) / 100)
-    plt.plot(datax2, final_systematics_model(datax2) * final_model(datax2), 'r-')
+    plt.plot((datax2 - mt) / period, final_systematics_model(datax2) * final_model(datax2), 'r-')
 
-    di = plt.yticks()[0][1] - plt.yticks()[0][0]
-    ticks = np.arange(plt.ylim()[0], plt.ylim()[1] + di / 2, di)
-    plt.yticks(np.round(ticks, 4), np.round(ticks, 4))
-    plt.ylim(plt.ylim()[0] - di / 2, plt.ylim()[1] + di / 2)
+    plt.yticks(plt.yticks()[0][1:])
     plt.ylabel(r'$\mathrm{relative} \ \mathrm{flux}$', fontsize=20)
 
-    plt.xticks(plt.xticks()[0], np.ones_like(plt.xticks()[0]))
+    plt.ylim(min(datay), max(datay) + np.std(datay - final_systematics_model(datax) * final_model(datax)))
+    plt.ylim(plt.ylim()[0] - 0.2 * (plt.ylim()[1] - plt.ylim()[0]), plt.ylim()[1])
+
+    x_max = max(np.abs((datax - mt) / period)) + 0.05 * (max((datax - mt) / period) - min((datax - mt) / period))
+    plt.xlim(-x_max, x_max)
     plt.tick_params(labelbottom='off')
 
-    plt.text(plt.xlim()[0] + 0.02 * (plt.xlim()[-1] - plt.xlim()[0]),
-             plt.ylim()[0] + 0.02 * (plt.ylim()[-1] - plt.ylim()[0]),
-             r'$\mathrm{rms}_\mathrm{res} = %.3e$'
-             % np.std(datay / final_systematics_model(datax) - final_model(datax)))
+    digit = abs(int(np.log10(rp_e))) + 1
+    done = 1 / int(rp_e * (10 ** digit))
+    rpstr = r'$R_\mathrm{p}/R_* = $' + r'${0:.{width}f}$'.format(rp, width=digit + done) + \
+            r'$ \, \pm \, {0:.{width}f}$'.format(rp_e, width=digit + done)
+    digit = abs(int(np.log10(mt_e))) + 1
+    done = 1 / int(mt_e * (10 ** digit))
+    mtstr = r'$T_\mathrm{HJD} = $' + r'${0:.{width}f}$'.format(mt, width=digit + done) + \
+            r'$ \, \pm \, {0:.{width}f} \,$'.format(mt_e, width=digit + done)
 
-    xlimits = [plt.xlim()[0], plt.xlim()[1]]
+    plt.text(plt.xlim()[0] + 0.5 * (plt.xlim()[-1] - plt.xlim()[0]),
+             plt.ylim()[0] + 0.07 * (plt.ylim()[-1] - plt.ylim()[0]),
+             rpstr + '\n' + mtstr, ha='center', va='center', fontsize=10)
+
+    plt.axvline((ingress - mt) / period, 0.5, 1.0, ls='--', c='k')
+    plt.text((ingress - mt) / period, 0.5 * (plt.ylim()[1] + plt.ylim()[0]),
+             r'$\mathrm{predicted}$' + '\n' + r'$\mathrm{ingress start}$', ha='right', va='top', fontsize=10)
+    plt.axvline((egress - mt) / period, 0.5, 1.0, ls='--', c='k')
+    plt.text((egress - mt) / period, 0.5 * (plt.ylim()[1] + plt.ylim()[0]),
+             r'$\mathrm{predicted}$' + '\n' + r'$\mathrm{egress end}$', ha='left', va='top', fontsize=10)
 
     plt.subplot(4, 1, 4)
     plt.cla()
-    plt.axhline(0, color='r')
-    plt.plot(datax, datay / final_systematics_model(datax) - final_model(datax), 'ko', ms=3)
+    plt.plot((datax - mt) / period, np.zeros_like(datax), 'r-')
+    plt.axhline(3 * np.std(datay / final_systematics_model(datax) - final_model(datax)), lw=0)
+    plt.axhline(- 3 * np.std(datay / final_systematics_model(datax) - final_model(datax)), lw=0)
+    plt.plot((datax - mt) / period, datay / final_systematics_model(datax) - final_model(datax), 'ko', ms=3)
 
-    di = plt.yticks()[0][1] - plt.yticks()[0][0]
-    ticks = np.arange(plt.ylim()[0], plt.ylim()[1] + di / 2, di)
-    plt.yticks(np.round(ticks, 4), np.round(ticks, 4))
-    plt.ylim(plt.ylim()[0] - di / 2, plt.ylim()[1] + di / 2)
-
-    plt.xlabel(r'$\mathrm{time} \ [\mathrm{days}]$', fontsize=20)
+    plt.xlabel(r'$\mathrm{phase}$', fontsize=20)
     plt.ylabel(r'$\mathrm{residuals}$', fontsize=20)
 
-    plt.xlim(xlimits[0], xlimits[1])
+    plt.xlim(-x_max, x_max)
+
+    plt.text(plt.xlim()[0] + 0.02 * (plt.xlim()[-1] - plt.xlim()[0]),
+             plt.ylim()[0] + 0.07 * (plt.ylim()[-1] - plt.ylim()[0]),
+             r'$\mathrm{rms}_\mathrm{res} = %.1e$'
+             % np.std(datay - final_systematics_model(datax) * final_model(datax)), fontsize=10)
 
     plt.suptitle('dataset' + str(set_number), fontsize=20)
     plt.subplots_adjust(hspace=0.0)
     plt.savefig('model_dataset' + str(set_number) + '.pdf', bbox_inches='tight', dpi=200)
+    plt.close('all')
+
+    # plot2
+
+    plt.subplot2grid((4, 1), (0, 0), rowspan=3)
+
+    plt.plot((datax - mt) / period, datay / final_systematics_model(datax), 'ko', ms=3)
+    datax2 = np.arange(datax[0], datax[-1], (datax[1] - datax[0]) / 100)
+    plt.plot((datax2 - mt) / period, final_model(datax2), 'r-')
+
+    plt.yticks(plt.yticks()[0][1:])
+    plt.ylabel(r'$\mathrm{relative} \ \mathrm{flux}$', fontsize=20)
+
+    plt.ylim(min(datay / final_systematics_model(datax)), max(datay / final_systematics_model(datax))
+             + np.std(datay / final_systematics_model(datax) - final_model(datax)))
+    plt.ylim(plt.ylim()[0] - 0.2 * (plt.ylim()[1] - plt.ylim()[0]), plt.ylim()[1])
+
+    plt.xlim(-x_max, x_max)
+    plt.tick_params(labelbottom='off')
+
+    digit = abs(int(np.log10(rp_e))) + 1
+    done = 1 / int(rp_e * (10 ** digit))
+    rpstr = r'$R_\mathrm{p}/R_* = $' + r'${0:.{width}f}$'.format(rp, width=digit + done) + \
+            r'$ \, \pm \, {0:.{width}f}$'.format(rp_e, width=digit + done)
+    digit = abs(int(np.log10(mt_e))) + 1
+    done = 1 / int(mt_e * (10 ** digit))
+    mtstr = r'$T_\mathrm{HJD} = $' + r'${0:.{width}f}$'.format(mt, width=digit + done) + \
+            r'$ \, \pm \, {0:.{width}f} \,$'.format(mt_e, width=digit + done)
+
+    plt.text(plt.xlim()[0] + 0.5 * (plt.xlim()[1] - plt.xlim()[0]),
+             plt.ylim()[0] + 0.07 * (plt.ylim()[1] - plt.ylim()[0]),
+             rpstr + '\n' + mtstr, ha='center', va='center', fontsize=10)
+
+    plt.axvline((ingress - mt) / period,
+                (1.0 - 0.5 * (rp ** 2) - plt.ylim()[0]) / (plt.ylim()[1] - plt.ylim()[0]), 1.0, ls='--', c='k')
+    plt.text((ingress - mt) / period, 1.0 - 0.5 * (rp ** 2),
+             r'$\mathrm{predicted}$' + '\n' + r'$\mathrm{ingress}$', ha='right', va='top', fontsize=10)
+    plt.axvline((egress - mt) / period,
+                (1.0 - 0.5 * (rp ** 2) - plt.ylim()[0]) / (plt.ylim()[1] - plt.ylim()[0]), 1.0, ls='--', c='k')
+    plt.text((egress - mt) / period, 1.0 - 0.5 * (rp ** 2),
+             r'$\mathrm{predicted}$' + '\n' + r'$\mathrm{egress}$', ha='left', va='top', fontsize=10)
+
+    plt.subplot(4, 1, 4)
+    plt.cla()
+
+    plt.plot((datax - mt) / period, np.zeros_like(datax), 'r-')
+    plt.axhline(3 * np.std(datay / final_systematics_model(datax) - final_model(datax)), lw=0)
+    plt.axhline(- 3 * np.std(datay / final_systematics_model(datax) - final_model(datax)), lw=0)
+    plt.plot((datax - mt) / period, datay / final_systematics_model(datax) - final_model(datax), 'ko', ms=3)
+
+    plt.xlabel(r'$\mathrm{phase}$', fontsize=20)
+    plt.ylabel(r'$\mathrm{residuals}$', fontsize=20)
+
+    plt.xlim(-x_max, x_max)
+
+    plt.text(plt.xlim()[0] + 0.02 * (plt.xlim()[-1] - plt.xlim()[0]),
+             plt.ylim()[0] + 0.07 * (plt.ylim()[-1] - plt.ylim()[0]),
+             r'$\mathrm{rms}_\mathrm{res} = %.1e$'
+             % np.std(datay / final_systematics_model(datax) - final_model(datax)), fontsize=10)
+
+    plt.suptitle('dataset' + str(set_number), fontsize=20)
+    plt.subplots_adjust(hspace=0.0)
+    plt.savefig('model2_dataset' + str(set_number) + '.pdf', bbox_inches='tight', dpi=200)
     plt.close('all')
 
 
