@@ -7,10 +7,8 @@ import pylightcurve as plc
 # The main functions of pyligthcurve are:
 # plc.limb_darkening
 # plc.position_vector
-# plc.transit_linear 
-# plc.transit_quad 
-# plc.transit_sqrt
-# plc.transit_claret
+# plc.flux_drop
+# plc.transit
 # plc.mcmc_transit
 
 
@@ -134,6 +132,15 @@ transit_light_curve = plc.transit((-0.1725, 0.5323, -0.5748, 1.1889), rp_over_rs
                                   mid_time , time_array, method='claret')
 plt.plot(time_array, transit_light_curve, c='c', lw=2)
 
+print 1 - plc.flux_drop((0.6023, -0.5110, 0.4655, -0.1752), 0.15, np.array([0.4]))[0], 0.023672010166127
+print 1 - plc.flux_drop((0.6023, -0.5110, 0.4655, -0.1752), 0.15, np.array([0.15]))[0], 0.023930512384295
+print 1 - plc.flux_drop((0.6023, -0.5110, 0.4655, -0.1752), 0.15, np.array([0.0]))[0], 0.023969120193732
+print 1 - plc.flux_drop((0.6023, -0.5110, 0.4655, -0.1752), 0.15, np.array([0.05]))[0], 0.023964876981085
+print 1 - plc.flux_drop((0.6023, -0.5110, 0.4655, -0.1752), 0.01, np.array([0.0]))[0], 0.0001066124712015837
+print 1 - plc.flux_drop((0.6023, -0.5110, 0.4655, -0.1752), 0.5, np.array([0.5]))[0], 0.255855066194966
+print 1 - plc.flux_drop((0.6023, -0.5110, 0.4655, -0.1752), 0.5, np.array([0.4]))[0], 0.259457198918689
+print 1 - plc.flux_drop((0.0, 0.0, 0.0, 0.9), 0.5, np.array([0.4]))[0], 0.337954545454545
+print 1 - plc.flux_drop((0.0, 0.0, 0.0, 0.9), 0.5, np.array([0.6]))[0], 0.255363492624757
 
 plt.ylim(plt.ylim()[0], 1.001)
 plt.xlabel('time [days]')

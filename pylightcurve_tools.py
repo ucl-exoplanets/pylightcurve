@@ -1,4 +1,4 @@
-__all__ = ['limb_darkening']
+__all__ = ['limb_darkening', 'jd_to_hjd']
 
 import glob
 import os
@@ -8,6 +8,8 @@ import numpy as np
 from scipy.optimize import curve_fit
 
 import matplotlib.pyplot as plt
+
+import ephem
 
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -46,6 +48,57 @@ def limb_darkening(metallicity, effective_temperature, logg, photometric_filter)
         if logg == logg0 and effective_temperature == teff0:
             ld_coeffs.append(coef)
     return tuple(ld_coeffs)
+
+
+def jd_to_hjd(jd, ra, dec):
+
+    ra_target, dec_target = ra * np.pi / 180, dec * np.pi / 180
+
+    try:
+        hjd = []
+
+        for julian_date in jd:
+            # calculate the position of the sun on the sky for this date
+
+            sun = ephem.Sun()
+            sun.compute(ephem.date(julian_date - 2415020))
+            ra_sun, dec_sun = float(sun.ra), float(sun.dec)
+
+            # calculate the correction coefficients
+
+            a = 149597870700.0 / ephem.c
+            b = np.sin(dec_target) * np.sin(dec_sun)
+            c = np.cos(dec_target) * np.cos(dec_sun) * np.cos(ra_target - ra_sun)
+
+            # apply the correction and save the result as the heliocentric_julian_date keyword
+
+            heliocentric_julian_date = julian_date - (a * (b + c)) / (24.0 * 60.0 * 60.0)
+
+            hjd.append(heliocentric_julian_date)
+
+        return np.array(hjd)
+
+    except TypeError:
+
+        julian_date = jd
+
+        # calculate the position of the sun on the sky for this date
+
+        sun = ephem.Sun()
+        sun.compute(ephem.date(julian_date - 2415020))
+        ra_sun, dec_sun = float(sun.ra), float(sun.dec)
+
+        # calculate the correction coefficients
+
+        a = 149597870700.0 / ephem.c
+        b = np.sin(dec_target) * np.sin(dec_sun)
+        c = np.cos(dec_target) * np.cos(dec_sun) * np.cos(ra_target - ra_sun)
+
+        # apply the correction and save the result as the heliocentric_julian_date keyword
+
+        heliocentric_julian_date = julian_date - (a * (b + c)) / (24.0 * 60.0 * 60.0)
+
+        return heliocentric_julian_date
 
 
 def plot_trajectory(p_vector):
@@ -381,13 +434,14 @@ def plot_model(datax, datay, names, initial, results, errors, final_model, final
              plt.ylim()[0] + 0.07 * (plt.ylim()[1] - plt.ylim()[0]),
              rpstr + '\n' + mtstr, ha='center', va='center', fontsize=10)
 
+    text_y = 2.0 - plt.ylim()[1]
     plt.axvline((ingress - mt) / period,
-                (1.0 - 0.5 * (rp ** 2) - plt.ylim()[0]) / (plt.ylim()[1] - plt.ylim()[0]), 1.0, ls='--', c='k')
-    plt.text((ingress - mt) / period, 1.0 - 0.5 * (rp ** 2),
+                (text_y - plt.ylim()[0]) / (plt.ylim()[1] - plt.ylim()[0]), 1.0, ls='--', c='k')
+    plt.text((ingress - mt) / period, text_y,
              r'$\mathrm{predicted}$' + '\n' + r'$\mathrm{ingress}$', ha='right', va='top', fontsize=10)
     plt.axvline((egress - mt) / period,
-                (1.0 - 0.5 * (rp ** 2) - plt.ylim()[0]) / (plt.ylim()[1] - plt.ylim()[0]), 1.0, ls='--', c='k')
-    plt.text((egress - mt) / period, 1.0 - 0.5 * (rp ** 2),
+                (text_y - plt.ylim()[0]) / (plt.ylim()[1] - plt.ylim()[0]), 1.0, ls='--', c='k')
+    plt.text((egress - mt) / period, text_y,
              r'$\mathrm{predicted}$' + '\n' + r'$\mathrm{egress}$', ha='left', va='top', fontsize=10)
 
     plt.subplot(4, 1, 4)
