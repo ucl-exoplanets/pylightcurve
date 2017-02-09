@@ -2,6 +2,9 @@ __all__ = ['limb_darkening', 'jd_to_hjd']
 
 import glob
 import os
+import time
+import datetime
+import sys
 
 import numpy as np
 
@@ -10,6 +13,8 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 
 import ephem
+
+import emcee
 
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -22,6 +27,46 @@ class PYLCError(BaseException):
 
 class PYLCFilterError(PYLCError):
     pass
+
+
+class PipelineCounter():
+
+    def __init__(self, task, total_iterations, show_every=1):
+
+        self.task = task + '.' * (15 - len(task))
+        self.current_iteration = 0
+        self.total_iterations = int(total_iterations)
+        self.start_time = time.time()
+        self.show = 0
+        self.show_every = int(show_every)
+
+        if self.total_iterations == 1:
+            self.show_every = 10
+
+    def update(self):
+
+        self.current_iteration += 1
+        self.show += 1.0 / self.show_every
+
+        out_of = ' ' * (len(str(self.total_iterations)) - len(str(self.current_iteration))) + \
+                 str(self.current_iteration) + ' / ' + str(self.total_iterations)
+
+        delta_time = time.time() - self.start_time
+
+        time_left = str(datetime.timedelta(
+            seconds=int((self.total_iterations - self.current_iteration) * delta_time / self.current_iteration)))
+
+        total_time = str(datetime.timedelta(seconds=int(delta_time)))
+
+        if int(self.show):
+
+            sys.stdout.write('\r\033[K')
+            sys.stdout.write(self.task + ': ' + out_of + '   time left: ' + time_left + '   total time: ' + total_time)
+            sys.stdout.flush()
+            self.show = 0
+
+        if self.current_iteration == self.total_iterations and self.total_iterations > 1:
+            print ''
 
 
 def limb_darkening(metallicity, effective_temperature, logg, photometric_filter):
@@ -496,3 +541,78 @@ def save_traces(names, traces):
     for var in range(len(names)):
         if len(traces[var]) > 1:
             np.savetxt('trace_' + names[var] + '.txt', traces[var])
+
+
+def get_emcee_fitting(input_data, model, parameters, walkers, iterations, burn_in, threads=None, count=None):
+
+    iterations -= 1
+
+    limits1 = np.array(parameters[0])
+    limits2 = np.array(parameters[1])
+    initials = np.array(parameters[2])
+
+    fitted_parameters_indices = np.where(~np.isnan(limits1 * limits2))[0]
+    constant_parameters_indices = np.where(np.isnan(limits1 * limits2))[0]
+
+    internal_model_parameters = np.zeros(len(parameters[0]))
+    internal_model_parameters[constant_parameters_indices] = initials[constant_parameters_indices]
+
+    def internal_model(fitted_parameters):
+        internal_model_parameters[fitted_parameters_indices] = fitted_parameters
+        return model(*internal_model_parameters)
+
+    internal_parameters = []
+    for i in range(len(parameters)):
+        internal_parameters.append(np.array(parameters[i][fitted_parameters_indices], dtype=float))
+
+    limits1 = internal_parameters[0]
+    limits2 = internal_parameters[1]
+    initials = internal_parameters[2]
+
+    dimensions = len(internal_parameters[0])
+
+    walkers_initial_positions = np.random.uniform(
+        (initials - (initials - limits1) / 1000.)[:, None] * np.ones(walkers),
+        (initials + (limits2 - initials) / 1000.)[:, None] * np.ones(walkers))
+    walkers_initial_positions = np.swapaxes(walkers_initial_positions, 0, 1)
+
+    input_data = (np.array(input_data[0]), np.array(input_data[1]))
+
+    def likelihood(theta, data_y, data_y_error):
+        chi = (data_y - internal_model(theta)) / data_y_error
+        return -0.5 * (np.sum(chi * chi) + np.sum(np.log(2.0 * np.pi * (data_y_error * data_y_error))))
+
+    def prior(theta):
+        if ((limits1 < theta) & (theta < limits2)).all():
+            return 0.0
+        return -np.inf
+
+    if count:
+        counter = PipelineCounter(count, (iterations + 1) * walkers, 100)
+
+        def probability(theta, data_y, data_y_error):
+            counter.update()
+            lp = prior(theta)
+            if not np.isfinite(lp):
+                return -np.inf
+            return lp + likelihood(theta, data_y, data_y_error)
+    else:
+        def probability(theta, data_y, data_y_error):
+            lp = prior(theta)
+            if not np.isfinite(lp):
+                return -np.inf
+            return lp + likelihood(theta, data_y, data_y_error)
+
+    sampler = emcee.EnsembleSampler(walkers, dimensions, probability, args=input_data, threads=threads)
+    sampler.run_mcmc(walkers_initial_positions, iterations)
+
+    mcmc_results = sampler.flatchain
+    final_chains = {}
+    for i in range(dimensions):
+        chain = mcmc_results[:, i]
+        final_chains[str(fitted_parameters_indices[i])] = \
+            (np.swapaxes(chain.reshape(walkers, iterations), 0, 1).flatten())[burn_in:]
+
+    return final_chains
+
+

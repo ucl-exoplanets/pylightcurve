@@ -47,7 +47,7 @@ def eclipse(fp_over_fs, rp_over_rs, period, sma_over_rs, eccentricity, inclinati
 
 def mcmc_transit(limb_darkening_coefficients, rp_over_rs,
                  period, sma_over_rs, eccentricity, inclination, periastron, mid_time,
-                 data, fit_rp_over_rs, iterations, burn, directory, detrend_order=0,
+                 data, fit_rp_over_rs, iterations, walkers, burn, directory, detrend_order=0,
                  fit_period=None, fit_sma_over_rs=None, fit_eccentricity=None,
                  fit_inclination=None, fit_periastron=None, fit_mid_time=None,
                  method='claret', precision=0, exp_time=0, time_factor=1):
@@ -127,12 +127,10 @@ def mcmc_transit(limb_darkening_coefficients, rp_over_rs,
     datai = np.int_(datai)
 
     names = []
+    print_names = []
+    limits1 = []
+    limits2 = []
     initial = []
-    limits = []
-    variables = []
-    traces = []
-    results = []
-    errors = []
 
     for set_n in range(sets_n):
         dataset = data[set_n]
@@ -145,33 +143,42 @@ def mcmc_transit(limb_darkening_coefficients, rp_over_rs,
         max_limit = 10 * (max(datasety) - min(datasety)) / (max(datasetx) - min(datasetx)) / np.mean(datasety)
 
         names.append('N' + str(set_n))
+        print_names.append('N_' + str(set_n))
         initial.append(np.mean(datasety))
-        limits.append([0.5 * np.mean(datay), 1.5 * np.mean(datay)])
+        limits1.append(0.5 * np.mean(datay))
+        limits2.append(1.5 * np.mean(datay))
 
         names.append('L' + str(set_n))
+        print_names.append('L_' + str(set_n))
         initial.append(0)
         if detrend_order in [1, 2]:
-            limits.append([-max_limit, max_limit])
+            limits1.append(-max_limit)
+            limits2.append(max_limit)
         else:
-            limits.append(None)
+            limits1.append(np.nan)
+            limits2.append(np.nan)
 
         names.append('Q' + str(set_n))
+        print_names.append('Q_' + str(set_n))
         initial.append(0)
         if detrend_order == 2:
-            limits.append([-max_limit, max_limit])
+            limits1.append(-max_limit)
+            limits2.append(max_limit)
         else:
-            limits.append(None)
+            limits1.append(np.nan)
+            limits2.append(np.nan)
 
     time_shift = round((data_mid_time - mid_time) / period)
     mid_time += time_shift * period
     fit_mid_time = [fit_mid_time[0] + time_shift * period, fit_mid_time[1] + time_shift * period]
 
     names += ['rp', 'P', 'a', 'e', 'i', 'w', 'mt']
+    print_names += ['R_\mathrm{p}/R_*', 'P', 'a/R_*', 'e', 'i', '\omega', 'T_0']
     initial += [rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron, mid_time]
-    limits += [fit_rp_over_rs, fit_period, fit_sma_over_rs,
-               fit_eccentricity, fit_inclination, fit_periastron, fit_mid_time]
+    limits = limits1 + [fit_rp_over_rs, fit_period, fit_sma_over_rs,
+                        fit_eccentricity, fit_inclination, fit_periastron, fit_mid_time]
 
-    for var in range(len(names)):
+    for var in range(3 * sets_n, len(names)):
 
         try:
             initial[var] = float(initial[var])
@@ -179,10 +186,9 @@ def mcmc_transit(limb_darkening_coefficients, rp_over_rs,
             raise PYLCMcmcError('Improper value for ' + names[var])
 
         if limits[var] is None:
-            variables.append(initial[var])
-        elif isinstance(limits[var], float):
-            variables.append(pymc.Normal(names[var], initial[var], 1.0 / (limits[var] ** 2)))
-            limits[var] = None
+            limits1.append(np.nan)
+            limits2.append(np.nan)
+
         else:
             try:
                 if len(limits[var]) != 2:
@@ -193,12 +199,12 @@ def mcmc_transit(limb_darkening_coefficients, rp_over_rs,
             if initial[var] < limits[var][0] or initial[var] > limits[var][1]:
                 raise PYLCMcmcError('Initial value for ' + names[var] + ' is outside the range of the prior')
             else:
-                variables.append(pymc.Uniform(names[var], limits[var][0], limits[var][1], value=initial[var]))
+                limits1.append(limits[var][0])
+                limits2.append(limits[var][1])
 
     if exp_time == 0:
 
-        @pymc.deterministic
-        def mcmc_f(model_variables=variables):
+        def model(*model_variables):
 
             detrend_zero = np.array([model_variables[3 * xx] for xx in range(sets_n)])
             detrend_zero = detrend_zero[datai]
@@ -218,8 +224,7 @@ def mcmc_transit(limb_darkening_coefficients, rp_over_rs,
         for i in range(time_factor):
             datax_hr = np.append(datax_hr, datax - exp_time / 2.0 + (i + 0.5) * exp_time / time_factor)
 
-        @pymc.deterministic
-        def mcmc_f(model_variables=variables):
+        def model(*model_variables):
 
             detrend_zero = np.array([model_variables[3 * xx] for xx in range(sets_n)])
             detrend_zero = detrend_zero[datai]
@@ -235,15 +240,20 @@ def mcmc_transit(limb_darkening_coefficients, rp_over_rs,
 
             return detrend * transit_model
 
-    y = pymc.Normal('y', mu=mcmc_f, tau=dataz ** (-2), observed=True, value=datay)
-    mcmc = pymc.MCMC([variables, mcmc_f, y], db='pickle', dbname='model.pickle')
-    mcmc.sample(iterations, burn=burn)
+    mcmc_run = pylightcurve_tools.get_emcee_fitting([datay, dataz], model,
+                                                    [np.array(limits1), np.array(limits2), np.array(initial)],
+                                                    walkers, iterations / walkers, burn, count='MCMC')
+
+    results = []
+    traces = []
+    errors = []
 
     for var in range(len(names)):
-        if limits[var] is None:
+
+        if np.isnan(limits1[var]):
             traces.append(np.array([initial[var]]))
         else:
-            traces.append(np.array(mcmc.trace(names[var])[:]))
+            traces.append(np.array(mcmc_run[str(var)]))
 
     for var in range(len(names)):
         if limits[var] is not None:
