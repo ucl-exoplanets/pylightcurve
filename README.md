@@ -64,6 +64,7 @@ For example, we can find the parameters of HD209458b:
 Returns a list of limb darkening coefficients.
 
 - method
+
 Limb darkening low (str, 'claret' is the only one currently supported).
 
 - stellar_logg
