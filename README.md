@@ -45,8 +45,8 @@ radius, orbital eccentricity, orbital inclination, orbital argument of periastro
 
 Note: The database is automatically updated on a daily basis if internet access is available.
 
-- target
-	Name of the planet (str). 
+- target  
+Name of the planet (str). 
 
 For example, we can find the parameters of HD209458b:
 	
