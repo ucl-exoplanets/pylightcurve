@@ -46,7 +46,6 @@ radius, orbital eccentricity, orbital inclination, orbital argument of periastro
 Note: The database is automatically updated on a daily basis if internet access is available.
 
 - target
-
 	Name of the planet (str). 
 
 For example, we can find the parameters of HD209458b:
@@ -65,21 +64,20 @@ For example, we can find the parameters of HD209458b:
 Returns a list of limb darkening coefficients.
 
 - method
-
-Limb darkening low (str, 'claret' is the only one currently supported).
+	Limb darkening low (str, 'claret' is the only one currently supported).
 
 - stellar_logg
-Logarithmic stellar surface gravity (float, in cm/s/s).
+	Logarithmic stellar surface gravity (float, in cm/s/s).
 
 - stellar_temperature
-Stellar effective temperature (float, in Kelvin).
+	Stellar effective temperature (float, in Kelvin).
 
 - stellar_metallicity
-Stellar metallicity (float, dex Fe/H).
+	Stellar metallicity (float, dex Fe/H).
 
 - photometric_filter
-Photometric band of the observation (str, available filters: 'B', 'C', 'H', 'I', 'J', 'K', 'Kp', 'R', 'S1', 'S2', 
-'S3', 'S4', 'U', 'V', 'b', 'g', 'i,', 'r,', 'u', 'u,', 'v', 'y', 'z,').
+	Photometric band of the observation (str, available filters: 'B', 'C', 'H', 'I', 'J', 'K', 'Kp', 'R', 'S1', 'S2', 
+	'S3', 'S4', 'U', 'V', 'b', 'g', 'i,', 'r,', 'u', 'u,', 'v', 'y', 'z,').
 
 For example, we can calculate the limb darkening coefficients for the claret law for HD209458b in the optical band:
 
