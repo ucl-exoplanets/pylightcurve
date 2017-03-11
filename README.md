@@ -544,7 +544,7 @@ avoid an extremely slow process, we will use a time factor of 2 for the fitting,
 
 MIT License
 
-Copyright (c) 2016-2017 Angelos Tsiaras and Konstantinos Karpouzas
+Copyright (c) 2016-2017 Angelos Tsiaras, Konstantinos Karpouzas and Ryan Varley
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
