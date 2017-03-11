@@ -63,21 +63,21 @@ For example, we can find the parameters of HD209458b:
 
 Returns a list of limb darkening coefficients.
 
-- method
-	Limb darkening low (str, 'claret' is the only one currently supported).
+- method  
+Limb darkening low (str, 'claret' is the only one currently supported).
 
-- stellar_logg
-	Logarithmic stellar surface gravity (float, in cm/s/s).
+- stellar_logg  
+Logarithmic stellar surface gravity (float, in cm/s/s).
 
-- stellar_temperature
-	Stellar effective temperature (float, in Kelvin).
+- stellar_temperature  
+Stellar effective temperature (float, in Kelvin).
 
-- stellar_metallicity
-	Stellar metallicity (float, dex Fe/H).
+- stellar_metallicity  
+Stellar metallicity (float, dex Fe/H).
 
-- photometric_filter
-	Photometric band of the observation (str, available filters: 'B', 'C', 'H', 'I', 'J', 'K', 'Kp', 'R', 'S1', 'S2', 
-	'S3', 'S4', 'U', 'V', 'b', 'g', 'i,', 'r,', 'u', 'u,', 'v', 'y', 'z,').
+- photometric_filter  
+Photometric band of the observation (str, available filters: 'B', 'C', 'H', 'I', 'J', 'K', 'Kp', 'R', 'S1', 'S2', 
+'S3', 'S4', 'U', 'V', 'b', 'g', 'i,', 'r,', 'u', 'u,', 'v', 'y', 'z,').
 
 For example, we can calculate the limb darkening coefficients for the claret law for HD209458b in the optical band:
 
@@ -93,25 +93,25 @@ For example, we can calculate the limb darkening coefficients for the claret law
 Returns the position vector of the planet in a coordinate system with the parent star at (x,y,z) = (0,0,0), the 
 observer at (x,y,z) = (+inf,0,0) and the z-axis perpendicular to the plane of reference.
 
-- period
+- period  
 Orbital period (float, in days).
 
-- sma_over_rs
+- sma_over_rs  
 Orbital semi-major axis relative to the stellar radius (float, no units).
 
-- eccentricity
+- eccentricity  
 Orbital eccentricity (float, no units).
 
-- inclination
+- inclination  
 Orbital inclination (float, in degrees).
 
-- periastron
+- periastron  
 Orbital argument of periastron (float, in degrees).
 
-- mid_time
+- mid_time  
 Transit mid-time (float, in days).
 
-- time_array
+- time_array  
 A time sequence (numpy array, in days).
 
 For example, we can calculate the position vector of HD209458b from 2 hours before the mid-transit to 2 hours after 
@@ -139,25 +139,25 @@ the mid-transit with a frequency of 1 point per minute:
 Returns the projected distance between the planet and its parent star. When the planet is further than the star, 
 the values returned are negative.
 
-- period
+- period  
 Orbital period (float, in days).
 
-- sma_over_rs
+- sma_over_rs  
 Orbital semi-major axis relative to the stellar radius (float, no units).
 
-- eccentricity
+- eccentricity  
 Orbital eccentricity (float, no units).
 
-- inclination
+- inclination  
 Orbital inclination (float, in degrees).
 
-- periastron
+- periastron  
 Orbital argument of periastron (float, in degrees).
 
-- mid_time
+- mid_time  
 Transit mid-time (float, in days).
 
-- time_array
+- time_array  
 A time sequence (numpy array, in days).
 
 For example, we can calculate the projected distance of HD209458b from its host star from 2 hours before the 
@@ -177,20 +177,20 @@ mid-transit to 2 hours after the mid-transit with a frequency of 1 point per min
 
 Returns the observed stellar flux as a function of time - i.e. the transit light-curve.
 
-- method
+- method  
 Limb darkening low (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
 
-- limb_darkening_coefficients:
+- limb_darkening_coefficients  
 A list containing the limb darkening coefficients. The list should contain 1 element if the method used is the 
 'linear', 2 if the method used is the 'quad' or teh 'sqrt', and 4 if the method used is the 'claret'.
 
-- rp_over_rs
+- rp_over_rs  
 Planetary radius relative to the stellar radius (float, no units)
 
-- z_over_rs
+- z_over_rs  
 Projected distance between the planet and its parent star relative to the stellar radius (numpy array, no units).
 
-- precision
+- precision  
 The level of the numerical precision for the calculation (int, 0 to 6, default value is 3).
 
 For example, we can calculate the transit light-curve of HD209458b from 2 hours before the mid-transit to 2 hours 
@@ -208,38 +208,38 @@ after the mid-transit with a frequency of 1 point per minute:
 
 Returns the transit light-curve, directly from the orbital parameters.
 
-- method
+- method  
 Limb darkening low (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
 
-- limb_darkening_coefficients:
+- limb_darkening_coefficients  
 A list containing the limb darkening coefficients. The list should contain 1 element if the method used is the 
 'linear', 2 if the method used is the 'quad' or teh 'sqrt', and 4 if the method used is the 'claret'.
 
-- rp_over_rs
+- rp_over_rs  
 Planetary radius relative to the stellar radius (float, no units)
 
-- period
+- period  
 Orbital period (float, in days).
 
-- sma_over_rs
+- sma_over_rs  
 Orbital semi-major axis relative to the stellar radius (float, no units).
 
-- eccentricity
+- eccentricity  
 Orbital eccentricity (float, no units).
 
-- inclination
+- inclination  
 Orbital inclination (float, in degrees).
 
-- periastron
+- periastron  
 Orbital argument of periastron (float, in degrees).
 
-- mid_time
+- mid_time  
 Transit mid-time (float, in days).
 
-- time_array
+- time_array  
 A time sequence (numpy array, in days).
 
-- precision
+- precision  
 The level of the numerical precision for the calculation (int, 0 to 6, default value is 3).
 
 For example, we can calculate the transit light-curve of HD209458b from 2 hours before the mid-transit to 2 hours after 
@@ -258,44 +258,44 @@ the mid-transit with a frequency of 1 point per minute:
 
 Returns the exposure-integrated transit light-curve, directly from the orbital parameters.
 
-- method
+- method  
 Limb darkening low (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
 
-- limb_darkening_coefficients
+- limb_darkening_coefficients  
 A list containing the limb darkening coefficients. The list should contain 1 element if the method used is the 
 'linear', 2 if the method used is the 'quad' or teh 'sqrt', and 4 if the method used is the 'claret'.
 
-- rp_over_rs
+- rp_over_rs  
 Planetary radius relative to the stellar radius (float, no units)
 
-- period
+- period  
 Orbital period (float, in days).
 
-- sma_over_rs
+- sma_over_rs  
 Orbital semi-major axis relative to the stellar radius (float, no units).
 
-- eccentricity
+- eccentricity  
 Orbital eccentricity (float, no units).
 
-- inclination
+- inclination  
 Orbital inclination (float, in degrees).
 
-- periastron
+- periastron  
 Orbital argument of periastron (float, in degrees).
 
-- mid_time
+- mid_time  
 Transit mid-time (float, in days).
 
-- time_array
+- time_array  
 A time sequence (numpy array, in days).
 
-- exp_time
+- exp_time  
 Exposure time (float, in seconds).
 
-- time_factor
+- time_factor  
 Number of sub-exposures to be calculated per exposure (int, no units).
 
-- precision
+- precision  
 The level of the numerical precision for the calculation (int, 0 to 6, default value is 3).
 
 For example, we can calculate the transit light-curve of HD209458b from 2 hours before the mid-transit to 2 hours after 
@@ -317,99 +317,99 @@ the mid-transit with a frequency of 1 point per minute, assuming an exposure tim
 Offers a range of options for fitting observed transit light-curves, simultaneously with a second-order polynomial 
 de-trending function.
 
-- data
+- data  
 A list containing the input data sets. Each element in the list is a list of 3 arrays, 
 representing the time (in Heliocentric Julian Date), the stellar flux and the uncertainty in the stellar flux
 example: `data=[[time_0, flux_0, error_0], [time_1, flux_1, error_1], [time_2, flux_2, error_2]]`
 
-- method
+- method  
 Limb darkening low (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
 
-- limb_darkening_coefficients
+- limb_darkening_coefficients  
 A list containing the limb darkening coefficients. The list should contain 1 element if the method used is the 
 'linear', 2 if the method used is the 'quad' or teh 'sqrt', and 4 if the method used is the 'claret'.
 To fit for the limb darkening coefficients set `limb_darkening_coefficients='fit'`.
 
-- rp_over_rs
+- rp_over_rs  
 Initial value for the planetary radius relative to the stellar radius (float, no units)
 
-- period
+- period  
 Initial value for the orbital period (float, in days).
 
-- sma_over_rs
+- sma_over_rs  
 Initial value for the orbital semi-major axis relative to the stellar radius (float, no units).
 
-- eccentricity
+- eccentricity  
 Initial value for the orbital eccentricity (float, no units).
 
-- inclination
+- inclination  
 Initial value for the orbital inclination (float, in degrees).
 
-- periastron
+- periastron  
 Initial value for the orbital argument of periastron (float, in degrees).
 
-- mid_time
+- mid_time  
 Initial value for the transit mid-time (float, in days).
 
-- time_array
+- time_array  
 A time sequence (numpy array, in days).
 
-- iterations
+- iterations  
 Number of total mcmc iterations (int, no units).
 
-- walkers
+- walkers  
 Number of walkers, as defined in the emcee package (int, no units).
 
-- burn
+- burn  
 Number of iterations to be excluded from the beginning of the chains (int, no units).
 
-- precision
+- precision  
 The level of the numerical precision for the calculation (int, 0 to 6, default value is 3).
 
-- exp_time
+- exp_time  
 Exposure time (float, in seconds, default value is 0).
 
-- time_factor
+- time_factor  
 Number of sub-exposures to be calculated per exposure (int, no units, default value is 1).
 
-- fit_first_order
+- fit_first_order  
 Flag for including a first order time-dependent de-trending factor (bool, default value is False).
 
-- fit_second_order
+- fit_second_order  
 Flag for including a second order time-dependent de-trending factor (bool, default value is False).
 
-- fit_rp_over_rs
+- fit_rp_over_rs  
 A 2-element list containing the lower and upper limits for fitting the planetary radius relative to the stellar radius.
 To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
 
-- fit_period
+- fit_period  
 A 2-element list containing the lower and upper limits for fitting the orbital period.
 To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
 
-- fit_sma_over_rs
+- fit_sma_over_rs  
 A 2-element list containing the lower and upper limits for fitting the orbital semi-major axis relative to the stellar radius.
 To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
 
-- fit_eccentricity
+- fit_eccentricity  
 A 2-element list containing the lower and upper limits for fitting the orbital eccentricity.
 To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
 
-- fit_inclination
+- fit_inclination  
 A 2-element list containing the lower and upper limits for fitting the orbital inclination.
 To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
 
-- fit_periastron
+- fit_periastron  
 A 2-element list containing the lower and upper limits for fitting the orbital argument of periastron.
 To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
 
-- fit_mid_time
+- fit_mid_time  
 A 2-element list containing the lower and upper limits for fitting the the transit mid-time.
 To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
 
-- counter
+- counter  
 Flag for printing a counter of the completed iterations (bool, default value is True).
 
-- counter_window=False
+- counter_window=False  
 Flag for showing a counter of the completed iterations in an additional Tk window (bool, default value is False).
 
 ##### plc.TransitAndPolyFitting methods:
@@ -422,35 +422,35 @@ Sets up and runs the mcmc.
 
 Saves all the mcmc results (including the chains) in the form of a pickle file.
 
-- export_file
+- export_file  
 File to be created (str).
 
 ###### .save_results(export_file)
 
 Saves the final values and uncertainties of the fitted parameters in the form of a txt file.
 
-- export_file
+- export_file  
 File to be created (str).
 
 ###### .plot_corner(export_file)
 
 Plots the correlations between the fitted parameters.
 
-- export_file
+- export_file  
 File to be created (str).
 
 ###### .plot_traces(export_file)
 
 Plots the mcmc chains of the fitted parameters.
 
-- export_file
+- export_file  
 File to be created (str).
 
 ###### .plot_models(export_file)
 
 Plots the original data and the full model fitted. A prefix is added to indicate the different data sets (set_1, set_2, etc.).
 
-- export_file
+- export_file  
 File to be created (str).
 
 ###### .plot_detrended_models(export_file)
@@ -458,7 +458,7 @@ File to be created (str).
 Plots the data corrected by the de-trending function and the transit model fitted. A prefix is added to indicate the 
 different data sets (set_1, set_2, etc.).
 
-- export_file
+- export_file  
 File to be created (str).
 
 In the following example we will create 3 simulated observations of HD209458b, with an exposure time of 2 minutes and 
