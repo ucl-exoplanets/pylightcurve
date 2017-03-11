@@ -64,7 +64,7 @@ For example, we can find the parameters of HD209458b:
 Returns a list of limb darkening coefficients.
 
 - method  
-Limb darkening low (str, 'claret' is the only one currently supported).
+Limb darkening law (str, 'claret' is the only one currently supported).
 
 - stellar_logg  
 Logarithmic stellar surface gravity (float, in cm/s/s).
@@ -178,7 +178,7 @@ mid-transit to 2 hours after the mid-transit with a frequency of 1 point per min
 Returns the observed stellar flux as a function of time - i.e. the transit light-curve.
 
 - method  
-Limb darkening low (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
+Limb darkening law (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
 
 - limb_darkening_coefficients  
 A list containing the limb darkening coefficients. The list should contain 1 element if the method used is the 
@@ -209,7 +209,7 @@ after the mid-transit with a frequency of 1 point per minute:
 Returns the transit light-curve, directly from the orbital parameters.
 
 - method  
-Limb darkening low (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
+Limb darkening law (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
 
 - limb_darkening_coefficients  
 A list containing the limb darkening coefficients. The list should contain 1 element if the method used is the 
@@ -259,7 +259,7 @@ the mid-transit with a frequency of 1 point per minute:
 Returns the exposure-integrated transit light-curve, directly from the orbital parameters.
 
 - method  
-Limb darkening low (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
+Limb darkening law (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
 
 - limb_darkening_coefficients  
 A list containing the limb darkening coefficients. The list should contain 1 element if the method used is the 
@@ -323,7 +323,7 @@ representing the time (in Heliocentric Julian Date), the stellar flux and the un
 example: `data=[[time_0, flux_0, error_0], [time_1, flux_1, error_1], [time_2, flux_2, error_2]]`
 
 - method  
-Limb darkening low (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
+Limb darkening law (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
 
 - limb_darkening_coefficients  
 A list containing the limb darkening coefficients. The list should contain 1 element if the method used is the 
