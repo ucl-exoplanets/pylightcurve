@@ -22,7 +22,6 @@ This module depends on
 * matplotlib
 * numpy
 * quantities
-* requests
 
 Download, unzip and `cd` in this repo. Then type `python setup.py install`.
 
