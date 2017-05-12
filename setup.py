@@ -1,8 +1,6 @@
-import platform
 from setuptools import setup
 import codecs
 import os
-import shutil
 import glob
 
 name = 'pylightcurve'
