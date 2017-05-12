@@ -8,7 +8,7 @@ import glob
 name = 'pylightcurve'
 description = 'A python package for modeling and analysing transit light-curves.'
 url = 'https://github.com/atsiaras/hops'
-install_requires = ['matplotlib', 'numpy', 'quantities']
+install_requires = ['matplotlib', 'numpy', 'astropy', 'quantities']
 
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
