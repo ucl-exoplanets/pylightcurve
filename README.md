@@ -21,6 +21,7 @@ This module depends on
 
 * matplotlib
 * numpy
+* astropy
 * quantities
 
 Download, unzip and `cd` in this repo. Then type `python setup.py install`.
