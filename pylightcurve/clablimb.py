@@ -5,7 +5,7 @@ import os
 import glob
 import numpy as np
 
-data_base_location = os.path.join(os.path.dirname(__file__), 'clablimb_data_base')
+data_base_location = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'clablimb_data_base')
 
 
 def tri_linear(x, y, z, x0, x1, y0, y1, z0, z1, v000, v100, v010, v001, v101, v011, v110, v111):

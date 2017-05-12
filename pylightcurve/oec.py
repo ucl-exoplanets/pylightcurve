@@ -15,7 +15,7 @@ import thirdparty_exodata.astroquantities as aq
 
 def oec_catalogue():
 
-    data_base_location = os.path.join(os.path.dirname(__file__), 'oec_data_base')
+    data_base_location = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'oec_data_base')
 
     data_base_url = 'https://github.com/OpenExoplanetCatalogue/oec_gzip/raw/master/systems.xml.gz'
 
@@ -65,6 +65,9 @@ def find_oec_parameters(target, catalogue=None):
         catalogue = oec_catalogue()
 
     planet = catalogue.searchPlanet(target)
+
+    if isinstance(planet, list):
+        planet = planet[0]
 
     name = planet.name
 

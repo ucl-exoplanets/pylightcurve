@@ -1,20 +1,57 @@
+import platform
 from setuptools import setup
 import codecs
 import os
+import shutil
+import glob
 
-here = os.path.abspath(os.path.dirname(__file__))
-with codecs.open(os.path.join(here, 'readme.md'), encoding='utf-8') as f:
+name = 'pylightcurve'
+description = 'A python package for modeling and analysing transit light-curves.'
+url = 'https://github.com/atsiaras/hops'
+install_requires = ['matplotlib', 'numpy', 'quantities']
+
+os.chdir(os.path.abspath(os.path.dirname(__file__)))
+
+subdirs_to_include = []
+for x in os.walk(name):
+    if os.path.isdir(x[0]):
+        if x[0] != name:
+            subdirs_to_include.append(x[0])
+
+files_to_include = []
+for x in glob.glob(os.path.join(name, '*')):
+    if x[-2:] != 'py':
+        files_to_include.append(os.path.join(name, os.path.split(x)[1]))
+
+files_to_include.append('readme.md')
+files_to_include.append('LICENSE')
+
+w = open('MANIFEST.in', 'w')
+for i in subdirs_to_include:
+    w.write('include ' + os.path.join(i, '*') + ' \n')
+
+for i in files_to_include:
+    w.write('include ' + i + ' \n')
+
+w.close()
+
+with codecs.open('readme.md', encoding='utf-8') as f:
     long_description = f.read()
 
+version = ' '
+for i in open(os.path.join(name, '__init__.py')):
+    if len(i.split('__version__')) > 1:
+        version = i.split()[-1][1:-1]
+
 setup(
-    name='pylightcurve',
-    version='1.1.0',
-    description="Modeling and analysing transit light-curves",
+    name=name,
+    version=version,
+    description=description,
     long_description=long_description,
-    url='https://github.com/ucl-exoplanets/pylightcurve',
+    url=url,
     author='Angelos Tsiaras',
     author_email='aggelostsiaras@gmail.com',
-    license='GPLv3',
+    license='MIT',
     classifiers=['Development Status :: 4 - Beta',
                  'Environment :: Console',
                  'Intended Audience :: Science/Research',
@@ -23,8 +60,8 @@ setup(
                  'Operating System :: MacOS :: MacOS X'
                  'Programming Language :: Python :: 2.7',
                  ],
-    packages=['pylightcurve'],
-    install_requires=['matplotlib', 'numpy', 'quantities'],
+    packages=[name],
+    install_requires=install_requires,
     include_package_data=True,
     zip_safe=False,
 )

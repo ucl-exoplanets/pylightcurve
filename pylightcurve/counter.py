@@ -1,31 +1,9 @@
 __all__ = ['Counter']
 
-
+import os
 import sys
 import time
 import datetime
-
-import os
-import ttk
-
-import numpy as np
-
-from Tkinter import *
-import tkFileDialog
-from tkMessageBox import *
-
-import matplotlib
-matplotlib.use('TkAgg')
-from matplotlib.backends.backend_tkagg import FigureCanvasBase, FigureCanvasTkAgg, NavigationToolbar2TkAgg
-from matplotlib.backend_bases import key_press_handler, MouseEvent
-
-import thirdparty_exodata
-import thirdparty_exodata.astroquantities as aq
-
-from clablimb import *
-from transit import *
-from exoplanet_orbit import *
-from oec import *
 
 
 def initialise_window(window, window_name, windows_to_hide, windows_to_close, exit_python, deactivate_close=False):
@@ -53,6 +31,8 @@ def initialise_window(window, window_name, windows_to_hide, windows_to_close, ex
 
 
 def setup_window(window, objects, main_font=None, button_font=None, entries_bd=3):
+
+    from Tkinter import Label
 
     if button_font is None:
         button_font = ['times', 15, 'bold']
@@ -168,6 +148,9 @@ class Counter():
             self.show_every = 10
 
         if self.counter_window:
+
+            from Tkinter import Tk, Label
+
             self.root = Tk()
 
             self.label1 = Label(self.root, text=self.counter_window)
