@@ -10,6 +10,8 @@ A python package for modeling and analysing transit light-curves.
 
 # Installation
 
+Download, unzip and `cd` in this repo. Then type `python setup.py install`.
+
 This module depends on
 
 * matplotlib
@@ -19,10 +21,9 @@ This module depends on
 * [emcee](https://github.com/dfm/emcee), [Foreman-Mackey et al. (2013)](http://iopscience.iop.org/article/10.1086/670067)
 
 
-Download, unzip and `cd` in this repo. Then type `python setup.py install`.
-
-
 # Usage
+
+The code in the examples below can be found in the example/example.py file in this repo.
 
 	>>> import pylightcurve as plc
 	>>> import matplotlib.pyplot as plt
