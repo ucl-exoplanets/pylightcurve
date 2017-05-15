@@ -9,8 +9,16 @@ import socket
 
 import numpy as np
 
-import thirdparty_exodata
-import thirdparty_exodata.astroquantities as aq
+import warnings
+
+warnings.filterwarnings('ignore', '\'second\' was found  to be \'60.0\', which is not in range [0,60). Treating as 0 sec, +1 min [astropy.coordinates.angle_utilities]')
+
+
+import exodata
+import exodata.astroquantities as aq
+
+import seaborn as sns
+sns.reset_orig()
 
 
 def oec_catalogue():
@@ -56,7 +64,7 @@ def oec_catalogue():
             print 'Updating OEC failed.'
             pass
 
-    return thirdparty_exodata.OECDatabase(data_base_file_path, stream=True)
+    return exodata.OECDatabase(data_base_file_path, stream=True)
 
 
 def find_oec_parameters(target, catalogue=None):
