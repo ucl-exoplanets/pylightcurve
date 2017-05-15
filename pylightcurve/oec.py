@@ -10,13 +10,9 @@ import socket
 import numpy as np
 
 import warnings
-
 warnings.filterwarnings('ignore', '\'second\' was found  to be \'60.0\', which is not in range [0,60). Treating as 0 sec, +1 min [astropy.coordinates.angle_utilities]')
-
-
 import exodata
 import exodata.astroquantities as aq
-
 import seaborn as sns
 sns.reset_orig()
 

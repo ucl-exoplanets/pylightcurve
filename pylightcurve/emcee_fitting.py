@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 
-import thirdparty_emcee
+import emcee
 
 from counter import *
 from one_d_distribution import *
@@ -119,7 +119,7 @@ class EmceeFitting():
             def probability(theta, data_y, data_y_error):
                 return prior(theta) + likelihood(theta, data_y, data_y_error)
 
-        sampler = thirdparty_emcee.EnsembleSampler(self.walkers, dimensions, probability, args=self.input_data)
+        sampler = emcee.EnsembleSampler(self.walkers, dimensions, probability, args=self.input_data)
         sampler.run_mcmc(walkers_initial_positions, self.iterations / self.walkers)
         mcmc_results = sampler.flatchain
 

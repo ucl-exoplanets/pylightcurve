@@ -8,21 +8,16 @@ A python package for modeling and analysing transit light-curves.
 * Calculation of transit models.
 * Flexible fitting of transit light-curves.
 
-Includes the following packages:
-
-* [oec](https://github.com/OpenExoplanetCatalogue/open_exoplanet_catalogue), [Rein (2012)](https://arxiv.org/abs/1211.7121)
-* [exodata](https://github.com/ryanvarley/ExoData), [Varley (2016)](http://www.sciencedirect.com/science/article/pii/S0010465516301254)
-* [emcee](https://github.com/dfm/emcee), [Foreman-Mackey et al. (2013)](http://iopscience.iop.org/article/10.1086/670067)
-
-
 # Installation
 
 This module depends on
 
 * matplotlib
 * numpy
-* astropy
-* quantities
+* seaborn
+* [exodata](https://github.com/ryanvarley/ExoData), [Varley (2016)](http://www.sciencedirect.com/science/article/pii/S0010465516301254)
+* [emcee](https://github.com/dfm/emcee), [Foreman-Mackey et al. (2013)](http://iopscience.iop.org/article/10.1086/670067)
+
 
 Download, unzip and `cd` in this repo. Then type `python setup.py install`.
 
