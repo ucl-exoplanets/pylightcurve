@@ -1,7 +1,4 @@
-include pylightcurve/clablimb_data_base/*
-include pylightcurve/oec_data_base/*
-include pylightcurve/thirdparty_emcee/*
-include pylightcurve/thirdparty_exodata/*
-include pylightcurve/thirdparty_exodata/data/*
-include readme.md
-include LICENSE
+include pylightcurve/clablimb_data_base/* 
+include pylightcurve/oec_data_base/* 
+include readme.md 
+include LICENSE 
