@@ -8,17 +8,18 @@ A python package for modeling and analysing transit light-curves.
 * Calculation of transit models.
 * Flexible fitting of transit light-curves.
 
-# Installation
-
-Open a terminal and type `pip install pylightcurve`.
-
 This module makes use of:
 
 * [exodata](https://github.com/ryanvarley/ExoData), [Varley (2016)](http://www.sciencedirect.com/science/article/pii/S0010465516301254)
 * [emcee](https://github.com/dfm/emcee), [Foreman-Mackey et al. (2013)](http://iopscience.iop.org/article/10.1086/670067)
 
 
-# Usage
+## Installation
+
+Open a terminal and type `pip install pylightcurve`.
+
+
+## Usage
 
 The code in the examples below can be found in the example/example.py file in this repo.
 
@@ -533,7 +534,7 @@ avoid an extremely slow process, we will use a time factor of 2 for the fitting,
     >>> fitting.plot_detrended_models('simulation_detrended_models.pdf')
 
 
-# Licence
+## Licence
 
 MIT License
 

@@ -19,10 +19,10 @@ for x in os.walk(name):
 files_to_include = []
 for x in glob.glob(os.path.join(name, '*')):
     if os.path.isfile(x):
-        if x.split('.')[-1] not in ['py', 'pyc']:
+        if x.split('.')[-1] not in ['py']:
             files_to_include.append(os.path.join(name, os.path.split(x)[1]))
 
-files_to_include.append('readme.md')
+files_to_include.append('README.md')
 files_to_include.append('LICENSE')
 
 w = open('MANIFEST.in', 'w')
