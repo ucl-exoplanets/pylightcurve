@@ -1,3 +1,4 @@
+pylightcurve/*.pyc
 *.egg-info/
 MANIFEST.in
 pylightcurve/oec_data_base/
