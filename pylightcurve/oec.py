@@ -40,7 +40,10 @@ def oec_catalogue():
 
     if update:
 
-        print 'Updating OEC...'
+        if not os.path.isfile(data_base_file_path):
+            print 'Installing OEC...'
+        else:
+            print 'Updating OEC...'
 
         try:
             socket.setdefaulttimeout(5)
@@ -60,8 +63,13 @@ def oec_catalogue():
             w.close()
 
         except IOError:
-            print 'Updating OEC failed.'
-            pass
+            
+            if not os.path.isfile(data_base_file_path):
+                'Installing OEC failed.'
+                exit()
+            else:
+                print 'Updating OEC failed.'
+                pass
 
     return exodata.OECDatabase(data_base_file_path, stream=True)
 
