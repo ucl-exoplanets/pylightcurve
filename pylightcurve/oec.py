@@ -20,6 +20,9 @@ sns.reset_orig()
 def oec_catalogue():
 
     data_base_location = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'oec_data_base')
+        
+    if not os.path.isdir(data_base_location):
+        os.mkdir(data_base_location)
 
     data_base_url = 'https://github.com/OpenExoplanetCatalogue/oec_gzip/raw/master/systems.xml.gz'
 
