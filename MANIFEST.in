@@ -1,4 +1,0 @@
-include pylightcurve/clablimb_data_base/* 
-include pylightcurve/oec_data_base/* 
-include readme.md 
-include LICENSE 
