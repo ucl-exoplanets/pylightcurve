@@ -2,7 +2,7 @@
 
 A python package for modeling and analysing transit light-curves.
 
-* Easy search of parameters for current exoplanets 
+* Easy search for parameters of current exoplanets.
 * Calculation of limb darkening coefficients.
 * Calculation of exoplanetary orbits.
 * Calculation of transit models.
@@ -10,13 +10,10 @@ A python package for modeling and analysing transit light-curves.
 
 # Installation
 
-Download, unzip and `cd` in this repo. Then type `python setup.py install`.
+Open a terminal and type `pip install pylightcurve`.
 
-This module depends on
+This module makes use of:
 
-* matplotlib
-* numpy
-* seaborn
 * [exodata](https://github.com/ryanvarley/ExoData), [Varley (2016)](http://www.sciencedirect.com/science/article/pii/S0010465516301254)
 * [emcee](https://github.com/dfm/emcee), [Foreman-Mackey et al. (2013)](http://iopscience.iop.org/article/10.1086/670067)
 
