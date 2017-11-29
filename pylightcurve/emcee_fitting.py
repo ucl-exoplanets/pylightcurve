@@ -293,7 +293,6 @@ class EmceeFitting():
             except AttributeError:
                 plt.subplot(all_var, all_var, all_var * var + var + 1, axisbg='w')
 
-
             plt.step(traces_bins[var], traces_counts[var], color='k', where='mid')
 
             plt.axvline(results[var], c='k')

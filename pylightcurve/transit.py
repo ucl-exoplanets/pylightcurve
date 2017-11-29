@@ -1,4 +1,4 @@
-__all__ = ['transit', 'transit_integrated']
+__all__ = ['transit', 'eclipse', 'transit_integrated']
 
 
 import numpy as np
@@ -7,8 +7,8 @@ from transit_flux_drop import *
 from exoplanet_orbit import *
 
 
-def transit(method, limb_darkening_coefficients, rp_over_rs,
-            period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array, precision=3):
+def transit(method, limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron,
+            mid_time, time_array, precision=3):
 
     position_vector = exoplanet_orbit(period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array)
 
@@ -17,6 +17,20 @@ def transit(method, limb_darkening_coefficients, rp_over_rs,
         np.sqrt(position_vector[1] * position_vector[1] + position_vector[2] * position_vector[2]))
 
     return transit_flux_drop(method, limb_darkening_coefficients, rp_over_rs, projected_distance, precision=precision)
+
+
+def eclipse(fp_over_fs, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array,
+            precision=3):
+
+    position_vector = exoplanet_orbit(period, -sma_over_rs / rp_over_rs, eccentricity, inclination, periastron,
+                                      mid_time, time_array)
+
+    projected_distance = np.where(
+        position_vector[0] < 0, 1.0 + 5.0 / rp_over_rs,
+        np.sqrt(position_vector[1] * position_vector[1] + position_vector[2] * position_vector[2]))
+
+    return (1.0 + fp_over_fs * transit_flux_drop('claret', [0, 0, 0, 0], 1 / rp_over_rs, projected_distance,
+                                                 precision=precision)) / (1.0 + fp_over_fs)
 
 
 def transit_integrated(method, limb_darkening_coefficients, rp_over_rs,
@@ -40,4 +54,3 @@ def transit_integrated(method, limb_darkening_coefficients, rp_over_rs,
     return np.mean(np.reshape(transit_flux_drop(method, limb_darkening_coefficients,
                                                 rp_over_rs, projected_distance, precision=precision),
                               (len(time_array), time_factor)), 1)
-

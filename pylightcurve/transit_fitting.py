@@ -407,11 +407,11 @@ class TransitAndPolyFitting():
                      r'$\mathrm{rms}_\mathrm{res} = %.1e$' %
                      np.std(self.results['output_series']['residuals'][set_indices]), fontsize=10)
 
-            plt.subplots_adjust(hspace=0.0)
+            plt.subplots_adjust(left=0.15, right=0.975, bottom=0.12, top=0.9, hspace=0.0)
 
             plt.savefig(os.path.join(os.path.split(export_file)[0],
                                      'set_' + str(set_number + 1) + '_' + os.path.split(export_file)[1]),
-                        bbox_inches='tight', transparent=True)
+                        transparent=True)
             plt.close('all')
 
     def plot_detrended_models(self, export_file, target=None, data_dates=None, return_plot=False):
@@ -516,11 +516,11 @@ class TransitAndPolyFitting():
                      np.std(self.results['detrended_output_series']['residuals'][set_indices]),
                      fontsize=10)
 
-            plt.subplots_adjust(hspace=0.0)
+            plt.subplots_adjust(left=0.15, right=0.975, bottom=0.12, top=0.9, hspace=0.0)
 
             plt.savefig(os.path.join(os.path.split(export_file)[0],
                                      'set_' + str(set_number + 1) + '_' + os.path.split(export_file)[1]),
-                        bbox_inches='tight', transparent=True)
+                        transparent=True)
             if return_plot:
                 return [plt.figure(ff + 1) for ff in range(self.total_sets)]
             else:
