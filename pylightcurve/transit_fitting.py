@@ -321,6 +321,9 @@ class TransitAndPolyFitting():
 
         for set_number in range(self.total_sets):
 
+            fig = plt.figure(set_number + 1)
+            fig.set_tight_layout(False)
+
             self.results = {ff: self.results[ff] for ff in self.results}
 
             period = self.results['parameters']['P']['value']
@@ -424,7 +427,8 @@ class TransitAndPolyFitting():
 
         for set_number in range(self.total_sets):
 
-            plt.figure(set_number + 1)
+            fig = plt.figure(set_number + 1)
+            fig.set_tight_layout(False)
 
             self.results = {ff: self.results[ff] for ff in self.results}
 
