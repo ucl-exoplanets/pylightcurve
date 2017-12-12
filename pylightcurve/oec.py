@@ -6,6 +6,7 @@ import time
 import gzip
 import urllib
 import socket
+import shutil
 
 import numpy as np
 
@@ -71,7 +72,13 @@ def oec_catalogue():
                 print 'Updating OEC failed.'
                 pass
 
-    return exodata.OECDatabase(data_base_file_path, stream=True)
+    try:
+        return exodata.OECDatabase(data_base_file_path, stream=True)
+    except:
+        print 'Using backup OEC.'
+        shutil.copy(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'systems_backup.xml'),
+                    os.path.join(data_base_location, 'systems.xml'))
+        return exodata.OECDatabase(data_base_file_path, stream=True)
 
 
 def find_oec_parameters(target, catalogue=None):
