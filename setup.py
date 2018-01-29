@@ -5,8 +5,8 @@ import glob
 
 name = 'pylightcurve'
 description = 'A python package for modeling and analysing transit light-curves.'
-url = 'https://github.com/atsiaras/hops'
-install_requires = ['matplotlib', 'numpy', 'exodata', 'emcee', 'seaborn']
+url = 'https://https://github.com/ucl-exoplanets/pylightcurve'
+install_requires = ['matplotlib', 'numpy', 'exodata', 'emcee', 'seaborn', 'ephem']
 
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
@@ -34,7 +34,7 @@ for i in files_to_include:
 
 w.close()
 
-with codecs.open('readme.md', encoding='utf-8') as f:
+with codecs.open('README.md', encoding='utf-8') as f:
     long_description = f.read()
 
 version = ' '
