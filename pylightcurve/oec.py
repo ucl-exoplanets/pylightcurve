@@ -133,6 +133,13 @@ def find_oec_parameters(target, catalogue=None):
 
     mid_time = float(planet.transittime)
 
+    # known mistakes in the catalogue
+
+    if name == 'WASP-121 b':
+        mid_time = 2456635.70832
+    elif name == 'Qatar-1 b':
+        mid_time = 2455518.4102
+
     return (name, stellar_logg, stellar_temperature, stellar_metallicity, rp_over_rs, fp_over_fs,
             period, sma_over_rs, eccentricity, inclination, periastron, mid_time)
 
