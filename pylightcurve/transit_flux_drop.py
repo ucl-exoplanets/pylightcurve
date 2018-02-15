@@ -42,7 +42,7 @@ def integral_r_linear(limb_darkening_coefficients, r):
 
 
 def num_linear(r, limb_darkening_coefficients, rprs, z):
-    a1 = limb_darkening_coefficients
+    a1 = limb_darkening_coefficients[0]
     rsq = r * r
     return (1.0 - a1 * (1.0 - np.sqrt(1.0 - rsq))) \
         * r * np.arccos(np.minimum((-rprs ** 2 + z * z + rsq) / (2.0 * z * r), 1.0))
@@ -56,14 +56,14 @@ def integral_r_f_linear(limb_darkening_coefficients, rprs, z, r1, r2, precision=
 
 
 def integral_r_quad(limb_darkening_coefficients, r):
-    a1, a2 = limb_darkening_coefficients
+    a1, a2 = limb_darkening_coefficients[:2]
     musq = 1 - r * r
     mu = np.sqrt(musq)
     return (1.0 / 12) * (-4.0 * (a1 + 2.0 * a2) * mu * musq + 6.0 * (-1 + a1 + a2) * musq + 3.0 * a2 * musq * musq)
 
 
 def num_quad(r, limb_darkening_coefficients, rprs, z):
-    a1, a2 = limb_darkening_coefficients
+    a1, a2 = limb_darkening_coefficients[:2]
     rsq = r * r
     cc = 1.0 - np.sqrt(1.0 - rsq)
     return (1.0 - a1 * cc - a2 * cc * cc) \
@@ -78,14 +78,14 @@ def integral_r_f_quad(limb_darkening_coefficients, rprs, z, r1, r2, precision=3)
 
 
 def integral_r_sqrt(limb_darkening_coefficients, r):
-    a1, a2 = limb_darkening_coefficients
+    a1, a2 = limb_darkening_coefficients[:2]
     musq = 1 - r * r
     mu = np.sqrt(musq)
     return ((-2.0 / 5) * a2 * np.sqrt(mu) - (1.0 / 3) * a1 * mu + (1.0 / 2) * (-1 + a1 + a2)) * musq
 
 
 def num_sqrt(r, limb_darkening_coefficients, rprs, z):
-    a1, a2 = limb_darkening_coefficients
+    a1, a2 = limb_darkening_coefficients[:2]
     rsq = r * r
     mu = np.sqrt(1.0 - rsq)
     return (1.0 - a1 * (1 - mu) - a2 * (1.0 - np.sqrt(mu))) \
