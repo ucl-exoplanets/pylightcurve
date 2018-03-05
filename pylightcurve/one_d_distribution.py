@@ -1,5 +1,8 @@
-__all__ = ['one_d_distribution']
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
+__all__ = ['one_d_distribution']
 
 import numpy as np
 
@@ -76,7 +79,7 @@ def one_d_distribution(data_array, step=None, min_value=None, max_value=None, co
             leftci = distrx[num]
             num -= 1
             if num < 0:
-                print "ERROR : confidence level can not be reached from left"
+                print('ERROR : confidence level can not be reached from left')
                 break
         pright = 0.0
         num = centroid
@@ -89,7 +92,7 @@ def one_d_distribution(data_array, step=None, min_value=None, max_value=None, co
             rightci = distrx[num]
             num += 1
             if num > len(distr) - 1:
-                print "ERROR : confidence level can not be reached from right"
+                print('ERROR : confidence level can not be reached from right')
                 break
 
         error_plus, error_minus = rightci - exp_val, exp_val - leftci
@@ -103,11 +106,11 @@ def one_d_distribution(data_array, step=None, min_value=None, max_value=None, co
         except OverflowError:
             digit2 = 3
         try:
-            done1 = 1 / int(error_minus * (10 ** digit1))
+            done1 = 1 // int(error_minus * (10 ** digit1))
         except ZeroDivisionError:
             done1 = 0
         try:
-            done2 = 1 / int(error_plus * (10 ** digit2))
+            done2 = 1 // int(error_plus * (10 ** digit2))
         except ZeroDivisionError:
             done2 = 0
 

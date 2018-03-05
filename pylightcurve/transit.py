@@ -1,10 +1,14 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 __all__ = ['transit', 'eclipse', 'transit_integrated']
 
 
 import numpy as np
 
-from transit_flux_drop import *
-from exoplanet_orbit import *
+from .transit_flux_drop import *
+from .exoplanet_orbit import *
 
 
 def transit(method, limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron,

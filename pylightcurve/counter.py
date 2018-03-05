@@ -1,3 +1,7 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 __all__ = ['Counter']
 
 import os
@@ -32,7 +36,11 @@ def initialise_window(window, window_name, windows_to_hide, windows_to_close, ex
 
 def setup_window(window, objects, main_font=None, button_font=None, entries_bd=3):
 
-    from Tkinter import Label
+    import sys
+    if sys.version_info[0] > 2:
+        from tkinter import Label
+    else:
+        from Tkinter import Label
 
     if button_font is None:
         button_font = ['times', 15, 'bold']
@@ -149,7 +157,11 @@ class Counter():
 
         if self.counter_window:
 
-            from Tkinter import Tk, Label
+            import sys
+            if sys.version_info[0] > 2:
+                from tkinter import Tk, Label
+            else:
+                from Tkinter import Tk, Label
 
             self.root = Tk()
 
@@ -175,8 +187,8 @@ class Counter():
         self.current_iteration += 1
         self.show += 1.0 / self.show_every
 
-        out_of = ' ' * (len(str(self.total_iterations)) - len(str(self.current_iteration))) + \
-                 str(self.current_iteration) + ' / ' + str(self.total_iterations)
+        out_of = '{0}{1} / {2}'.format(' ' * (len(str(self.total_iterations)) - len(str(self.current_iteration))),
+                                       str(self.current_iteration), str(self.total_iterations))
 
         delta_time = time.time() - self.start_time
 
@@ -188,15 +200,15 @@ class Counter():
         if int(self.show):
 
             if self.counter_window:
-                self.label3.configure(text='     ' + out_of + '     ')
-                self.label5.configure(text='     ' + time_left + '     ')
-                self.label7.configure(text='     ' + total_time + '     ')
+                self.label3.configure(text='{0}{1}{2}'.format('     ', out_of, '     '))
+                self.label5.configure(text='{0}{1}{2}'.format('     ', time_left, '     '))
+                self.label7.configure(text='{0}{1}{2}'.format('     ', total_time, '     '))
                 self.root.update()
 
             if self.counter:
                 sys.stdout.write('\r\033[K')
-                sys.stdout.write(self.counter + '.' * (15 - len(self.counter)) +
-                                 ': ' + out_of + '   time left: ' + time_left + '   total time: ' + total_time)
+                sys.stdout.write('{0}{1}: {2}   time left: {3}   total time: {4}'.format(
+                    self.counter, '.' * (15 - len(self.counter)), out_of, time_left, total_time))
                 sys.stdout.flush()
 
             self.show = 0
@@ -204,9 +216,9 @@ class Counter():
         if self.current_iteration == 1:
 
             if self.counter_window:
-                self.label3.configure(text='     ' + out_of + '     ')
-                self.label5.configure(text='     ' + time_left + '     ')
-                self.label7.configure(text='     ' + total_time + '     ')
+                self.label3.configure(text='{0}{1}{2}'.format('     ', out_of, '     '))
+                self.label5.configure(text='{0}{1}{2}'.format('     ', time_left, '     '))
+                self.label7.configure(text='{0}{1}{2}'.format('     ', total_time, '     '))
                 self.root.update()
 
                 finalise_window(self.root, topmost=True)
@@ -219,4 +231,4 @@ class Counter():
                 self.root.destroy()
 
             if self.counter:
-                print ''
+                print('')

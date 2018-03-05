@@ -1,3 +1,7 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 __all__ = ['EmceeFitting']
 
 
@@ -10,8 +14,8 @@ import matplotlib
 
 import emcee
 
-from counter import *
-from one_d_distribution import *
+from .counter import *
+from .one_d_distribution import *
 
 
 class EmceeFitting():
@@ -120,7 +124,7 @@ class EmceeFitting():
                 return prior(theta) + likelihood(theta, data_y, data_y_error)
 
         sampler = emcee.EnsembleSampler(self.walkers, dimensions, probability, args=self.input_data)
-        sampler.run_mcmc(walkers_initial_positions, self.iterations / self.walkers)
+        sampler.run_mcmc(walkers_initial_positions, int(self.iterations) // int(self.walkers))
         mcmc_results = sampler.flatchain
 
         self.results['input_series']['value'] = self.input_data[0]
@@ -138,7 +142,7 @@ class EmceeFitting():
 
             else:
                 trace = mcmc_results[:, np.where(fitted_parameters_indices == var)[0][0]]
-                trace = trace.reshape(self.walkers, self.iterations / self.walkers)
+                trace = trace.reshape(int(self.walkers), int(self.iterations) // int(self.walkers))
                 trace = (np.swapaxes(trace, 0, 1).flatten())[self.burn_in:]
 
                 bins, counts, value, m_error, p_error, print_value, print_m_error, print_p_error = \
@@ -177,7 +181,7 @@ class EmceeFitting():
 
         res_autocorr = np.correlate(self.results['output_series']['residuals'],
                                     self.results['output_series']['residuals'], mode='full')
-        res_autocorr = res_autocorr[res_autocorr.size / 2:] / res_autocorr[res_autocorr.size / 2:][0]
+        res_autocorr = res_autocorr[res_autocorr.size // 2:] / res_autocorr[res_autocorr.size // 2:][0]
 
         self.results['statistics']['res_autocorr'] = res_autocorr
         self.results['statistics']['res_std'] = np.std(self.results['output_series']['residuals'])
@@ -191,7 +195,7 @@ class EmceeFitting():
         if not self.mcmc_run_complete:
             raise RuntimeError('MCMC not completed')
 
-        pickle.dump(self.results, open(export_file, 'w'))
+        pickle.dump(self.results, open(export_file, 'wb'))
 
     def save_results(self, export_file):
 
@@ -303,10 +307,9 @@ class EmceeFitting():
             plt.yticks(plt.yticks()[0], np.ones_like(plt.yticks()[0]))
             plt.tick_params(left='off', right='off', top='off', bottom='off', labelbottom='off', labelleft='off')
 
-            plt.xlabel(r'${0}$'.format(names[var]) + '\n' +
-                       r'${0}$'.format(print_results[var]) + '\n' +
-                       r'$-{0}$'.format(print_errors1[var]) + '\n' +
-                       r'$+{0}$'.format(print_errors2[var]), fontsize=20)
+            plt.xlabel('{0}\n{1}\n{2}\n{3}'.format(r'${0}$'.format(names[var]), r'${0}$'.format(print_results[var]),
+                                                   r'$-{0}$'.format(print_errors1[var]),
+                                                   r'$+{0}$'.format(print_errors2[var])), fontsize=20)
 
             plt.xlim(results[var] - 6 * errors[var], results[var] + 6 * errors[var])
             plt.ylim(0, plt.ylim()[1])
@@ -325,7 +328,7 @@ class EmceeFitting():
                 plt.ylim(results[var] - 6 * errors[var], results[var] + 6 * errors[var])
                 text_x = plt.xlim()[1] - 0.05 * (plt.xlim()[1] - plt.xlim()[0])
                 text_y = plt.ylim()[1] - 0.05 * (plt.ylim()[1] - plt.ylim()[0])
-                plt.text(text_x, text_y, r'$' + str(correlation(traces[j], traces[var])) + '$',
+                plt.text(text_x, text_y, '{0}{1}{2}'.format(r'$', str(correlation(traces[j], traces[var])), '$'),
                          color=cmap(abs(correlation(traces[j], traces[var])) / 2.),
                          fontsize=20, ha='right', va='top')
 
@@ -353,10 +356,11 @@ class EmceeFitting():
             plt.yticks(plt.yticks()[0], np.ones_like(plt.yticks()[0]))
             plt.tick_params(left='off', right='off', labelleft='off')
 
-            plt.ylabel(r'${0}$'.format(self.results['parameters'][var]['print_name']) + '\n' +
-                       r'${0}$'.format(self.results['parameters'][var]['print_value']) + '\n' +
-                       r'$-{0}$'.format(self.results['parameters'][var]['print_m_error']) + '\n' +
-                       r'$+{0}$'.format(self.results['parameters'][var]['print_p_error']), fontsize=15)
+            plt.ylabel('{0}\n{1}\n{2}\n{3}'.format(r'${0}$'.format(self.results['parameters'][var]['print_name']),
+                                                   r'${0}$'.format(self.results['parameters'][var]['print_value']),
+                                                   r'$-{0}$'.format(self.results['parameters'][var]['print_m_error']),
+                                                   r'$+{0}$'.format(self.results['parameters'][var]['print_p_error'])),
+                       fontsize=15)
 
             if var_num != len(self.fitted_parameters) - 1:
                 plt.tick_params(labelbottom='off')

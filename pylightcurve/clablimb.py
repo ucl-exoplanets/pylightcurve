@@ -1,3 +1,7 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 __all__ = ['clablimb']
 
 
@@ -28,7 +32,7 @@ def clablimb(method, stellar_logg, stellar_temperature, stellar_metallicity, pho
     if method != 'claret':
         raise ImportError('Limb darkening model not currently supported.')
 
-    data_file = glob.glob(os.path.join(data_base_location, '*_' + stellar_model + '_' + photometric_filter + '.txt'))[0]
+    data_file = glob.glob(os.path.join(data_base_location, '*_{0}_{1}.txt'.format(stellar_model, photometric_filter)))[0]
     data = np.loadtxt(data_file, usecols=[0, 1, 2, 3, 4, 5, 6, 7], unpack=True)
 
     x = np.unique(data[0])

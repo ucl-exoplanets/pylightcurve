@@ -1,10 +1,21 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 __all__ = ['oec_catalogue', 'find_oec_parameters', 'find_next_transit', 'find_current_phase']
 
+try:
+    from urllib.request import urlretrieve
+except ImportError:
+    from urllib import urlretrieve
+    import ttk
+    from Tkinter import *
+    import tkFileDialog
+    from tkMessageBox import *
 
 import os
 import time
 import gzip
-import urllib
 import socket
 import shutil
 import ephem
@@ -23,6 +34,8 @@ sns.reset_orig()
 
 def oec_catalogue():
 
+    backup_data_base_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'systems.xml.gz')
+
     data_base_location = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'oec_data_base')
         
     if not os.path.isdir(data_base_location):
@@ -30,7 +43,7 @@ def oec_catalogue():
 
     data_base_url = 'https://github.com/OpenExoplanetCatalogue/oec_gzip/raw/master/systems.xml.gz'
 
-    data_base_file_path = os.path.join(data_base_location, 'systems.xml')
+    data_base_file_path = os.path.join(data_base_location, 'systems.xml.gz')
     last_update_file_path = os.path.join(data_base_location, 'systems_last_update.txt')
 
     date = time.strftime('%y%m%d')
@@ -44,44 +57,24 @@ def oec_catalogue():
 
     if update:
 
-        if not os.path.isfile(data_base_file_path):
-            print 'Installing OEC...'
-        else:
-            print 'Updating OEC...'
+        print('Updating OEC...')
 
         try:
             socket.setdefaulttimeout(5)
-            urllib.urlretrieve(data_base_url, data_base_file_path + '.gz')
+            urlretrieve(data_base_url, data_base_file_path)
             socket.setdefaulttimeout(30)
-
-            w = open(data_base_file_path, 'w')
-            for i in gzip.open(data_base_file_path + '.gz'):
-                w.write(i)
-
-            w.close()
-
-            os.remove('{0}.gz'.format(data_base_file_path))
-
             w = open(last_update_file_path, 'w')
             w.write(date)
             w.close()
-
         except IOError:
-            
-            if not os.path.isfile(data_base_file_path):
-                'Installing OEC failed.'
-                exit()
-            else:
-                print 'Updating OEC failed.'
-                pass
+            print('Updating OEC failed.')
+            pass
 
     try:
-        return exodata.OECDatabase(data_base_file_path, stream=True)
+        return exodata.OECDatabase(gzip.GzipFile(data_base_file_path), stream=True)
     except:
-        print 'Using backup OEC.'
-        shutil.copy(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'systems_backup.xml'),
-                    os.path.join(data_base_location, 'systems.xml'))
-        return exodata.OECDatabase(data_base_file_path, stream=True)
+        print('Using backup OEC.')
+        return exodata.OECDatabase(gzip.GzipFile(backup_data_base_file_path), stream=True)
 
 
 def find_oec_parameters(target, catalogue=None):

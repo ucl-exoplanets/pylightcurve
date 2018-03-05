@@ -1,3 +1,7 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 __all__ = ['TransitAndPolyFitting']
 
 
@@ -8,10 +12,10 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-from exoplanet_orbit import *
-from transit_flux_drop import *
-from emcee_fitting import *
-from transit_duration import *
+from .exoplanet_orbit import *
+from .transit_flux_drop import *
+from .emcee_fitting import *
+from .transit_duration import *
 
 
 class TransitAndPolyFitting():
@@ -114,14 +118,14 @@ class TransitAndPolyFitting():
             max_limit = (10 * (max(set_arrays[1]) - min(set_arrays[1])) / (max(set_arrays[0]) - min(set_arrays[0])) /
                          np.mean(set_arrays[1]))
 
-            self.names.append('N' + str(set_number))
-            self.print_names.append('N_' + str(set_number))
+            self.names.append('N{0}'.format(str(set_number)))
+            self.print_names.append('N_{0}'.format(str(set_number)))
             self.initial.append(np.mean(set_arrays[1]))
             self.limits1.append(0.5 * np.mean(set_arrays[1]))
             self.limits2.append(1.5 * np.mean(set_arrays[1]))
 
-            self.names.append('L' + str(set_number))
-            self.print_names.append('L_' + str(set_number))
+            self.names.append('L{0}'.format(str(set_number)))
+            self.print_names.append('L_{0}'.format(str(set_number)))
             self.initial.append(0)
             if self.fit_first_order:
                 self.limits1.append(-max_limit)
@@ -130,8 +134,8 @@ class TransitAndPolyFitting():
                 self.limits1.append(np.nan)
                 self.limits2.append(np.nan)
 
-            self.names.append('Q' + str(set_number))
-            self.print_names.append('Q_' + str(set_number))
+            self.names.append('Q{0}'.format(str(set_number)))
+            self.print_names.append('Q_{0}'.format(str(set_number)))
             self.initial.append(0)
             if self.fit_second_order:
                 self.limits1.append(-max_limit)
@@ -196,7 +200,7 @@ class TransitAndPolyFitting():
             try:
                 self.initial[var] = float(self.initial[var])
             except:
-                raise RuntimeError('Improper value for ' + self.names[var])
+                raise RuntimeError('Improper value for {0}'.format(self.names[var]))
 
             if limits[var] is False:
                 self.limits1.append(np.nan)
@@ -209,12 +213,13 @@ class TransitAndPolyFitting():
             else:
                 try:
                     if len(np.array(limits[var])) != 2:
-                        raise RuntimeError('Improper limits for ' + self.names[var])
+                        raise RuntimeError('Improper limits for {0}'.format(self.names[var]))
                 except:
-                    raise RuntimeError('Improper limits for ' + self.names[var])
+                    raise RuntimeError('Improper limits for {0}'.format(self.names[var]))
 
                 if self.initial[var] < np.array(limits[var])[0] or self.initial[var] > np.array(limits[var])[1]:
-                    raise RuntimeError('Initial value for ' + self.names[var] + ' is outside the range of the prior')
+                    raise RuntimeError('Initial value for {0} is outside the range of the prior.'.format(
+                        self.names[var]))
                 else:
                     self.limits1.append(np.array(limits[var])[0])
                     self.limits2.append(np.array(limits[var])[1])
@@ -297,7 +302,7 @@ class TransitAndPolyFitting():
 
     def save_all(self, export_file):
 
-        pickle.dump(self.results, open(export_file, 'w'))
+        pickle.dump(self.results, open(export_file, 'wb'))
 
     def save_results(self, export_file):
 
@@ -317,7 +322,7 @@ class TransitAndPolyFitting():
             target = ' '
 
         if data_dates is None:
-            data_dates = map(str, ['set_' + str(ff) for ff in range(1, self.total_sets + 1)])
+            data_dates = map(str, ['set_{0}'.format(str(ff)) for ff in range(1, self.total_sets + 1)])
 
         for set_number in range(self.total_sets):
 
@@ -367,29 +372,33 @@ class TransitAndPolyFitting():
             plt.xlim(-x_max, x_max)
             plt.tick_params(labelbottom='off')
 
-            rpstr = r'$R_\mathrm{p}/R_* = ' + self.results['parameters']['rp']['print_value'] + \
-                    '_{-' + self.results['parameters']['rp']['print_m_error'] + '}' + \
-                    '^{+' + self.results['parameters']['rp']['print_p_error'] + '}$'
-            mtstr = r'$T_\mathrm{HJD} = ' + self.results['parameters']['mt']['print_value'] + \
-                    '_{-' + self.results['parameters']['mt']['print_m_error'] + '}' + \
-                    '^{+' + self.results['parameters']['mt']['print_p_error'] + '}$'
+            rpstr = '{0}{1}{2}{3}{4}{5}{6}{7}'.format(
+                r'$R_\mathrm{p}/R_* = ', self.results['parameters']['rp']['print_value'], '_{-',
+                self.results['parameters']['rp']['print_m_error'], '}', '^{+',
+                self.results['parameters']['rp']['print_p_error'], '}$')
+            mtstr = '{0}{1}{2}{3}{4}{5}{6}{7}'.format(
+                r'$T_\mathrm{HJD} = ', self.results['parameters']['mt']['print_value'], '_{-',
+                self.results['parameters']['mt']['print_m_error'], '}', '^{+',
+                self.results['parameters']['mt']['print_p_error'], '}$')
 
             plt.text(plt.xlim()[0] + 0.5 * (plt.xlim()[-1] - plt.xlim()[0]),
                      plt.ylim()[0] + 0.07 * (plt.ylim()[-1] - plt.ylim()[0]),
-                     rpstr + '\n' + mtstr, ha='center', va='center', fontsize=10)
+                     '{0}\n{1}'.format(rpstr, mtstr), ha='center', va='center', fontsize=10)
 
             plt.axvline((ingress - mt) / period, 0.3, 1.0, ls='--', c='k', lw=0.75)
             plt.text((ingress - mt) / period, plt.ylim()[0] + 0.3 * (plt.ylim()[1] - plt.ylim()[0]),
-                     r'$\mathrm{predicted}$' + '\n' + r'$\mathrm{ingress}$' + '\n' + r'$\mathrm{start}$',
+                     '{0}{1}{2}{3}{4}'.format(r'$\mathrm{predicted}$', '\n', r'$\mathrm{ingress}$', '\n',
+                                              r'$\mathrm{start}$'),
                      ha='right', va='top', fontsize=10)
             plt.axvline((egress - mt) / period, 0.3, 1.0, ls='--', c='k', lw=0.75)
             plt.text((egress - mt) / period, plt.ylim()[0] + 0.3 * (plt.ylim()[1] - plt.ylim()[0]),
-                     r'$\mathrm{predicted}$' + '\n' + r'$\mathrm{egress}$' + '\n' + r'$\mathrm{end}$',
+                     '{0}{1}{2}{3}{4}'.format(r'$\mathrm{predicted}$', '\n', r'$\mathrm{egress}$', '\n',
+                                              r'$\mathrm{end}$'),
                      ha='left', va='top', fontsize=10)
 
-            plt.suptitle(r'$\mathbf{' + target + '}$', fontsize=20)
-            plt.text(plt.xlim()[1], plt.ylim()[1],
-                     r'$' + data_dates[set_number] + '$', fontsize=12, ha='right', va='bottom')
+            plt.suptitle('{0}{1}{2}'.format(r'$\mathbf{', target, '}$'), fontsize=20)
+            plt.text(plt.xlim()[1], plt.ylim()[1], '{0}{1}{2}'.format(r'$', data_dates[set_number], '$'),
+                     fontsize=12, ha='right', va='bottom')
 
             plt.subplot(4, 1, 4)
             plt.cla()
@@ -413,7 +422,7 @@ class TransitAndPolyFitting():
             plt.subplots_adjust(left=0.15, right=0.975, bottom=0.12, top=0.9, hspace=0.0)
 
             plt.savefig(os.path.join(os.path.split(export_file)[0],
-                                     'set_' + str(set_number + 1) + '_' + os.path.split(export_file)[1]),
+                                     'set_{0}_{1}'.format(str(set_number + 1), os.path.split(export_file)[1])),
                         transparent=True)
             plt.close('all')
 
@@ -423,7 +432,7 @@ class TransitAndPolyFitting():
             target = ' '
 
         if data_dates is None:
-            data_dates = map(str, ['set_' + str(ff) for ff in range(1, self.total_sets + 1)])
+            data_dates = map(str, ['set_{0}'.format(str(ff)) for ff in range(1, self.total_sets + 1)])
 
         for set_number in range(self.total_sets):
 
@@ -475,29 +484,33 @@ class TransitAndPolyFitting():
             plt.xlim(-x_max, x_max)
             plt.tick_params(labelbottom='off')
 
-            rpstr = r'$R_\mathrm{p}/R_* = ' + self.results['parameters']['rp']['print_value'] + \
-                    '_{-' + self.results['parameters']['rp']['print_m_error'] + '}' + \
-                    '^{+' + self.results['parameters']['rp']['print_p_error'] + '}$'
-            mtstr = r'$T_\mathrm{HJD} = ' + self.results['parameters']['mt']['print_value'] + \
-                    '_{-' + self.results['parameters']['mt']['print_m_error'] + '}' + \
-                    '^{+' + self.results['parameters']['mt']['print_p_error'] + '}$'
+            rpstr = '{0}{1}{2}{3}{4}{5}{6}{7}'.format(
+                r'$R_\mathrm{p}/R_* = ', self.results['parameters']['rp']['print_value'], '_{-',
+                self.results['parameters']['rp']['print_m_error'], '}', '^{+',
+                self.results['parameters']['rp']['print_p_error'], '}$')
+            mtstr = '{0}{1}{2}{3}{4}{5}{6}{7}'.format(
+                r'$T_\mathrm{HJD} = ', self.results['parameters']['mt']['print_value'], '_{-',
+                self.results['parameters']['mt']['print_m_error'], '}', '^{+',
+                self.results['parameters']['mt']['print_p_error'], '}$')
 
             plt.text(plt.xlim()[0] + 0.5 * (plt.xlim()[-1] - plt.xlim()[0]),
                      plt.ylim()[0] + 0.07 * (plt.ylim()[-1] - plt.ylim()[0]),
-                     rpstr + '\n' + mtstr, ha='center', va='center', fontsize=10)
+                     '{0}{1}{2}'.format(rpstr, '\n', mtstr), ha='center', va='center', fontsize=10)
 
             plt.axvline((ingress - mt) / period, 0.3, 1.0, ls='--', c='k', lw=0.75)
             plt.text((ingress - mt) / period, plt.ylim()[0] + 0.3 * (plt.ylim()[1] - plt.ylim()[0]),
-                     r'$\mathrm{predicted}$' + '\n' + r'$\mathrm{ingress}$' + '\n' + r'$\mathrm{start}$',
+                     '{0}{1}{2}{3}{4}'.format(r'$\mathrm{predicted}$', '\n', r'$\mathrm{ingress}$', '\n',
+                                              r'$\mathrm{start}$'),
                      ha='right', va='top', fontsize=10)
             plt.axvline((egress - mt) / period, 0.3, 1.0, ls='--', c='k', lw=0.75)
             plt.text((egress - mt) / period, plt.ylim()[0] + 0.3 * (plt.ylim()[1] - plt.ylim()[0]),
-                     r'$\mathrm{predicted}$' + '\n' + r'$\mathrm{egress}$' + '\n' + r'$\mathrm{end}$',
+                     '{0}{1}{2}{3}{4}'.format(r'$\mathrm{predicted}$', '\n', r'$\mathrm{egress}$', '\n',
+                                              r'$\mathrm{end}$'),
                      ha='left', va='top', fontsize=10)
 
-            plt.suptitle(r'$\mathbf{' + target + '}$', fontsize=20)
-            plt.text(plt.xlim()[1], plt.ylim()[1],
-                     r'$' + data_dates[set_number] + '$', fontsize=12, ha='right', va='bottom')
+            plt.suptitle('{0}{1}{2}'.format(r'$\mathbf{', target, '}$'), fontsize=20)
+            plt.text(plt.xlim()[1], plt.ylim()[1], '{0}{1}{2}'.format(r'$', data_dates[set_number], '$'),
+                     fontsize=12, ha='right', va='bottom')
 
             plt.subplot(4, 1, 4)
             plt.cla()
@@ -523,7 +536,7 @@ class TransitAndPolyFitting():
             plt.subplots_adjust(left=0.15, right=0.975, bottom=0.12, top=0.9, hspace=0.0)
 
             plt.savefig(os.path.join(os.path.split(export_file)[0],
-                                     'set_' + str(set_number + 1) + '_' + os.path.split(export_file)[1]),
+                                     'set_{0}_{1}'.format(str(set_number + 1), os.path.split(export_file)[1])),
                         transparent=True)
             if return_plot:
                 return [plt.figure(ff + 1) for ff in range(self.total_sets)]
@@ -539,7 +552,7 @@ class TransitAndPolyFitting():
             set_indices = np.where(self.data_time == self.data[set_number][0])
 
             np.savetxt(os.path.join(os.path.split(export_file)[0],
-                                    'set_' + str(set_number + 1) + '_' + os.path.split(export_file)[1]),
+                                    'set_{0}_{1}'.format(str(set_number + 1), os.path.split(export_file)[1])),
                        np.swapaxes([self.results['input_series']['hjd'][set_indices],
                                     self.results['output_series']['phase'][set_indices],
                                     self.results['input_series']['value'][set_indices],
@@ -557,7 +570,7 @@ class TransitAndPolyFitting():
             set_indices = np.where(self.data_time == self.data[set_number][0])
 
             np.savetxt(os.path.join(os.path.split(export_file)[0],
-                                    'set_' + str(set_number + 1) + '_' + os.path.split(export_file)[1]),
+                                    'set_{0}_{1}'.format(str(set_number + 1), os.path.split(export_file)[1])),
                        np.swapaxes([self.results['detrended_input_series']['hjd'][set_indices],
                                     self.results['detrended_output_series']['phase'][set_indices],
                                     self.results['detrended_input_series']['value'][set_indices],

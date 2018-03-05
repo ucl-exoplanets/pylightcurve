@@ -1,3 +1,7 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 __all__ = ['exoplanet_orbit', 'transit_projected_distance']
 
 
@@ -29,7 +33,7 @@ def exoplanet_orbit(period, sma_over_rs, eccentricity, inclination, periastron, 
     u0 = m
     stop = False
     u1 = 0
-    for ii in xrange(10000):  # setting a limit of 1k iterations - arbitrary limit
+    for ii in range(10000):  # setting a limit of 1k iterations - arbitrary limit
         u1 = u0 - (u0 - eccentricity * np.sin(u0) - m) / (1 - eccentricity * np.cos(u0))
         stop = (np.abs(u1 - u0) < 10 ** (-7)).all()
         if stop:
