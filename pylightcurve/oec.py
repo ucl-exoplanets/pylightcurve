@@ -4,20 +4,17 @@ from __future__ import print_function
 
 __all__ = ['oec_catalogue', 'find_oec_parameters', 'find_next_transit', 'find_current_phase']
 
-try:
+import sys
+
+if sys.version_info[0] > 2:
     from urllib.request import urlretrieve
-except ImportError:
+else:
     from urllib import urlretrieve
-    import ttk
-    from Tkinter import *
-    import tkFileDialog
-    from tkMessageBox import *
 
 import os
 import time
 import gzip
 import socket
-import shutil
 import ephem
 
 import numpy as np
