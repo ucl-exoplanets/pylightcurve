@@ -3,6 +3,9 @@ import codecs
 import os
 import glob
 
+import pylightcurve as plc
+c = plc.phoenix_database()
+
 name = 'pylightcurve'
 description = 'A python package for modeling and analysing transit light-curves.'
 url = 'https://https://github.com/ucl-exoplanets/pylightcurve'

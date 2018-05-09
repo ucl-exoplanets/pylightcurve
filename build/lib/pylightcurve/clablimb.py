@@ -18,18 +18,9 @@ def tri_linear(x, y, z, x0, x1, y0, y1, z0, z1, v000, v100, v010, v001, v101, v0
     c5 = v011 - v001 - v010 + v000
     c6 = v101 - v001 - v100 + v000
     c7 = v111 - v011 - v101 - v110 + v100 + v001 + v010 - v000
-    if x == x0 == x1:
-        dx = 0
-    else:
-        dx = (x - x0) / (x1 - x0)
-    if y == y0 == y1:
-        dy = 0
-    else:
-        dy = (y - y0) / (y1 - y0)
-    if z == z0 == z1:
-        dz = 0
-    else:
-        dz = (z - z0) / (z1 - z0)
+    dx = (x - x0) / (x1 - x0)
+    dy = (y - y0) / (y1 - y0)
+    dz = (z - z0) / (z1 - z0)
     return c0 + c1 * dx + c2 * dy + c3 * dz + c4 * dx * dy + c5 * dy * dz + c6 * dz * dx + c7 * dx * dy * dz
 
 
@@ -49,36 +40,15 @@ def clablimb(method, stellar_logg, stellar_temperature, stellar_metallicity, pho
     zin = float(stellar_metallicity)
     xin = float(stellar_logg)
 
-    if xin in x:
-        xmin, xmax = xin, xin
-    else:
-        test = np.argmin(np.abs(np.ones_like(x) * xin - x))
-        if x[test] < xin:
-            xmin = x[test]
-            xmax = x[min(len(x) - 1, test + 1)]
-        else:
-            xmin = x[max(0, test - 1)]
-            xmax = x[test]
-    if yin in y:
-        ymin, ymax = yin, yin
-    else:
-        test = np.argmin(np.abs(np.ones_like(y) * yin - y))
-        if y[test] < yin:
-            ymin = y[test]
-            ymax = y[min(len(y) - 1, test + 1)]
-        else:
-            ymin = y[max(0, test - 1)]
-            ymax = y[test]
-    if zin in z:
-        zmin, zmax = zin, zin
-    else:
-        test = np.argmin(np.abs(np.ones_like(z) * zin - z))
-        if z[test] < zin:
-            zmin = z[test]
-            zmax = z[min(len(z) - 1, test + 1)]
-        else:
-            zmin = z[max(0, test - 1)]
-            zmax = z[test]
+    test = np.argmin(np.abs(np.ones_like(x) * xin - x))
+    xmin = x[max(0, test - 1)]
+    xmax = x[min(len(x) - 1, test + 1)]
+    test = np.argmin(np.abs(np.ones_like(y) * yin - y))
+    ymin = y[max(0, test - 1)]
+    ymax = y[min(len(y) - 1, test + 1)]
+    test = np.argmin(np.abs(np.ones_like(z) * zin - z))
+    zmin = z[max(0, test - 1)]
+    zmax = z[min(len(z) - 1, test + 1)]
 
     final_coefficients = []
 

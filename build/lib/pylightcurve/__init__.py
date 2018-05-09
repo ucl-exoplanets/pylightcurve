@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-__version__ = '2.1.0'
+__version__ = '2.0.0'
 
 from .clablimb import *
 from .counter import *
