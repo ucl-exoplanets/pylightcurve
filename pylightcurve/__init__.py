@@ -11,6 +11,7 @@ from .exoplanet_orbit import *
 from .gauss_numerical_integration import *
 from .oec import *
 from .one_d_distribution import *
+from .phoenix import *
 from .transit import *
 from .transit_fitting import *
 from .transit_flux_drop import *

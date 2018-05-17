@@ -9,7 +9,7 @@ c = plc.phoenix_database()
 name = 'pylightcurve'
 description = 'A python package for modeling and analysing transit light-curves.'
 url = 'https://https://github.com/ucl-exoplanets/pylightcurve'
-install_requires = ['matplotlib', 'numpy', 'exodata', 'emcee', 'seaborn', 'ephem']
+install_requires = ['matplotlib', 'numpy', 'exodata', 'emcee', 'seaborn', 'ephem', 'astropy']
 
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
 

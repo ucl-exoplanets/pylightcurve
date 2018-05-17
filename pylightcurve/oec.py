@@ -2,7 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-__all__ = ['oec_catalogue', 'find_oec_parameters', 'find_next_transit', 'find_current_phase']
+__all__ = ['oec_catalogue', 'find_oec_parameters', 'find_oec_stellar_parameters', 'find_next_transit',
+           'find_current_phase']
 
 import ephem
 import numpy as np
@@ -79,8 +80,36 @@ def find_oec_parameters(target, catalogue=None):
     elif name == 'Qatar-1 b':
         mid_time = 2455518.4102
 
-    return (name, stellar_logg, stellar_temperature, stellar_metallicity, rp_over_rs, fp_over_fs,
-            period, sma_over_rs, eccentricity, inclination, periastron, mid_time)
+    return (name, stellar_logg, stellar_temperature, stellar_metallicity, rp_over_rs, fp_over_fs, period, sma_over_rs,
+            eccentricity, inclination, periastron, mid_time)
+
+
+def find_oec_stellar_parameters(target, catalogue=None):
+
+    if catalogue is None:
+        catalogue = oec_catalogue()
+
+    planet = catalogue.searchPlanet(target)
+
+    if isinstance(planet, list):
+        planet = planet[0]
+
+    name = planet.name
+
+    stellar_logg = float(planet.star.calcLogg())
+
+    stellar_temperature = float(planet.star.T)
+
+    if np.isnan(planet.star.Z):
+        stellar_metallicity = 0
+    else:
+        stellar_metallicity = planet.star.Z
+
+    stellar_radius = float(planet.star.R)
+
+    stellar_vmag = float(planet.star.vmag)
+
+    return name, stellar_logg, stellar_temperature, stellar_metallicity, stellar_radius, stellar_vmag
 
 
 def jd_to_hjd(julian_date, ra_target, dec_target):
