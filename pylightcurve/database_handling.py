@@ -1,7 +1,6 @@
 import os
 import sys
 import glob
-import gzip
 import time
 import shutil
 import socket
@@ -167,7 +166,7 @@ systems_last_update_file_path = os.path.join(oec_database_location, 'systems_las
 systems_backup_url = 'https://www.dropbox.com/s/ajt34peoq9u7p54/systems_backup.xml.gz?raw=1'
 systems_url = 'https://github.com/OpenExoplanetCatalogue/oec_gzip/raw/master/systems.xml.gz'
 
-aaaaaa='https://www.dropbox.com/sh/08kfai6wdp2y6p0/AACS9HIxUzK4lmKW5LdJvLrea?dl=1'
+
 def oec_database():
 
     if not os.path.isfile(systems_backup_file_path):
