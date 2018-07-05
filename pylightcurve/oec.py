@@ -2,8 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-__all__ = ['oec_catalogue', 'find_oec_parameters', 'find_oec_stellar_parameters', 'find_next_transit',
-           'find_current_phase']
+__all__ = ['oec_catalogue', 'find_oec_parameters', 'find_oec_coordinates', 'find_oec_stellar_parameters',
+           'find_next_transit', 'find_current_phase', 'jd_to_hjd']
 
 import ephem
 import numpy as np
@@ -24,17 +24,31 @@ def oec_catalogue():
         return exodata.OECDatabase(gzip.GzipFile(oec_database()), stream=True)
 
 
-def find_oec_parameters(target, catalogue=None):
+def find_target(target, catalogue=None):
 
     if catalogue is None:
         catalogue = oec_catalogue()
 
     planet = catalogue.searchPlanet(target)
 
-    if isinstance(planet, list):
+    if target == 'XO-1 b':
+        planet = planet[1]
+    elif isinstance(planet, list):
         planet = planet[0]
 
+    return planet
+
+
+def find_oec_parameters(target, catalogue=None):
+
+    planet = find_target(target, catalogue)
+
     name = planet.name
+
+    # known mistakes in the catalogue
+
+    if name in ['HD 3167 b', 'HD 3167 c']:
+        planet.star.R = 0.828 * aq.R_s
 
     stellar_logg = float(planet.star.calcLogg())
 
@@ -79,20 +93,67 @@ def find_oec_parameters(target, catalogue=None):
         mid_time = 2456635.70832
     elif name == 'Qatar-1 b':
         mid_time = 2455518.4102
+    elif name == 'HD 209458 b':
+        mid_time = 2452826.628521
+    elif name == 'KELT-11 b':
+        mid_time = 2457061.9098
+    elif name == 'WASP-107 b':
+        mid_time = 2456514.4106
+    elif name == 'WASP-62 b':
+        period = 4.411953
+        mid_time = 2455855.39195
+    elif name == 'HD 3167 b':
+        mid_time = 2457394.37450
+    elif name == 'HD 3167 c':
+        mid_time = 2457394.9788
+    elif name == 'WASP-127 b':
+        mid_time = 2457248.74126
+    elif name == 'HIP 41378 b':
+        mid_time = 2457152.2844
+    elif name == 'HIP 41378 c':
+        mid_time = 2457163.1659
+    elif name == 'HIP 41378 d':
+        mid_time = 2457166.2629
+    elif name == 'HIP 41378 e':
+        mid_time = 2457142.01656
+    elif name == 'HIP 41378 f':
+        mid_time = 2457186.91451
+    elif name == 'TrES-2':
+        mid_time = 2454955.762517
+    elif name == 'HD 97658 b':
+        mid_time = 2456665.46415
+    elif name == 'Kepler-9 b':
+        mid_time += 0.07 * period
+    elif name == 'Kepler-9 c':
+        mid_time -= 0.063 * period
+    elif name == 'Kepler-9 d':
+        mid_time -= 0.03 * period
+    elif name == 'Kepler-11 e':
+        mid_time -= 0.0005 * period
+    elif name == 'KOI-314 c':
+        mid_time = 2455558.1404
+    elif name == 'HD 219134 b':
+        mid_time = 2457463.82884
+        period = 3.092926
+    elif name == 'HD 106315 b':
+        mid_time = 2457605.6521000
+    elif name == 'HD 106315 c':
+        mid_time = 2457611.1310000
 
     return (name, stellar_logg, stellar_temperature, stellar_metallicity, rp_over_rs, fp_over_fs, period, sma_over_rs,
             eccentricity, inclination, periastron, mid_time)
 
 
+def find_oec_coordinates(target, catalogue=None):
+
+    planet = find_target(target, catalogue)
+
+    return planet.system.ra.deg, planet.system.dec.deg
+
+
 def find_oec_stellar_parameters(target, catalogue=None):
 
-    if catalogue is None:
-        catalogue = oec_catalogue()
-
-    planet = catalogue.searchPlanet(target)
-
-    if isinstance(planet, list):
-        planet = planet[0]
+    planet = find_target(target, catalogue)
 
     name = planet.name
 
@@ -140,10 +201,7 @@ def jd_to_hjd(julian_date, ra_target, dec_target):
 
 def find_next_transit(target, date, catalogue=None):
 
-    if catalogue is None:
-        catalogue = oec_catalogue()
-
-    planet = catalogue.searchPlanet(target)
+    planet = find_target(target, catalogue)
 
     (planet_name, stellar_logg, stellar_temperature, stellar_metallicity, rp_over_rs, fp_over_fs,
      period, sma_over_rs, eccentricity, inclination, periastron, mid_time) = find_oec_parameters(target, catalogue)
@@ -159,16 +217,16 @@ def find_next_transit(target, date, catalogue=None):
     return planet_name, next_date_dif, '{0}/{1}/{2} {3}:{4}:{5:.0f}'.format(*next_date.tuple())
 
 
-def find_current_phase(target, date, catalogue=None):
+def find_current_phase(target, julian_date, catalogue=None):
 
-    if catalogue is None:
-        catalogue = oec_catalogue()
-
-    planet = catalogue.searchPlanet(target)
+    planet = find_target(target, catalogue)
 
     (planet_name, stellar_logg, stellar_temperature, stellar_metallicity, rp_over_rs, fp_over_fs,
      period, sma_over_rs, eccentricity, inclination, periastron, mid_time) = find_oec_parameters(target, catalogue)
 
-    date_hjd = jd_to_hjd(ephem.Date(date) + 2415020, planet.system.ra.deg, planet.system.dec.deg)
+    if julian_date < mid_time:
+        mid_time -= int((mid_time - julian_date)/period + 10) * period
+
+    date_hjd = jd_to_hjd(julian_date, planet.system.ra.deg, planet.system.dec.deg)
 
     return (date_hjd - mid_time) / period - int((date_hjd - mid_time) / period)

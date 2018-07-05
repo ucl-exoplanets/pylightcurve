@@ -3,8 +3,8 @@ import codecs
 import os
 import glob
 
-import pylightcurve as plc
-c = plc.phoenix_database()
+from pylightcurve.database_handling import *
+c = phoenix_database()
 
 name = 'pylightcurve'
 description = 'A python package for modeling and analysing transit light-curves.'

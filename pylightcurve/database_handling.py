@@ -34,7 +34,7 @@ def clablimb_database(force_update=False):
         else:
             if not os.path.isfile(clablimb_database_last_update_file_path):
                 shutil.rmtree(clablimb_database_location)
-            elif int(open(clablimb_database_last_update_file_path).readlines()[0]) < 180509:
+            elif int(open(clablimb_database_last_update_file_path).readlines()[0]) < 180704:
                 shutil.rmtree(clablimb_database_location)
 
     if not os.path.isdir(clablimb_database_location):
