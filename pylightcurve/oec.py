@@ -5,6 +5,7 @@ from __future__ import print_function
 __all__ = ['oec_catalogue', 'find_oec_parameters', 'find_oec_coordinates', 'find_oec_stellar_parameters',
            'find_next_transit', 'find_current_phase', 'jd_to_hjd']
 
+import gzip
 import ephem
 import numpy as np
 import exodata
