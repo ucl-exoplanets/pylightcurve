@@ -59,9 +59,17 @@ def database(database_name, force_update=False):
                                 os.path.join(package_database_location, dbx_files[i]['local_path']))
                     print(i)
 
-            for i in glob.glob(os.path.join(database_location, '*')):
-                if os.path.split(i)[1] not in dbx_files:
-                    os.remove(i)
+            if database_name == 'clablimb':
+                xx = pickle.load(open(glob.glob(os.path.join(database_location, '*'))[0]))
+                for i in xx:
+                    w = open(os.path.join(database_location, i), 'w')
+                    w.write(xx[i])
+                    w.close()
+
+            elif database_name == 'phoenix':
+                for i in glob.glob(os.path.join(database_location, '*')):
+                    if os.path.split(i)[1] not in dbx_files:
+                        os.remove(i)
 
             w = open(database_last_update_file_path, 'w')
             w.write(time.strftime('%y%m%d'))
