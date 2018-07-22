@@ -55,9 +55,9 @@ def database(database_name, force_update=False):
             dbx_files = pickle.load(open(database_info_file_path))['{0}_database'.format(database_name)]
             for i in dbx_files:
                 if not os.path.isfile(os.path.join(package_database_location, dbx_files[i]['local_path'])):
+                    print(i)
                     urlretrieve(dbx_files[i]['link'],
                                 os.path.join(package_database_location, dbx_files[i]['local_path']))
-                    print(i)
 
             if database_name == 'clablimb':
                 xx = pickle.load(open(glob.glob(os.path.join(database_location, '*'))[0]))
