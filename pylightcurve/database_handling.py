@@ -2,160 +2,96 @@ import os
 import sys
 import glob
 import time
+import pickle
 import shutil
 import socket
 
 if sys.version_info[0] > 2:
-    from urllib.request import urlopen, urlretrieve
+    from urllib.request import urlretrieve
 else:
-    from urllib import urlopen, urlretrieve
+    from urllib import urlretrieve
     input = raw_input
 
-database_location = os.path.join(os.path.expanduser('~'), '.pylightcurve')
-if not os.path.isdir(database_location):
-    os.mkdir(database_location)
+package_database_location = os.path.join(os.path.expanduser('~'), '.pylightcurve')
+if not os.path.isdir(package_database_location):
+    os.mkdir(package_database_location)
 
 
-# clablimb database
+def database(database_name, force_update=False):
 
-clablimb_database_location = os.path.join(database_location, 'clablimb_database')
-clablimb_database_last_update_file_path = os.path.join(database_location, 'clablimb_database_last_update.txt')
-clablimb_database_zip_file_path = os.path.join(database_location, 'clablimb_database.zip')
+    database_info_url = 'https://github.com/ucl-exoplanets/pylightcurve/raw/master/pylightcurve/database_v1.pickle'
+    database_info_file_path = os.path.join(package_database_location, 'database_v1.pickle')
+    database_location = os.path.join(package_database_location, '{0}_database'.format(database_name))
+    database_last_update_file_path = os.path.join(package_database_location,
+                                                  '{0}_database_last_update.txt'.format(database_name))
 
-clablimb_database_url = 'https://www.dropbox.com/sh/c1dnqgfht2ara32/AADS4yus59DJj1ifImDexYkba?dl=1'
-
-
-def clablimb_database(force_update=False):
-
-    if os.path.isdir(clablimb_database_location):
-        if force_update or len(glob.glob(os.path.join(clablimb_database_location, '*'))) == 0:
-            shutil.rmtree(clablimb_database_location)
+    if os.path.isdir(database_location):
+        if force_update or len(glob.glob(os.path.join(database_location, '*'))) == 0:
+            shutil.rmtree(database_location)
+            os.mkdir(database_location)
+            update = True
         else:
-            if not os.path.isfile(clablimb_database_last_update_file_path):
-                shutil.rmtree(clablimb_database_location)
-            elif int(open(clablimb_database_last_update_file_path).readlines()[0]) < 180704:
-                shutil.rmtree(clablimb_database_location)
+            if not os.path.isfile(database_last_update_file_path):
+                update = True
+            elif int(open(database_last_update_file_path).readlines()[0]) < 180721:
+                update = True
+            else:
+                update = False
+    else:
+        os.mkdir(database_location)
+        update = True
 
-    if not os.path.isdir(clablimb_database_location):
+    if update and database_name == 'phoenix':
+        if input('Downloading phoenix database (up to 5GB)... proceed with download now? (y/n): ') == 'y':
+            update = True
+        else:
+            update = False
 
+    if update:
         try:
-            print('Downloading clablimb database...')
+            print('Downloading {0} database...'.format(database_name))
 
-            urlretrieve(clablimb_database_url, clablimb_database_zip_file_path)
-            w = open(clablimb_database_last_update_file_path, 'w')
+            urlretrieve(database_info_url, database_info_file_path)
+            dbx_files = pickle.load(open(database_info_file_path))['{0}_database'.format(database_name)]
+            for i in dbx_files:
+                if not os.path.isfile(os.path.join(package_database_location, dbx_files[i]['local_path'])):
+                    urlretrieve(dbx_files[i]['link'],
+                                os.path.join(package_database_location, dbx_files[i]['local_path']))
+                    print(i)
+
+            for i in glob.glob(os.path.join(database_location, '*')):
+                if os.path.split(i)[1] not in dbx_files:
+                    os.remove(i)
+
+            w = open(database_last_update_file_path, 'w')
             w.write(time.strftime('%y%m%d'))
             w.close()
 
-            os.system('unzip {0} -d {1}'.format(clablimb_database_zip_file_path, clablimb_database_location))
-            os.system('rm {0}'.format(clablimb_database_zip_file_path))
-
         except:
-            print('Downloading clablimb database failed. A download will be attempted next time.')
+            print('Downloading {0} database failed. A download will be attempted next time.'.format(database_name))
             pass
 
-    if (not os.path.isdir(clablimb_database_location) or
-            len(glob.glob(os.path.join(clablimb_database_location, '*'))) == 0):
+    if (not os.path.isdir(database_location) or
+            len(glob.glob(os.path.join(database_location, '*'))) == 0):
 
-        print('Clablimb features cannot be used.')
+        print('{0} features cannot be used.'.format(database_name))
 
     else:
 
-        return clablimb_database_location
+        return database_location
 
 
-# phoenix database
-
-phoenix_database_location = os.path.join(database_location, 'phoenix_database')
-phoenix_database_last_update_file_path = os.path.join(database_location, 'phoenix_database_last_update.txt')
-phoenix_database_zip_file_path = os.path.join(database_location, 'phoenix_database.zip')
-phoenix_database_zip_file_path2 = os.path.join(database_location, 'phoenix_database2.zip')
-phoenix_database_zip_file_path3 = os.path.join(database_location, 'phoenix_database3.zip')
-
-phoenix_database_url = 'https://www.dropbox.com/sh/39et0eg8akk4ga8/AADcCAEVWirSGwH8bFgj2rq1a?dl=1'
-phoenix_database_url2 = 'https://www.dropbox.com/sh/pyx89lnlxa6dqvs/AADVuMRBtSGIhV09NP1XWiMOa?dl=1'
-phoenix_database_url3 = 'https://www.dropbox.com/sh/4tiqkzb60hmdewy/AAAeKprAX9LiH5phYM-RiFR2a?dl=1'
+def clablimb_database(force_update=False):
+    return database('clablimb', force_update=force_update)
 
 
 def phoenix_database(force_update=False):
-
-    if os.path.isdir(phoenix_database_location):
-        if force_update or len(glob.glob(os.path.join(phoenix_database_location, '*'))) == 0:
-            shutil.rmtree(phoenix_database_location)
-        else:
-            if not os.path.isfile(phoenix_database_last_update_file_path):
-                shutil.rmtree(phoenix_database_location)
-            elif int(open(phoenix_database_last_update_file_path).readlines()[0]) < 180428:
-                shutil.rmtree(phoenix_database_location)
-
-    if not os.path.isdir(phoenix_database_location):
-
-        try:
-            if input('Downloading phoenix database (3.9GB, in three parts)... proceed with download now? (y/n):') == 'y':
-
-                def reporthook(count, block_size, size):
-                    progress_size = int(count * block_size / (1024 * 1024))
-                    percent = int(progress_size * 100 / 1791)
-                    sys.stdout.write('\rPart 1... {0}%, {1} MB'.format(percent, progress_size))
-                    sys.stdout.flush()
-
-                socket.setdefaulttimeout(500000)
-                urlretrieve(phoenix_database_url, phoenix_database_zip_file_path, reporthook)
-                socket.setdefaulttimeout(30)
-
-                print('')
-
-                def reporthook(count, block_size, size):
-                    progress_size = int(count * block_size / (1024 * 1024))
-                    percent = int(progress_size * 100 / 1119)
-                    sys.stdout.write('\rPart 2... {0}%, {1} MB'.format(percent, progress_size))
-                    sys.stdout.flush()
-
-                socket.setdefaulttimeout(500000)
-                urlretrieve(phoenix_database_url2, phoenix_database_zip_file_path2, reporthook)
-                socket.setdefaulttimeout(30)
-                w = open(phoenix_database_last_update_file_path, 'w')
-                w.write(time.strftime('%y%m%d'))
-                w.close()
-
-                print('')
-
-                def reporthook(count, block_size, size):
-                    progress_size = int(count * block_size / (1024 * 1024))
-                    percent = int(progress_size * 100 / 1081)
-                    sys.stdout.write('\rPart 3... {0}%, {1} MB'.format(percent, progress_size))
-                    sys.stdout.flush()
-
-                socket.setdefaulttimeout(500000)
-                urlretrieve(phoenix_database_url3, phoenix_database_zip_file_path3, reporthook)
-                socket.setdefaulttimeout(30)
-                w = open(phoenix_database_last_update_file_path, 'w')
-                w.write(time.strftime('%y%m%d'))
-                w.close()
-
-                os.system('unzip {0} -d {1}'.format(phoenix_database_zip_file_path, phoenix_database_location))
-                os.system('rm {0}'.format(phoenix_database_zip_file_path))
-                os.system('unzip {0} -d {1}'.format(phoenix_database_zip_file_path2, phoenix_database_location))
-                os.system('rm {0}'.format(phoenix_database_zip_file_path2))
-                os.system('unzip {0} -d {1}'.format(phoenix_database_zip_file_path3, phoenix_database_location))
-                os.system('rm {0}'.format(phoenix_database_zip_file_path3))
-
-        except:
-            print('Downloading phoenix database failed. A download will be attempted next time.')
-            pass
-
-    if (not os.path.isdir(phoenix_database_location) or
-            len(glob.glob(os.path.join(phoenix_database_location, '*'))) == 0):
-
-        print('Phoenix features cannot be used.')
-
-    else:
-
-        return phoenix_database_location
+    return database('phoenix', force_update=force_update)
 
 
 # oec database
 
-oec_database_location = os.path.join(database_location, 'oec_database')
+oec_database_location = os.path.join(package_database_location, 'oec_database')
 if not os.path.isdir(oec_database_location):
     os.mkdir(oec_database_location)
 
