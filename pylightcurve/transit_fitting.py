@@ -366,7 +366,7 @@ class TransitAndPolyFitting():
                      max(self.results['output_series']['model'][set_indices])
                      + 5 * np.std(self.results['output_series']['residuals'][set_indices]))
 
-            x_max = max(self.results['output_series']['phase'][set_indices] +
+            x_max = max(np.abs(self.results['output_series']['phase'][set_indices]) +
                         0.05 * (max(self.results['output_series']['phase'][set_indices]) -
                                 min(self.results['output_series']['phase'][set_indices])))
             plt.xlim(-x_max, x_max)
@@ -478,7 +478,7 @@ class TransitAndPolyFitting():
 
             plt.ylim(-1.17647 * (- plt.ylim()[0] + 0.15 * plt.ylim()[1]), plt.ylim()[1])
 
-            x_max = max(self.results['detrended_output_series']['phase'][set_indices] +
+            x_max = max(np.abs(self.results['detrended_output_series']['phase'][set_indices]) +
                         0.05 * (max(self.results['detrended_output_series']['phase'][set_indices]) -
                                 min(self.results['detrended_output_series']['phase'][set_indices])))
             plt.xlim(-x_max, x_max)
