@@ -1,5 +1,7 @@
 # PyLightcurve
 
+![alt text](https://github.com/ucl-exoplanets/pylightcurve/blob/master/logo.pdf)
+
 A python package for modeling and analysing transit light-curves.
 
 * Easy search for parameters of current exoplanets.
