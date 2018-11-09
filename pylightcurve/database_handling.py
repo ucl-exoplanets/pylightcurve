@@ -53,6 +53,11 @@ def database(database_name, force_update=False):
 
             urlretrieve(database_info_url, database_info_file_path)
             dbx_files = pickle.load(open(database_info_file_path))['{0}_database'.format(database_name)]
+
+            for i in glob.glob(os.path.join(database_location, '*')):
+                if os.path.split(i)[1] not in dbx_files:
+                    os.remove(i)
+
             for i in dbx_files:
                 if not os.path.isfile(os.path.join(package_database_location, dbx_files[i]['local_path'])):
                     print(i)
@@ -65,11 +70,6 @@ def database(database_name, force_update=False):
                     w = open(os.path.join(database_location, i), 'w')
                     w.write(xx[i])
                     w.close()
-
-            elif database_name == 'phoenix':
-                for i in glob.glob(os.path.join(database_location, '*')):
-                    if os.path.split(i)[1] not in dbx_files:
-                        os.remove(i)
 
             w = open(database_last_update_file_path, 'w')
             w.write(time.strftime('%y%m%d'))

@@ -125,6 +125,6 @@ def one_d_distribution(data_array, step=None, min_value=None, max_value=None, co
 
         print_value = '{0:.{width}f}'.format(round(exp_val, width), width=width)
         print_m_error = '{0:.{width}f}'.format(round(error_minus, width), width=width)
-        print_p_error = '{0:.{width}f}'.format(round(error_minus, width), width=width)
+        print_p_error = '{0:.{width}f}'.format(round(error_plus, width), width=width)
 
         return bins, counts, value, m_error, p_error, print_value, print_m_error, print_p_error

@@ -30,7 +30,10 @@ def find_target(target, catalogue=None):
     if catalogue is None:
         catalogue = oec_catalogue()
 
-    planet = catalogue.searchPlanet(target)
+    if target == 'Kepler-16 (AB) b':
+        planet = catalogue.searchPlanet('Kepler-16 b')
+    else:
+        planet = catalogue.searchPlanet(target)
 
     if target == 'XO-1 b':
         planet = planet[1]
@@ -40,27 +43,35 @@ def find_target(target, catalogue=None):
     return planet
 
 
-def find_oec_parameters(target, catalogue=None):
+def find_oec_parameters(target, catalogue=None, binary_star=0):
 
     planet = find_target(target, catalogue)
 
     name = planet.name
+    print(name)
+
+    try:
+        star = planet.star
+    except exodata.astroclasses.HierarchyError:
+        star = planet.binary.stars[binary_star]
 
     # known mistakes in the catalogue
 
     if name in ['HD 3167 b', 'HD 3167 c']:
-        planet.star.R = 0.828 * aq.R_s
+        star.R = 0.828 * aq.R_s
 
-    stellar_logg = float(planet.star.calcLogg())
+    stellar_radius = star.R
 
-    stellar_temperature = float(planet.star.T)
+    stellar_logg = float(star.calcLogg())
 
-    if np.isnan(planet.star.Z):
+    stellar_temperature = float(star.T)
+
+    if np.isnan(star.Z):
         stellar_metallicity = 0
     else:
-        stellar_metallicity = planet.star.Z
+        stellar_metallicity = star.Z
 
-    rp_over_rs = float(planet.R.rescale(aq.m) / planet.star.R.rescale(aq.m))
+    rp_over_rs = float(planet.R.rescale(aq.m) / stellar_radius.rescale(aq.m))
 
     planet_temperature = float(planet.calcTemperature())
     fp_over_fs = (rp_over_rs ** 2.0) * \
@@ -69,7 +80,10 @@ def find_oec_parameters(target, catalogue=None):
 
     period = float(planet.P)
 
-    sma_over_rs = float(planet.calcSMA().rescale(aq.m) / planet.star.R.rescale(aq.m))
+    if np.isnan(planet.a):
+        sma_over_rs = float(planet.calcSMA().rescale(aq.m) / stellar_radius.rescale(aq.m))
+    else:
+        sma_over_rs = float(planet.a.rescale(aq.m) / stellar_radius.rescale(aq.m))
 
     if np.isnan(planet.e):
         eccentricity = 0.0
@@ -140,6 +154,8 @@ def find_oec_parameters(target, catalogue=None):
         mid_time = 2457605.6521000
     elif name == 'HD 106315 c':
         mid_time = 2457611.1310000
+    elif name == 'Kepler-16 (AB) b':
+        mid_time = 2455397.522
 
     return (name, stellar_logg, stellar_temperature, stellar_metallicity, rp_over_rs, fp_over_fs, period, sma_over_rs,
             eccentricity, inclination, periastron, mid_time)
