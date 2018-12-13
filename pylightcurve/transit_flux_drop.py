@@ -2,11 +2,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-__all__ = ['transit_flux_drop']
-
-
-import numpy as np
-
 from .gauss_numerical_integration import *
 
 

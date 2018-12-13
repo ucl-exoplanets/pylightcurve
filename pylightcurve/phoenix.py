@@ -2,18 +2,15 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-__all__ = ['find_phoenix_spectrum']
-
-import numpy as np
-from scipy.interpolate import interp1d
-from astropy.io import fits as pf
-
-from .database_handling import *
+from ._1databases import *
 
 
 def find_phoenix_spectrum(stellar_logg, stellar_temperature, stellar_radius, stellar_vmag=None):
 
-    all_files = glob.glob(os.path.join(phoenix_database(), 'lte*'))
+    if not stellar_radius:
+        pass
+
+    all_files = glob.glob(os.path.join(databases.phoenix(), 'lte*'))
 
     temperatures = np.unique([int(os.path.split(ff)[-1][4:8]) for ff in all_files])
 
@@ -31,47 +28,48 @@ def find_phoenix_spectrum(stellar_logg, stellar_temperature, stellar_radius, ste
             temperature2 = temperature
 
         temperature1_files = glob.glob(
-            os.path.join(phoenix_database(), 'lte{0}-*'.format(str(int(temperature1)).zfill(5))))
+            os.path.join(databases.phoenix(), 'lte{0}-*'.format(str(int(temperature1)).zfill(5))))
 
         loggs = np.unique([float(os.path.split(ff)[-1][9:12]) for ff in temperature1_files])
 
         logg = loggs[np.argmin((loggs - stellar_logg) ** 2)]
 
-        final_file1 = glob.glob(os.path.join(phoenix_database(), 'lte{0}-{1}*'.format(str(int(temperature1)).zfill(5),
-                                                                                      float(logg))))[0]
+        final_file1 = glob.glob(os.path.join(databases.phoenix(), 'lte{0}-{1}*'.format(str(int(temperature1)).zfill(5),
+                                                                                       float(logg))))[0]
 
         temperature2_files = glob.glob(
-            os.path.join(phoenix_database(), 'lte{0}-*'.format(str(int(temperature2)).zfill(5))))
+            os.path.join(databases.phoenix(), 'lte{0}-*'.format(str(int(temperature2)).zfill(5))))
 
         loggs = np.unique([float(os.path.split(ff)[-1][9:12]) for ff in temperature2_files])
 
         logg = loggs[np.argmin((loggs - stellar_logg) ** 2)]
 
-        final_file2 = glob.glob(os.path.join(phoenix_database(), 'lte{0}-{1}*'.format(str(int(temperature2)).zfill(5),
-                                                                                      float(logg))))[0]
+        final_file2 = glob.glob(os.path.join(databases.phoenix(), 'lte{0}-{1}*'.format(str(int(temperature2)).zfill(5),
+                                                                                       float(logg))))[0]
 
         flux1 = pf.open(final_file1)[0].data / (10 ** 8)
         flux2 = pf.open(final_file2)[0].data / (10 ** 8)
         flux = flux1 + (flux2 - flux1) * (stellar_temperature - temperature1) / 100
-        wavelength = pf.open(glob.glob(os.path.join(phoenix_database(), 'WAVE*'))[0])[0].data
+        wavelength = pf.open(glob.glob(os.path.join(databases.phoenix(), 'WAVE*'))[0])[0].data
 
     else:
 
-        temperature_files = glob.glob(os.path.join(phoenix_database(), 'lte{0}-*'.format(str(int(temperature)).zfill(5))))
+        temperature_files = glob.glob(os.path.join(databases.phoenix(),
+                                                   'lte{0}-*'.format(str(int(temperature)).zfill(5))))
 
         loggs = np.unique([float(os.path.split(ff)[-1][9:12]) for ff in temperature_files])
 
         logg = loggs[np.argmin((loggs - stellar_logg) ** 2)]
 
-        final_file = glob.glob(os.path.join(phoenix_database(), 'lte{0}-{1}*'.format(str(int(temperature)).zfill(5),
-                                                                                     float(logg))))[0]
+        final_file = glob.glob(os.path.join(databases.phoenix(), 'lte{0}-{1}*'.format(str(int(temperature)).zfill(5),
+                                                                                      float(logg))))[0]
 
         flux = pf.open(final_file)[0].data / (10 ** 8)
-        wavelength = pf.open(glob.glob(os.path.join(phoenix_database(), 'WAVE*'))[0])[0].data
+        wavelength = pf.open(glob.glob(os.path.join(databases.phoenix(), 'WAVE*'))[0])[0].data
 
     if isinstance(stellar_vmag, float) or isinstance(stellar_vmag, int):
 
-        vfilter = np.loadtxt(glob.glob(os.path.join(phoenix_database(), 'Bessel_V*'))[0], unpack=True)
+        vfilter = np.loadtxt(glob.glob(os.path.join(databases.phoenix(), 'Bessel_V*'))[0], unpack=True)
         vfilter_flux = (flux * np.interp(wavelength, (vfilter[0] * 10)[::-1],
                                          (np.maximum(0, vfilter[1]) / 100.0)[::-1]))
 
@@ -98,4 +96,3 @@ def find_phoenix_spectrum(stellar_logg, stellar_temperature, stellar_radius, ste
         return wavelength / 10000, flux
 
     # units: wavelength: micron, flux: erg/s/cm^2/A
-

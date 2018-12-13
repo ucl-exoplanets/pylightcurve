@@ -2,26 +2,16 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-__all__ = ['EmceeFitting']
-
-
-import pickle
-
-import numpy as np
-
-import matplotlib.pyplot as plt
-import matplotlib
-
-import emcee
+from ._1databases import *
 
 from .counter import *
 from .one_d_distribution import *
 
 
-class EmceeFitting():
+class EmceeFitting:
 
     def __init__(self, input_data, model, initials, limits1, limits2, walkers, iterations, burn_in,
-                 names=None, print_names=None, counter=True, counter_window=False):
+                 names=None, print_names=None, counter=True, counter_window=False, strech_prior=1000.0):
 
         self.input_data = (np.array(input_data[0]), np.array(input_data[1]))
 
@@ -71,6 +61,8 @@ class EmceeFitting():
             elif isinstance(counter_window, str):
                 self.counter_window = counter_window
 
+        self.strech_prior = strech_prior
+
         self.results = {'input_series': {},
                         'parameters': {},
                         'parameters_final': [],
@@ -92,8 +84,10 @@ class EmceeFitting():
         internal_initials = self.initials[fitted_parameters_indices]
 
         walkers_initial_positions = np.random.uniform(
-            (internal_initials - (internal_initials - internal_limits1) / 1000.)[:, None] * np.ones(self.walkers),
-            (internal_initials + (internal_limits2 - internal_initials) / 1000.)[:, None] * np.ones(self.walkers))
+            (internal_initials -
+             (internal_initials - internal_limits1) / self.strech_prior)[:, None] * np.ones(self.walkers),
+            (internal_initials +
+             (internal_limits2 - internal_initials) / self.strech_prior)[:, None] * np.ones(self.walkers))
         walkers_initial_positions = np.swapaxes(walkers_initial_positions, 0, 1)
 
         def internal_model(theta):
@@ -287,7 +281,8 @@ class EmceeFitting():
                 traces_counts.append(self.results['parameters'][i]['trace_counts'])
 
         all_var = len(traces)
-        plt.figure(figsize=(2.5 * all_var, 2.5 * all_var))
+        fig = plt.figure(figsize=(2.5 * all_var, 2.5 * all_var))
+        fig.set_tight_layout(False)
         cmap = matplotlib.cm.get_cmap('brg')
 
         for var in range(len(names)):

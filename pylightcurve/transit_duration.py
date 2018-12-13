@@ -2,10 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-__all__ = ['transit_duration']
-
-
-import numpy as np
+from ._1databases import *
 
 
 def transit_duration(rp_over_rs, period, sma_over_rs, inclination, eccentricity, periastron):

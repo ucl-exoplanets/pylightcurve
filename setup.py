@@ -16,7 +16,7 @@ else:
 name = 'pylightcurve'
 description = 'A python package for modeling and analysing transit light-curves.'
 url = 'https://https://github.com/ucl-exoplanets/pylightcurve'
-install_requires = ['matplotlib', 'numpy', 'exodata', 'emcee', 'seaborn', 'ephem', 'astropy', 'scipy']
+install_requires = ['matplotlib', 'numpy', 'exodata', 'emcee', 'seaborn', 'ephem', 'astropy', 'scipy', 'sklearn']
 
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
@@ -67,7 +67,7 @@ setup(
                  'Topic :: Scientific/Engineering :: Astronomy',
                  'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
                  'Operating System :: MacOS :: MacOS X',
-                 'Programming Language :: Python :: 3.6',
+                 'Programming Language :: Python :: 3.7',
                  ],
     packages=[name],
     install_requires=install_requires,

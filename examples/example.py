@@ -1,3 +1,7 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pylightcurve as plc
@@ -20,23 +24,23 @@ import pylightcurve as plc
 #      eccentricity, inclination, periastron, transit mid-time)
 #     given the name of the planet
 #
-#     for example, for HD209458b we can have:
+#     for examples, for HD209458b we can have:
 
 (planet, logg, effective_temperature, metallicity, rp_over_rs, fp_over_fs,
  period, sma_over_rs, eccentricity, inclination, periastron, mid_time) = plc.find_oec_parameters('hd209458b')
 
-print planet
-print logg
-print effective_temperature
-print metallicity
-print rp_over_rs
-print fp_over_fs
-print period
-print sma_over_rs
-print eccentricity
-print inclination
-print periastron
-print mid_time
+print(planet)
+print(logg)
+print(effective_temperature)
+print(metallicity)
+print(rp_over_rs)
+print(fp_over_fs)
+print(period)
+print(sma_over_rs)
+print(eccentricity)
+print(inclination)
+print(periastron)
+print(mid_time)
 
 
 # plc.clablimb(method, logg, effective_temperature, metallicity, photometric_filter, stellar_model='ATLAS')
@@ -53,13 +57,13 @@ print mid_time
 #     photometric_filter     ['u', 'v', 'b', 'y', 'U', 'B', 'V', 'R', 'I', 'J', 'H', 'K']
 #     stellar_model          ['ATLAS' (default), 'PHOENIX' (limited cases)]
 # 
-#     for example, for an observation of HD209458b in the optical we can have:
+#     for examples, for an observation of HD209458b in the optical we can have:
 
 photometric_filter = 'V'
 
 limb_darkening_coefficients = plc.clablimb('claret', logg, effective_temperature, metallicity, photometric_filter)
 
-print limb_darkening_coefficients
+print(limb_darkening_coefficients)
 
 
 # plc.transit_projected_distance(period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array)
@@ -78,7 +82,7 @@ print limb_darkening_coefficients
 #     mid_time               [days]       float
 #     time_array             [days]       numpy array
 #
-#     for example, for a transit observation of HD209458b
+#     for examples, for a transit observation of HD209458b
 #     from 2 hours before the mid-transit to 2 hours after the mid-transit
 #     and one exposure every minute, we can have:
 
@@ -106,7 +110,7 @@ plt.show()
 #     rp_over_rs                  [no units]   float              : planetary radius over the stellar radius
 #     precision                   [0 - 6, default is 3]           : precision level for the numerical integration
 #
-#     for example, for a transit observation of HD209458b in the optical
+#     for examples, for a transit observation of HD209458b in the optical
 #     from 2 hours before the mid-transit to 2 hours after the midtransit
 #     and one exposure every minute, we can have:
 
