@@ -2,10 +2,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy as np
-import matplotlib.pyplot as plt
 import pylightcurve as plc
-
+plt = plc.plt
+np = plc.np
 
 # The main functions of pyligthcurve are:
 # plc.find_oec_parameters
