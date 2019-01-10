@@ -11,9 +11,19 @@ warnings.filterwarnings("ignore",
                         message='\'second\' was found  to be \'60.0\', which is not in range [0,60). '
                                 'Treating as 0 sec, +1 min [astropy.coordinates.angle_utilities]')
 
-import matplotlib
-matplotlib.use('TkAgg')
+import os
+import sys
 
+if sys.version_info[0] > 2:
+    from urllib.request import urlretrieve
+else:
+    from urllib import urlretrieve
+    input = raw_input
+
+import matplotlib
+if os.environ.get('DISPLAY', '') == '':
+    print('no display found. Using non-interactive Agg backend')
+    matplotlib.use('Agg')
 
 
 import os
@@ -25,13 +35,13 @@ import emcee
 import ephem
 import numpy as np
 import scipy
-import docopt
 import pickle
 import shutil
 import socket
 import exodata
 import exodata.astroquantities as aq
 import seaborn
+seaborn.reset_orig()
 import datetime
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -43,12 +53,4 @@ from scipy import interpolate
 from astropy.io import fits as pf
 from sklearn.decomposition import FastICA, PCA
 from matplotlib import rc
-
-if sys.version_info[0] > 2:
-    from urllib.request import urlretrieve
-else:
-    from urllib import urlretrieve
-    input = raw_input
-
-seaborn.reset_orig()
 

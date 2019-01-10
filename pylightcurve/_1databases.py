@@ -84,9 +84,11 @@ class Database:
                 w.write(time.strftime('%y%m%d'))
                 w.close()
 
-            except:
+            except Exception as inst:
                 print('\nDownloading {0} database failed. A download will be attempted next time.'.format(
                     database_name))
+                print('Error:', sys.exc_info()[0])
+                print(inst.args)
                 pass
 
         if (not os.path.isdir(directory_path) or
