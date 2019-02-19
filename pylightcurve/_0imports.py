@@ -33,7 +33,6 @@ import glob
 import gzip
 import time
 import emcee
-import ephem
 import numpy as np
 import scipy
 import pickle
@@ -52,6 +51,8 @@ from scipy.optimize import curve_fit
 from scipy.interpolate import interp1d
 from scipy import interpolate
 from astropy.io import fits as pf
+from astropy.time import Time as astrotime
+from astropy.coordinates import get_sun as astrosun
 from sklearn.decomposition import FastICA, PCA
 from matplotlib import rc
 

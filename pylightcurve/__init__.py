@@ -2,11 +2,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-__version__ = '2.3.1'
+__version__ = '2.3.2'
 
 from .clablimb import *
 from .counter import *
 from .emcee_fitting import *
+from .ephem import *
 from .exoplanet_orbit import *
 from .gauss_numerical_integration import *
 from .oec import *

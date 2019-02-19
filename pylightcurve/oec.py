@@ -147,6 +147,8 @@ def find_oec_parameters(target, catalogue=None, binary_star=0):
         mid_time = 2454524.62324
     elif name == 'HAT-P-7 b':
         mid_time = 2454700.81308
+    elif name == 'Kepler-1625 b':
+        mid_time = 2456043.9587
 
     return (name, stellar_logg, stellar_temperature, stellar_metallicity, rp_over_rs, fp_over_fs, period, sma_over_rs,
             eccentricity, inclination, periastron, mid_time)
@@ -179,92 +181,3 @@ def find_oec_stellar_parameters(target, catalogue=None):
     stellar_vmag = float(planet.star.magV)
 
     return name, stellar_logg, stellar_temperature, stellar_metallicity, stellar_radius, stellar_vmag
-
-
-def jd_to_hjd(julian_date, ra_target, dec_target):
-
-    # calculate the RA and DEC of the sun for this time,
-    # we need "- 2415020" to convert julian date to dublin julian date (used by ephem)
-
-    sun = ephem.Sun()
-    sun.compute(ephem.date(julian_date - 2415020))
-    ra_sun, dec_sun = float(sun.ra), float(sun.dec)
-
-    # get the RA and DEC of the target and convert degrees to radians
-
-    ra_target *= np.pi / 180
-    dec_target *= np.pi / 180
-
-    # calculate the hjd correction (in days) for the given time and target
-
-    hjd_correction = - ((149597870700.0 / ephem.c) *
-                        (np.sin(dec_target) * np.sin(dec_sun) +
-                         np.cos(dec_target) * np.cos(dec_sun) * np.cos(ra_target - ra_sun)) *
-                        (1.0 / (24.0 * 60.0 * 60.0)))
-
-    # return the heliocentric julian date
-
-    return julian_date + hjd_correction
-
-
-def mjd_to_hjd(modified_julian_date, ra_target, dec_target):
-
-    # convert modified julian date to julian date
-
-    julian_date = modified_julian_date + 2400000.5
-
-    # calculate the RA and DEC of the sun for this time,
-    # we need "- 2415020" to convert modified julian date to dublin julian date (used by ephem)
-
-    sun = ephem.Sun()
-    sun.compute(ephem.date(julian_date - 2415020))
-    ra_sun, dec_sun = float(sun.ra), float(sun.dec)
-
-    # get the RA and DEC of the target and convert degrees to radians
-
-    ra_target *= np.pi / 180
-    dec_target *= np.pi / 180
-
-    # calculate the hjd correction (in days) for the given time and target
-
-    hjd_correction = - ((149597870700.0 / ephem.c) *
-                        (np.sin(dec_target) * np.sin(dec_sun) +
-                         np.cos(dec_target) * np.cos(dec_sun) * np.cos(ra_target - ra_sun)) *
-                        (1.0 / (24.0 * 60.0 * 60.0)))
-
-    # return the heliocentric julian date
-
-    return julian_date + hjd_correction
-
-
-def find_next_transit(target, date, catalogue=None):
-
-    planet = find_target(target, catalogue)
-
-    (planet_name, stellar_logg, stellar_temperature, stellar_metallicity, rp_over_rs, fp_over_fs,
-     period, sma_over_rs, eccentricity, inclination, periastron, mid_time) = find_oec_parameters(target, catalogue)
-
-    date_hjd = jd_to_hjd(ephem.Date(date) + 2415020, planet.system.ra.deg, planet.system.dec.deg)
-
-    next_date_hjd = mid_time + (int((date_hjd - mid_time) / period) + 1) * period
-
-    next_date_dif = (next_date_hjd - date_hjd) * 24.0
-
-    next_date = ephem.Date(ephem.Date(date) + (next_date_hjd - date_hjd))
-
-    return planet_name, next_date_dif, '{0}/{1}/{2} {3}:{4}:{5:.0f}'.format(*next_date.tuple())
-
-
-def find_current_phase(target, julian_date, catalogue=None):
-
-    planet = find_target(target, catalogue)
-
-    (planet_name, stellar_logg, stellar_temperature, stellar_metallicity, rp_over_rs, fp_over_fs,
-     period, sma_over_rs, eccentricity, inclination, periastron, mid_time) = find_oec_parameters(target, catalogue)
-
-    if julian_date < mid_time:
-        mid_time -= int((mid_time - julian_date)/period + 10) * period
-
-    date_hjd = jd_to_hjd(julian_date, planet.system.ra.deg, planet.system.dec.deg)
-
-    return (date_hjd - mid_time) / period - int((date_hjd - mid_time) / period)
