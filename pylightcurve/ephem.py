@@ -46,79 +46,111 @@ def ut_to_hjd(ra_target, dec_target, ut_string):
 
 
 def ra_dec_string_to_deg(ra_dec_string):
+
     if len(ra_dec_string.split()) != 2:
-        return None, None
+        if len(ra_dec_string.split()) == 6:
+            ra_dec_string = '{}:{}:{} {}:{}:{}'.format(*ra_dec_string.split())
+        else:
+            print('Wrong RA-DEC format.')
+            return None, None
 
     if len(ra_dec_string.split()[0].split(':')) != 3:
+        print('Wrong RA-DEC format.')
         return None, None
 
     if len(ra_dec_string.split()[0].split(':')[0]) != 2:
+        print('Wrong RA-DEC format.')
         return None, None
     else:
         try:
             if int(ra_dec_string.split()[0].split(':')[0]) >= 24:
+                print('Wrong RA-DEC format.')
                 return None, None
         except ValueError:
+            print('Wrong RA-DEC format.')
             return None, None
 
     if len(ra_dec_string.split()[0].split(':')[1]) != 2:
+        print('Wrong RA-DEC format.')
         return None, None
     else:
         try:
             if int(ra_dec_string.split()[0].split(':')[1]) >= 60:
+                print('Wrong RA-DEC format.')
                 return None, None
         except ValueError:
+            print('Wrong RA-DEC format.')
             return None, None
 
     if len(ra_dec_string.split()[0].split(':')[2]) < 2:
+        print('Wrong RA-DEC format.')
         return None, None
     else:
         try:
             if float(ra_dec_string.split()[0].split(':')[2]) >= 60:
+                print('Wrong RA-DEC format.')
                 return None, None
         except ValueError:
+            print('Wrong RA-DEC format.')
             return None, None
 
     if len(ra_dec_string.split()[1][1:].split(':')) != 3:
+        print('Wrong RA-DEC format.')
         return None, None
 
     if len(ra_dec_string.split()[1].split(':')[0]) != 3:
+        print('Wrong RA-DEC format.')
         return None, None
     else:
         try:
             if abs(int(ra_dec_string.split()[1].split(':')[0])) >= 90:
+                print('Wrong RA-DEC format.')
                 return None, None
         except ValueError:
+            print('Wrong RA-DEC format.')
             return None, None
 
     if len(ra_dec_string.split()[1].split(':')[1]) != 2:
+        print('Wrong RA-DEC format.')
         return None, None
     else:
         try:
             if int(ra_dec_string.split()[1].split(':')[1]) >= 60:
+                print('Wrong RA-DEC format.')
                 return None, None
         except ValueError:
+            print('Wrong RA-DEC format.')
             return None, None
 
     if len(ra_dec_string.split()[1].split(':')[2]) < 2:
+        print('Wrong RA-DEC format.')
         return None, None
     else:
         try:
             if float(ra_dec_string.split()[1].split(':')[2]) >= 60:
+                print('Wrong RA-DEC format.')
                 return None, None
         except ValueError:
+            print('Wrong RA-DEC format.')
             return None, None
 
     try:
         ra_h, ra_m, ra_s = ra_dec_string.split()[0].split(':')
         ra = float(ra_h) / 1.0 + float(ra_m) / 60.0 + float(ra_s) / 3600.0
         ra *= 15.0
-        dec_d, dec_m, dec_s = ra_dec_string.split()[1].split(':')
-        dec = float(dec_d) / 1.0 + float(dec_m) / 60.0 + float(dec_s) / 3600.0
+        dec_d, dec_m, dec_s = ra_dec_string.split()[1][1:].split(':')
+        if ra_dec_string.split()[1][0] == '+':
+            dec = float(dec_d) / 1.0 + float(dec_m) / 60.0 + float(dec_s) / 3600.0
+        elif ra_dec_string.split()[1][0] == '-':
+            dec = - float(dec_d) / 1.0 - float(dec_m) / 60.0 - float(dec_s) / 3600.0
+        else:
+            print('Wrong RA-DEC format.')
+            return None, None
 
         return ra, dec
 
     except (ValueError, TypeError):
+        print('Wrong RA-DEC format.')
         return None, None
 
 #
