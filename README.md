@@ -192,9 +192,9 @@ The level of the numerical precision for the calculation (int, 0 to 6, default v
 For example, we can calculate the transit light-curve of HD209458b from 2 hours before the mid-transit to 2 hours 
 after the mid-transit with a frequency of 1 point per minute:
 
-    >>> transit_light_curve = plc.transit_flux_drop('claret', limb_darkening_coefficients, rp_over_rs, z_over_rs)
+    >>> flux_drop = plc.transit_flux_drop('claret', limb_darkening_coefficients, rp_over_rs, z_over_rs)
 
-    >>> plt.plot(time_array, transit_light_curve, 'ko', ms=3)
+    >>> plt.plot(time_array, flux_drop, 'ko', ms=3)
     >>> plt.ylim(plt.ylim()[0], 1.001)
     >>> plt.xlabel('time (days)')
     >>> plt.ylabel('observed flux (%)')
@@ -540,7 +540,7 @@ avoid an extremely slow process, we will use a time factor of 2 for the fitting,
 
 MIT License
 
-Copyright (c) 2016-2017 Angelos Tsiaras, Konstantinos Karpouzas and Ryan Varley
+Copyright (c) 2016-2019 Angelos Tsiaras, Konstantinos Karpouzas and Ryan Varley
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
