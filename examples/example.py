@@ -110,10 +110,10 @@ plt.show()
 #     precision                   [0 - 6, default is 3]           : precision level for the numerical integration
 #
 #     for examples, for a transit observation of HD209458b in the optical
-#     from 2 hours before the mid-transit to 2 hours after the midtransit
+#     from 2 hours before the mid-transit to 2 hours after the mid-transit
 #     and one exposure every minute, we can have:
 
-transit_light_curve = plc.transit_flux_drop(
+flux_drop = plc.transit_flux_drop(
     # method='linear',
     # limb_darkening_coefficients = [0.60],
     # method='quad',
@@ -128,12 +128,44 @@ transit_light_curve = plc.transit_flux_drop(
     # precision=6
 )
 
+plt.plot(time_array, flux_drop, 'ko', ms=3)
+plt.ylim(plt.ylim()[0], 1.001)
+plt.xlabel('time (days)')
+plt.ylabel('observed flux (%)')
+plt.show()
+
+# plc.transit(method, limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, eccentricity, inclination,
+#             periastron, mid_time, time_array, precision=3)
+#
+#     returns the transit light-curve, directly from the orbital parameters.
+#     i.e. the transit light-curve, inputs:
+#
+#     method                       ['claret', 'quad', 'sqrt', 'linear']
+#     limb_darkening_coefficients  [no units]   array-like 'claret'.
+#     rp_over_rs                   [no units]   float              : planetary radius over the stellar radius
+#     period                       [days]       float
+#     sma_over_rs                  [no units]   float              : semi-major axis over the stellar radius
+#     eccentricity                 [no units]   float
+#     inclination                  [degrees]    float
+#     periastron                   [degrees]    float
+#     mid_time                     [days]       float
+#     time_array                   [days]       numpy array
+#     precision                    [no units]   int                : the level of the numerical precision
+#
+#     for example, we can calculate the transit light-curve of HD209458b
+#     from 2 hours before the mid-transit to 2 hours after
+#     the mid-transit with a frequency of 1 point per minute:
+
+transit_light_curve = plc.transit('claret', limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, eccentricity,
+                                  inclination, periastron, mid_time, time_array)
+
 plt.plot(time_array, transit_light_curve, 'ko', ms=3)
 plt.ylim(plt.ylim()[0], 1.001)
 plt.xlabel('time (days)')
 plt.ylabel('observed flux (%)')
 plt.show()
 
+# Fitting observed light curves:
 
 # create some simulated data
 
