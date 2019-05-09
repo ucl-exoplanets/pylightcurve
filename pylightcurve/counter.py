@@ -177,13 +177,13 @@ class Counter():
                 [[self.label6, 1], [self.label7, 2]],
             ])
 
-    def update(self):
+    def update(self, message=''):
 
         self.current_iteration += 1
         self.show += 1.0 / self.show_every
 
-        out_of = '{0}{1} / {2}'.format(' ' * (len(str(self.total_iterations)) - len(str(self.current_iteration))),
-                                       str(self.current_iteration), str(self.total_iterations))
+        out_of = '{0}{1} / {2} {3}'.format(' ' * (len(str(self.total_iterations)) - len(str(self.current_iteration))),
+                                       str(self.current_iteration), str(self.total_iterations), message)
 
         delta_time = time.time() - self.start_time
 

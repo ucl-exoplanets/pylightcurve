@@ -2,15 +2,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import warnings
-warnings.filterwarnings("ignore",
-                        message='Matplotlib is building the font cache using fc-list. This may take a moment.')
-warnings.filterwarnings("ignore",
-                        message='The installed version of numexpr 2.4.4 is not supported in pandas and will be not be used')
-warnings.filterwarnings("ignore",
-                        message='\'second\' was found  to be \'60.0\', which is not in range [0,60). '
-                                'Treating as 0 sec, +1 min [astropy.coordinates.angle_utilities]')
-
 import os
 import sys
 
@@ -25,10 +16,15 @@ if os.environ.get('DISPLAY', '') == '':
     print('no display found. Using non-interactive Agg backend')
     matplotlib.use('Agg')
 else:
-    matplotlib.use('TkAgg')
+    try:
+        matplotlib.use('TkAgg')
+    except ImportError:
+        print('matplotlib.pyplot has been already imported. Tk features will not be supported')
+        pass
 
 import os
 import sys
+import copy
 import glob
 import gzip
 import time
@@ -40,8 +36,6 @@ import shutil
 import socket
 import exodata
 import exodata.astroquantities as aq
-import seaborn
-seaborn.reset_orig()
 import datetime
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -51,8 +45,14 @@ from scipy.optimize import curve_fit
 from scipy.interpolate import interp1d
 from scipy import interpolate
 from astropy.io import fits as pf
+from astropy.io import ascii
 from astropy.time import Time as astrotime
 from astropy.coordinates import get_sun as astrosun
 from sklearn.decomposition import FastICA, PCA
-from matplotlib import rc
+from astropy import units as astrounits
 
+from astroquery.simbad import Simbad
+
+if int(matplotlib.__version__[0]) < 3:
+    import seaborn
+    seaborn.reset_orig()

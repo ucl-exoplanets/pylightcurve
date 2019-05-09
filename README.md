@@ -18,7 +18,9 @@ This module makes use of:
 
 ## Installation
 
-Open a terminal and type `pip install pylightcurve`.
+For the latest stable version 2.3.2, open a terminal and type `pip install pylightcurve`.
+
+For the new (under development) version 3.0.0, download this repo, unzip and type `python setup.py install`.
 
 
 ## Usage

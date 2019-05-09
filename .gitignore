@@ -1,4 +1,5 @@
 *.pyc
 *.egg-info/
+*.idea
 MANIFEST.in
 pylightcurve/*_local_*

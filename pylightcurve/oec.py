@@ -35,7 +35,6 @@ def find_oec_parameters(target, catalogue=None, binary_star=0):
     planet = find_target(target, catalogue)
 
     name = planet.name
-    print(name)
 
     try:
         star = planet.star
@@ -68,7 +67,10 @@ def find_oec_parameters(target, catalogue=None, binary_star=0):
     period = float(planet.P)
 
     if np.isnan(planet.a):
-        sma_over_rs = float(planet.calcSMA().rescale(aq.m) / stellar_radius.rescale(aq.m))
+        try:
+            sma_over_rs = float(planet.calcSMA().rescale(aq.m) / stellar_radius.rescale(aq.m))
+        except:
+            sma_over_rs = None
     else:
         sma_over_rs = float(planet.a.rescale(aq.m) / stellar_radius.rescale(aq.m))
 
@@ -87,7 +89,10 @@ def find_oec_parameters(target, catalogue=None, binary_star=0):
     else:
         periastron = float(planet.periastron)
 
-    mid_time = float(planet.transittime)
+    if np.isnan(planet.transittime):
+        mid_time = None
+    else:
+        mid_time = float(planet.transittime)
 
     # known mistakes in the catalogue
 
@@ -125,13 +130,18 @@ def find_oec_parameters(target, catalogue=None, binary_star=0):
     elif name == 'HD 97658 b':
         mid_time = 2456665.46415
     elif name == 'Kepler-9 b':
-        mid_time += 0.07 * period
+        mid_time += 0.075 * period
     elif name == 'Kepler-9 c':
-        mid_time -= 0.063 * period
+        period = 39.070
+        mid_time = 2456293.581329965 + 0.15
     elif name == 'Kepler-9 d':
         mid_time -= 0.03 * period
     elif name == 'Kepler-11 e':
-        mid_time -= 0.0005 * period
+        period = 31.99590
+        mid_time = 2454987.1590
+    elif name == 'Kepler-11 d':
+        period = 22.68719
+        mid_time = 2454981.4550
     elif name == 'KOI-314 c':
         mid_time = 2455558.1404
     elif name == 'HD 219134 b':
@@ -161,23 +171,78 @@ def find_oec_coordinates(target, catalogue=None):
     return planet.system.ra.deg, planet.system.dec.deg
 
 
-def find_oec_stellar_parameters(target, catalogue=None):
+def find_oec_stellar_parameters(target, catalogue=None, binary_star=0):
 
     planet = find_target(target, catalogue)
 
     name = planet.name
 
-    stellar_logg = float(planet.star.calcLogg())
+    try:
+        star = planet.star
+    except exodata.astroclasses.HierarchyError:
+        star = planet.binary.stars[binary_star]
 
-    stellar_temperature = float(planet.star.T)
+    # known mistakes in the catalogue
 
-    if np.isnan(planet.star.Z):
+    if name in ['HD 3167 b', 'HD 3167 c']:
+        star.R = 0.828 * aq.R_s
+    try:
+        star.R = float(star.R) * aq.R_s
+        star.M = float(star.M) * aq.M_s
+        stellar_logg = float(star.calcLogg())
+    except:
+        stellar_logg = None
+
+    stellar_temperature = float(star.T)
+
+    if np.isnan(star.Z):
         stellar_metallicity = 0
     else:
-        stellar_metallicity = planet.star.Z
+        stellar_metallicity = star.Z
 
     stellar_radius = float(planet.star.R)
 
-    stellar_vmag = float(planet.star.magV)
+    try:
+        magU = float(planet.star.magU)
+    except:
+        magU = None
 
-    return name, stellar_logg, stellar_temperature, stellar_metallicity, stellar_radius, stellar_vmag
+    try:
+        magB = float(planet.star.magB)
+    except:
+        magB = None
+
+    try:
+        magV = float(planet.star.magV)
+    except:
+        magV = None
+
+    magR = None
+    magI = None
+
+    try:
+        magJ = float(planet.star.magJ)
+    except:
+        magJ = None
+
+    try:
+        magH = float(planet.star.magH)
+    except:
+        magH = None
+
+    try:
+        magK = float(planet.star.magK)
+    except:
+        magK = None
+
+    try:
+        magL = float(planet.star.magL)
+    except:
+        magL = None
+
+    stellar_maglist = [magU, magB, magV, magR, magI, magJ, magH, magH, magK, magL]
+
+    if np.array([mag is None for mag in stellar_maglist]).all():
+        stellar_maglist = None
+
+    return name, stellar_logg, stellar_temperature, stellar_metallicity, stellar_radius, stellar_maglist

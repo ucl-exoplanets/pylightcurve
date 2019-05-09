@@ -250,3 +250,14 @@ def gauss_numerical_integration(f, x1, x2, precision, *f_args):
 
     return x1 * np.sum(gauss_table[precision][0][:, None] *
                        f(x1[None, :] * gauss_table[precision][1][:, None] + x2[None, :], *f_args), 0)
+
+
+def sample_function(f, precision=3):
+
+    def sampled_function(x12_array, *args):
+
+        x1_array, x2_array = x12_array
+
+        return gauss_numerical_integration(f, x1_array, x2_array, precision, *list(args))
+
+    return sampled_function

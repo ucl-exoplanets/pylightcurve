@@ -153,6 +153,117 @@ def ra_dec_string_to_deg(ra_dec_string):
         print('Wrong RA-DEC format.')
         return None, None
 
+
+def lat_long_string_to_deg(lat_long_string):
+
+    if len(lat_long_string.split()) != 2:
+        if len(lat_long_string.split()) == 6:
+            lat_long_string = '{}:{}:{} {}:{}:{}'.format(*lat_long_string.split())
+        else:
+            print('Wrong RA-DEC format.')
+            return None, None
+
+    if len(lat_long_string.split()[0].split(':')) != 3:
+        print('Wrong RA-DEC format.')
+        return None, None
+
+    if len(lat_long_string.split()[0].split(':')[0]) != 2:
+        print('Wrong RA-DEC format.')
+        return None, None
+    else:
+        try:
+            if int(lat_long_string.split()[0].split(':')[0]) >= 24:
+                print('Wrong RA-DEC format.')
+                return None, None
+        except ValueError:
+            print('Wrong RA-DEC format.')
+            return None, None
+
+    if len(lat_long_string.split()[0].split(':')[1]) != 2:
+        print('Wrong RA-DEC format.')
+        return None, None
+    else:
+        try:
+            if int(lat_long_string.split()[0].split(':')[1]) >= 60:
+                print('Wrong RA-DEC format.')
+                return None, None
+        except ValueError:
+            print('Wrong RA-DEC format.')
+            return None, None
+
+    if len(lat_long_string.split()[0].split(':')[2]) < 2:
+        print('Wrong RA-DEC format.')
+        return None, None
+    else:
+        try:
+            if float(lat_long_string.split()[0].split(':')[2]) >= 60:
+                print('Wrong RA-DEC format.')
+                return None, None
+        except ValueError:
+            print('Wrong RA-DEC format.')
+            return None, None
+
+    if len(lat_long_string.split()[1][1:].split(':')) != 3:
+        print('Wrong RA-DEC format.')
+        return None, None
+
+    if len(lat_long_string.split()[1].split(':')[0]) != 3:
+        print('Wrong RA-DEC format.')
+        return None, None
+    else:
+        try:
+            if abs(int(lat_long_string.split()[1].split(':')[0])) >= 90:
+                print('Wrong RA-DEC format.')
+                return None, None
+        except ValueError:
+            print('Wrong RA-DEC format.')
+            return None, None
+
+    if len(lat_long_string.split()[1].split(':')[1]) != 2:
+        print('Wrong RA-DEC format.')
+        return None, None
+    else:
+        try:
+            if int(lat_long_string.split()[1].split(':')[1]) >= 60:
+                print('Wrong RA-DEC format.')
+                return None, None
+        except ValueError:
+            print('Wrong RA-DEC format.')
+            return None, None
+
+    if len(lat_long_string.split()[1].split(':')[2]) < 2:
+        print('Wrong RA-DEC format.')
+        return None, None
+    else:
+        try:
+            if float(lat_long_string.split()[1].split(':')[2]) >= 60:
+                print('Wrong RA-DEC format.')
+                return None, None
+        except ValueError:
+            print('Wrong RA-DEC format.')
+            return None, None
+
+    try:
+        lat_d, lat_m, lat_s = lat_long_string.split()[0].split(':')
+        lat = float(lat_d) / 1.0 + float(lat_m) / 60.0 + float(lat_s) / 3600.0
+        long_d, long_m, long_s = lat_long_string.split()[1][1:].split(':')
+        if lat_long_string.split()[1][0] == '+':
+            long = float(long_d) / 1.0 + float(long_m) / 60.0 + float(long_s) / 3600.0
+        elif lat_long_string.split()[1][0] == '-':
+            long = - float(long_d) / 1.0 - float(long_m) / 60.0 - float(long_s) / 3600.0
+        else:
+            print('Wrong RA-DEC format.')
+            return None, None
+
+        return lat, long
+
+    except (ValueError, TypeError):
+        print('Wrong LAT-LONG format.')
+        return None, None
+
+
+
+
 #
 # def find_next_transit(target, date, catalogue=None):
 #
