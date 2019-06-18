@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, Extension
 import os
 import sys
 import glob
@@ -6,6 +6,7 @@ import time
 import codecs
 import shutil
 import socket
+import numpy
 
 if sys.version_info[0] > 2:
     from urllib.request import urlopen, urlretrieve
@@ -79,4 +80,11 @@ setup(
     install_requires=install_requires,
     include_package_data=True,
     zip_safe=False,
+    ext_modules=[
+        Extension("pylightcurve.cylc",
+                  sources=[os.path.join('pylightcurve', x) for x in
+                           ("cylc.pyx", "cylc_menu.c", "cylc_local_menu.c")],
+                  extra_compile_args=['-fopenmp', '-lm', '-O3'],
+                  extra_link_args=['-lgomp'],
+                  include_dirs=[numpy.get_include()])]
 )

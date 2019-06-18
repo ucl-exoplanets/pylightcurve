@@ -240,7 +240,7 @@ def find_oec_stellar_parameters(target, catalogue=None, binary_star=0):
     except:
         magL = None
 
-    stellar_maglist = [magU, magB, magV, magR, magI, magJ, magH, magH, magK, magL]
+    stellar_maglist = [magU, magB, magV, magR, magI, magJ, magH, magK, magL]
 
     if np.array([mag is None for mag in stellar_maglist]).all():
         stellar_maglist = None

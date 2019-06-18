@@ -75,7 +75,7 @@ Stellar metallicity (float, dex Fe/H).
 
 - photometric_filter  
 Photometric band of the observation (str, available filters: 'B', 'C', 'H', 'I', 'J', 'K', 'Kp', 'R', 'S1', 'S2', 
-'S3', 'S4', 'U', 'V', 'b', 'g', 'i,', 'r,', 'u', 'u,', 'v', 'y', 'z,').
+'S3', 'S4', 'U', 'V', 'b', 'g,', 'i,', 'r,', 'u', 'u,', 'v', 'y', 'z,').
 
 For example, we can calculate the limb darkening coefficients for the claret law for HD209458b in the optical band:
 

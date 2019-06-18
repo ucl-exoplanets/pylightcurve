@@ -2,8 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from .gauss_numerical_integration import *
-from .one_d_distribution import *
+from .analysis_gauss_numerical_integration import *
+from .analysis_distribution_one_d import *
 
 
 def two_d_distribution(data_array, step=None, min_value=None, max_value=None, confidence_interval=None):

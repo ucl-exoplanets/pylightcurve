@@ -4,8 +4,8 @@ from __future__ import print_function
 
 from ._1databases import *
 
-from .counter import *
-from .one_d_distribution import *
+from .tools_counter import *
+from .analysis_distribution_one_d import *
 
 
 class EmceeFitting:

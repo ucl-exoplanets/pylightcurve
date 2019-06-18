@@ -7,7 +7,7 @@ cdef extern from "stdlib.h":
     void *malloc(size_t size)
     void free(void *ptr)
 
-cdef extern from "pyparallel_menu.h":
+cdef extern from "cylc_menu.h":
     cdef double *transit_flux_drop_claret_cython(double *flux, double a1, double a2, double a3, double a4, double rprs, double *z,
                                                  int size)
 

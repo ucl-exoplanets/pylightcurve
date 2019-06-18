@@ -3,9 +3,8 @@ from __future__ import division
 from __future__ import print_function
 
 from .exoplanet_orbit import *
-from .transit_flux_drop import *
-from .emcee_fitting import *
-from .transit_duration import *
+from .exoplanet_flux import *
+from .analysis_emcee_fitting import *
 
 
 class TransitAndPolyFitting:
