@@ -164,11 +164,26 @@ def find_oec_parameters(target, catalogue=None, binary_star=0):
             eccentricity, inclination, periastron, mid_time)
 
 
-def find_oec_coordinates(target, catalogue=None):
+def find_oec_coordinates(target, catalogue=None, output='deg'):
 
     planet = find_target(target, catalogue)
 
-    return planet.system.ra.deg, planet.system.dec.deg
+    if output == 'deg':
+        return planet.system.ra.deg, planet.system.dec.deg
+    elif output == 'str':
+        ra = '{0}:{1}:{2}'.format(str(int(planet.system.ra.hms[0])).zfill(2),
+                                  str(int(planet.system.ra.hms[1])).zfill(2),
+                                  str(round(planet.system.ra.hms[2],1)).zfill(4))
+        if planet.system.dec.deg > 0:
+            dec = '+{0}:{1}:{2}'.format(str(int(planet.system.dec.dms[0])).zfill(2),
+                                        str(int(planet.system.dec.dms[1])).zfill(2),
+                                        str(round(planet.system.dec.dms[2], 1)).zfill(4))
+        else:
+            dec = '-{0}:{1}:{2}'.format(str(int(abs(planet.system.dec.dms[0]))).zfill(2),
+                                        str(int(abs(planet.system.dec.dms[1]))).zfill(2),
+                                        str(round(abs(planet.system.dec.dms[2]), 1)).zfill(4))
+
+        return '{0} {1}'.format(ra, dec)
 
 
 def find_oec_stellar_parameters(target, catalogue=None, binary_star=0):

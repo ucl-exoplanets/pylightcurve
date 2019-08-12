@@ -53,7 +53,7 @@ def curve_fit_line(datax, datay, datay_err):
 
     p0 = np.polyfit(datax, datay, 1)
 
-    popt, pcov = curve_fit(fline, datax, datay, sigma=1./(datay_err*datay_err), p0=p0)
+    popt, pcov = curve_fit(fline, datax, datay, sigma=datay_err, p0=p0)
 
     return popt[0], popt[1], np.sqrt(pcov[0][0]), np.sqrt(pcov[1][1])
 
@@ -120,3 +120,13 @@ def values_to_print(value, error_minus, error_plus):
     print_p_error = '{0:.{width}f}'.format(round(error_plus, width), width=width)
 
     return print_value, print_m_error, print_p_error
+
+
+def find_demicals(number):
+
+    xx = 25
+
+    while round(number, xx) == round(number, xx - 1):
+        xx -= 1
+
+    return xx

@@ -218,7 +218,6 @@ def transit_flux_drop(method, limb_darkening_coefficients, rp_over_rs, z_over_rs
     return 1 - (2.0 / total_flux) * (plusflux + starflux - minsflux)
 
 
-
 def transit(method, limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron,
             mid_time, time_array, precision=3):
 

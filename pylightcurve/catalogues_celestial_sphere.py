@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 from .catalogues_oec import *
+from .tools_files import *
 
 
 def ut_to_jd(ut_string):
@@ -43,6 +44,165 @@ def mjd_to_hjd(ra_target, dec_target, modified_julian_date):
 def ut_to_hjd(ra_target, dec_target, ut_string):
 
     return hjd(ra_target, dec_target, ut_string, time_format='iso')
+
+
+def from_hjd(ra_target, dec_target, heliocentric_julian_date, time_format):
+
+    def func(x, jd):
+        return jd_to_hjd(ra_target, dec_target, jd) - heliocentric_julian_date
+
+    popt, pcov = curve_fit(func, [0], [0], p0=[heliocentric_julian_date])
+    julian_date = astrotime(popt[0], format='jd')
+
+    if time_format == 'jd':
+        return julian_date.jd
+    elif time_format == 'mjd':
+        return julian_date.mjd
+    elif time_format == 'iso':
+        return julian_date.iso
+
+
+def hjd_to_jd(ra_target, dec_target, heliocentric_julian_date):
+
+    return from_hjd(ra_target, dec_target, heliocentric_julian_date, time_format='jd')
+
+
+def hjd_to_mjd(ra_target, dec_target, heliocentric_julian_date):
+
+    return from_hjd(ra_target, dec_target, heliocentric_julian_date, time_format='mjd')
+
+
+def hjd_to_ut(ra_target, dec_target, heliocentric_julian_date):
+
+    return from_hjd(ra_target, dec_target, heliocentric_julian_date, time_format='iso')
+
+
+bjd_dict = open_dict(glob.glob(os.path.join(databases.ephemeris, 'bjd_dict.pickle''*'))[0])
+hjd_dict = open_dict(glob.glob(os.path.join(databases.ephemeris, 'hjd_dict.pickle''*'))[0])
+
+
+def bjd_tdb(ra_target, dec_target, date, time_format):
+
+    date = astrotime(date, format=time_format)
+    ra_target *= np.pi / 180
+    dec_target *= np.pi / 180
+
+    julian_date = date.jd
+
+    ssb_t = bjd_dict[int(julian_date)]['t']
+    ssb_ra = bjd_dict[int(julian_date)]['ra']
+    ssb_dec = bjd_dict[int(julian_date)]['dec']
+    ssb_d = bjd_dict[int(julian_date)]['d']
+    ssb_dt = bjd_dict[int(julian_date)]['dt']
+
+    ssb_ra = interp1d(ssb_t, ssb_ra, kind='cubic')(julian_date)
+    ssb_dec = interp1d(ssb_t, ssb_dec, kind='cubic')(julian_date)
+    ssb_d = interp1d(ssb_t, ssb_d, kind='cubic')(julian_date)
+    ssb_dt = interp1d(ssb_t, ssb_dt, kind='cubic')(julian_date)
+
+    a = ssb_d / 60 / 24
+    b = np.sin(dec_target) * np.sin(ssb_dec)
+    c = np.cos(dec_target) * np.cos(ssb_dec) * np.cos(ra_target - ssb_ra)
+
+    return julian_date - a * (b + c) + ssb_dt / 60 / 60 / 24
+
+
+def jd_utc_to_hjd_tdb(ra_target, dec_target, jd_utc):
+
+    ra_target *= np.pi / 180
+    dec_target *= np.pi / 180
+
+    sun_t = hjd_dict[int(jd_utc)]['t']
+    sun_ra = hjd_dict[int(jd_utc)]['ra']
+    sun_dec = hjd_dict[int(jd_utc)]['dec']
+    sun_d = hjd_dict[int(jd_utc)]['d']
+    sun_dt = hjd_dict[int(jd_utc)]['dt']
+
+    sun_ra = interp1d(sun_t, sun_ra, kind='cubic')(jd_utc)
+    sun_dec = interp1d(sun_t, sun_dec, kind='cubic')(jd_utc)
+    sun_d = interp1d(sun_t, sun_d, kind='cubic')(jd_utc)
+    sun_dt = interp1d(sun_t, sun_dt, kind='cubic')(jd_utc)
+
+    a = sun_d / 60 / 24
+    b = np.sin(dec_target) * np.sin(sun_dec)
+    c = np.cos(dec_target) * np.cos(sun_dec) * np.cos(ra_target - sun_ra)
+
+    return jd_utc - a * (b + c) + sun_dt / 60 / 60 / 24
+
+
+def jd_utc_to_hjd_utc(ra_target, dec_target, jd_utc):
+
+    ra_target *= np.pi / 180
+    dec_target *= np.pi / 180
+
+    sun_t = hjd_dict[int(jd_utc)]['t']
+    sun_ra = hjd_dict[int(jd_utc)]['ra']
+    sun_dec = hjd_dict[int(jd_utc)]['dec']
+    sun_d = hjd_dict[int(jd_utc)]['d']
+
+    sun_ra = interp1d(sun_t, sun_ra, kind='cubic')(jd_utc)
+    sun_dec = interp1d(sun_t, sun_dec, kind='cubic')(jd_utc)
+    sun_d = interp1d(sun_t, sun_d, kind='cubic')(jd_utc)
+
+    a = sun_d / 60 / 24
+    b = np.sin(dec_target) * np.sin(sun_dec)
+    c = np.cos(dec_target) * np.cos(sun_dec) * np.cos(ra_target - sun_ra)
+
+    return jd_utc - a * (b + c)
+
+
+def jd_utc_to_bjd_tdb(ra_target, dec_target, jd_utc):
+
+    return bjd_tdb(ra_target, dec_target, jd_utc, time_format='jd')
+
+
+def mjd_utc_to_bjd_tdb(ra_target, dec_target, mjd_utc):
+
+    return bjd_tdb(ra_target, dec_target, mjd_utc, time_format='mjd')
+
+
+def utc_to_bjd_tdb(ra_target, dec_target, utc):
+
+    return bjd_tdb(ra_target, dec_target, utc, time_format='iso')
+
+
+def hjd_utc_to_bjd_tdb(ra_target, dec_target, hjd_utc):
+
+    def func(x, jd):
+        return jd_utc_to_hjd_utc(ra_target, dec_target, jd) - hjd_utc
+
+    popt, pcov = curve_fit(func, [0], [0], p0=[hjd_utc])
+
+    return jd_utc_to_bjd_tdb(ra_target, dec_target, popt[0])
+
+
+def hjd_tdb_to_bjd_tdb(ra_target, dec_target, hjd_tdb):
+
+    def func(x, jd):
+        return jd_utc_to_hjd_tdb(ra_target, dec_target, jd) - hjd_tdb
+
+    popt, pcov = curve_fit(func, [0], [0], p0=[hjd_tdb])
+
+    return jd_utc_to_bjd_tdb(ra_target, dec_target, popt[0])
+
+
+def bjd_utc_to_bjd_tdb(ra_target, dec_target, bjd_utc):
+
+    ssb_t = bjd_dict[int(bjd_utc)]['t']
+    ssb_dt = bjd_dict[int(bjd_utc)]['dt']
+    ssb_dt = interp1d(ssb_t, ssb_dt, kind='cubic')(bjd_utc)
+
+    return bjd_utc + ssb_dt / 60 / 60 / 24
+
+
+def bjd_tdb_to_jd_utc(ra_target, dec_target, bjd_tdb_in):
+
+    def func(x, jd):
+        return jd_utc_to_bjd_tdb(ra_target, dec_target, jd) - bjd_tdb_in
+
+    popt, pcov = curve_fit(func, [0], [0], p0=[bjd_tdb_in])
+
+    return popt[0]
 
 
 def ra_dec_string_to_deg(ra_dec_string):

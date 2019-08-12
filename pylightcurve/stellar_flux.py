@@ -5,6 +5,67 @@ from __future__ import print_function
 from .tools_files import *
 
 
+def get_vega_flux(mag):
+
+    zmag = None
+    phot_filter = None
+    if mag == 'U':
+        zmag = 4.175e-9
+        phot_filter = 'Bessel_U.txt'
+
+    if mag == 'B':
+        zmag = 6.32e-9
+        phot_filter = 'Bessel_B.txt'
+
+    if mag == 'V':
+        zmag = 3.631e-9
+        phot_filter = 'Bessel_V.txt'
+
+    if mag == 'R':
+        zmag = 2.177e-9
+        phot_filter = 'Bessel_R.txt'
+
+    if mag == 'I':
+        zmag = 1.126e-9
+        phot_filter = 'Bessel_I.txt'
+
+    if mag == 'J':
+        zmag = 3.147e-10
+        phot_filter = 'Bessel_J.txt'
+
+    if mag == 'H':
+        zmag = 1.138e-10
+        phot_filter = 'Bessel_H.txt'
+
+    if mag == 'K':
+        zmag = 9.961e-11
+        phot_filter = 'Bessel_K.txt'
+
+    if mag == 'L':
+        zmag = 7.08e-12
+        phot_filter = 'Bessel_L.txt'
+
+    if mag == 'G':
+        zmag = 2.4773273088492937e-09
+        phot_filter = 'G.txt'
+
+    wavelength = pf.open('/Users/angelos/Desktop/alpha_lyr_004.fits')[1].data['WAVELENGTH']
+    flux = pf.open('/Users/angelos/Desktop/alpha_lyr_004.fits')[1].data['FLUX']
+
+    phot_filter = np.loadtxt(os.path.join(databases.phoenix(), phot_filter), unpack=True)
+    phot_filter[0] = phot_filter[0] * 10
+    band = interp1d(phot_filter[0], np.maximum(0, phot_filter[1]), kind='cubic')
+    test = np.where((wavelength > min(phot_filter[0])) * (wavelength < max(phot_filter[0])))
+    wavelength_test = wavelength[test]
+    flux_test = flux[test]
+
+    flux = np.sum(((flux_test * band(wavelength_test) * wavelength_test)[:-1] *
+                     (wavelength_test[1:] - wavelength_test[:-1]))) / np.sum(
+        (band(wavelength_test) * wavelength_test)[:-1] * (wavelength_test[1:] - wavelength_test[:-1]))
+
+    return flux
+
+
 def open_spectrum_file(fits):
 
     fits = get_fits_arrays(os.path.join(databases.phoenix(), fits), 1, ['Wavelength', 'Flux'])
@@ -19,7 +80,7 @@ def get_spectrum(stellar_logg, stellar_temperature, stellar_radius,
                  stellar_umag=None, stellar_bmag=None, stellar_vmag=None,
                  stellar_rmag=None, stellar_imag=None,
                  stellar_jmag=None, stellar_hmag=None, stellar_kmag=None,
-                 stellar_lmag=None):
+                 stellar_lmag=None, stellar_gmag=None):
 
     grid = open_dict(os.path.join(databases.phoenix(), 'grid.pickle'))
 
@@ -125,6 +186,11 @@ def get_spectrum(stellar_logg, stellar_temperature, stellar_radius,
         phot_filter = 'Bessel_L.txt'
         stellar_mag = stellar_lmag
 
+    if isinstance(stellar_gmag, float) or isinstance(stellar_gmag, int):
+        zmag = 2.4773273088492937e-09
+        phot_filter = 'G.txt'
+        stellar_mag = stellar_gmag
+
     if zmag:
 
         phot_filter = np.loadtxt(os.path.join(databases.phoenix(), phot_filter), unpack=True)
@@ -138,17 +204,9 @@ def get_spectrum(stellar_logg, stellar_temperature, stellar_radius,
                          (wavelength_test[1:] - wavelength_test[:-1]))) / np.sum(
             (band(wavelength_test) * wavelength_test)[:-1] * (wavelength_test[1:] - wavelength_test[:-1]))
 
-        stellar_radius *= 695700
+        # stellar_radius *= 695700
 
-        od2 = zmag / (10 ** (stellar_mag / 2.5)) / f_flux / stellar_radius / stellar_radius
-
-        factor = stellar_radius * stellar_radius * od2
-
-        print(np.sum((((flux_test * band(wavelength_test))[:-1] *
-                       (wavelength_test[1:] - wavelength_test[:-1]))))*factor)
-
-        print(f_flux/np.sum((((flux_test * band(wavelength_test))[:-1] *
-                              (wavelength_test[1:] - wavelength_test[:-1])))))
+        factor = zmag / (10 ** (stellar_mag / 2.5)) / f_flux
 
         return wavelength, flux * factor
 
@@ -160,12 +218,12 @@ def get_flux(stellar_logg, stellar_temperature, stellar_radius, lambda1, lambda2
              stellar_umag=None, stellar_bmag=None, stellar_vmag=None,
              stellar_rmag=None, stellar_imag=None,
              stellar_jmag=None, stellar_hmag=None, stellar_kmag=None,
-             stellar_lmag=None):
+             stellar_lmag=None, stellar_gmag=None):
 
     wavelength_array, flux_array = get_spectrum(stellar_logg, stellar_temperature, stellar_radius,
                                                 stellar_umag, stellar_bmag, stellar_vmag, stellar_rmag,
                                                 stellar_imag, stellar_jmag, stellar_hmag, stellar_kmag,
-                                                stellar_lmag)
+                                                stellar_lmag, stellar_gmag)
 
     binsedge = 0.5 * (wavelength_array[:-1] + wavelength_array[1:])
     binsedge1 = np.append(wavelength_array[0] - (binsedge[0] - wavelength_array[0]), binsedge)
@@ -222,6 +280,10 @@ def get_mag(stellar_logg, stellar_temperature, stellar_radius, distance, mag):
         zmag = 7.08e-12
         phot_filter = 'Bessel_L.txt'
 
+    if mag == 'G':
+        zmag = 2.4773273088492937e-09
+        phot_filter = 'G.txt'
+
     if not zmag:
         raise PyLCInputError('Filter not available.')
     else:
@@ -241,6 +303,44 @@ def get_mag(stellar_logg, stellar_temperature, stellar_radius, distance, mag):
         distance *= 3.08567758149137e+13
 
         return 2.5 * np.log10(zmag/(flux * (stellar_radius * stellar_radius / distance / distance)))
+
+
+def g_to_r_mag(stellar_logg, stellar_temperature, stellar_radius, stellar_mag):
+
+    wavelength, flux = get_spectrum(stellar_logg, stellar_temperature, stellar_radius, stellar_gmag=stellar_mag)
+    phot_filter = 'G.txt'
+
+    phot_filter = np.loadtxt(os.path.join(databases.phoenix(), phot_filter), unpack=True)
+    phot_filter[0] = phot_filter[0] * 10
+    band = interp1d(phot_filter[0], np.maximum(0, phot_filter[1]), kind='cubic')
+    test = np.where((wavelength > min(phot_filter[0])) * (wavelength < max(phot_filter[0])))
+    wavelength_test = wavelength[test]
+    flux_test = flux[test]
+
+    flux = np.sum(((flux_test * band(wavelength_test) * wavelength_test)[:-1] *
+                     (wavelength_test[1:] - wavelength_test[:-1]))) / np.sum(
+        (band(wavelength_test) * wavelength_test)[:-1] * (wavelength_test[1:] - wavelength_test[:-1]))
+
+    return 2.5 * np.log10(2.2090695086397724e-09/flux)
+
+
+def g_to_v_mag(stellar_logg, stellar_temperature, stellar_radius, stellar_mag):
+
+    wavelength, flux = get_spectrum(stellar_logg, stellar_temperature, stellar_radius, stellar_gmag=stellar_mag)
+    phot_filter = 'G.txt'
+
+    phot_filter = np.loadtxt(os.path.join(databases.phoenix(), phot_filter), unpack=True)
+    phot_filter[0] = phot_filter[0] * 10
+    band = interp1d(phot_filter[0], np.maximum(0, phot_filter[1]), kind='cubic')
+    test = np.where((wavelength > min(phot_filter[0])) * (wavelength < max(phot_filter[0])))
+    wavelength_test = wavelength[test]
+    flux_test = flux[test]
+
+    flux = np.sum(((flux_test * band(wavelength_test) * wavelength_test)[:-1] *
+                     (wavelength_test[1:] - wavelength_test[:-1]))) / np.sum(
+        (band(wavelength_test) * wavelength_test)[:-1] * (wavelength_test[1:] - wavelength_test[:-1]))
+
+    return 2.5 * np.log10(3.519416551428086e-09/flux)
 
 
 def clablimb(method, stellar_logg, stellar_temperature, stellar_metallicity, photometric_filter, stellar_model='ATLAS'):

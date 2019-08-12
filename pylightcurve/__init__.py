@@ -19,6 +19,6 @@ from .catalogues_oec import *
 from .analysis_distribution_one_d import *
 from .stellar_flux import *
 from .exoplanet_lc_fitting import *
-from .exoplanet_flux import *
+from .exoplanet_lc import *
 from .analysis_distribution_two_d import *
 from .cylc import *

@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 from .exoplanet_orbit import *
-from .exoplanet_flux import *
+from .exoplanet_lc import *
 from .analysis_emcee_fitting import *
 
 
