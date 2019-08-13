@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-__version__ = '3.0.0'
+__version__ = '3.0.1'
 
 from ._0imports import *
 
@@ -21,4 +21,3 @@ from .stellar_flux import *
 from .exoplanet_lc_fitting import *
 from .exoplanet_lc import *
 from .analysis_distribution_two_d import *
-from .cylc import *

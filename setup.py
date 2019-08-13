@@ -47,13 +47,6 @@ for i in files_to_include:
 
 w.close()
 
-try:
-    with codecs.open('README.md', encoding='utf-8') as f:
-        long_description = f.read()
-except:
-    with codecs.open('readme.md', encoding='utf-8') as f:
-        long_description = f.read()
-
 version = ' '
 for i in open(os.path.join(name, '__init__.py')):
     if len(i.split('__version__')) > 1:
@@ -63,7 +56,7 @@ setup(
     name=name,
     version=version,
     description=description,
-    long_description=long_description,
+    long_description='Visit https://github.com/ucl-exoplanets/pylightcurve',
     url=url,
     author='Angelos Tsiaras',
     author_email='aggelostsiaras@gmail.com',
@@ -80,11 +73,4 @@ setup(
     install_requires=install_requires,
     include_package_data=True,
     zip_safe=False,
-    ext_modules=[
-        Extension("pylightcurve.cylc",
-                  sources=[os.path.join('pylightcurve', x) for x in
-                           ("cylc.pyx", "cylc_menu.c", "cylc_local_menu.c")],
-                  extra_compile_args=['-fopenmp', '-lm', '-O3'],
-                  extra_link_args=['-lgomp'],
-                  include_dirs=[numpy.get_include()])]
 )
