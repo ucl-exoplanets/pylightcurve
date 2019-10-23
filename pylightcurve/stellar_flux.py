@@ -232,7 +232,7 @@ def get_flux(stellar_logg, stellar_temperature, stellar_radius, lambda1, lambda2
     arg1 = np.where((lambda1 >= binsedge1) * (lambda1 < binsedge2))[0][0]
     arg2 = np.where((lambda2 > binsedge1) * (lambda2 <= binsedge2))[0][0]
 
-    flux = np.sum(binswidth[arg1 + 1: arg2] * wavelength_array[arg1 + 1: arg2])
+    flux = np.sum(binswidth[arg1 + 1: arg2] * flux_array[arg1 + 1: arg2])
     flux += flux_array[arg1] * (binsedge2[arg1]-lambda1)
     flux += flux_array[arg2] * (lambda2 - binsedge1[arg2])
 

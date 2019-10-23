@@ -159,6 +159,8 @@ def find_oec_parameters(target, catalogue=None, binary_star=0):
         mid_time = 2454700.81308
     elif name == 'Kepler-1625 b':
         mid_time = 2456043.9587
+    elif name == 'WASP-79 b':
+        mid_time = 2455545.2356
 
     return (name, stellar_logg, stellar_temperature, stellar_metallicity, rp_over_rs, fp_over_fs, period, sma_over_rs,
             eccentricity, inclination, periastron, mid_time)
