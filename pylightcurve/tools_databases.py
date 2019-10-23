@@ -73,7 +73,7 @@ class Database:
                                                                               dbx_files[dbx_file]['local_path']))
 
                 if database_name == 'clablimb':
-                    xx = pickle.load(open(glob.glob(os.path.join(directory_path, '*'))[0], 'rb'))
+                    xx = pickle.load(open(glob.glob(os.path.join(directory_path, '*.pickle'))[0], 'rb'))
                     for i in xx:
                         w = open(os.path.join(directory_path, i), 'w')
                         w.write(xx[i])
