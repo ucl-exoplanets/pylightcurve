@@ -80,7 +80,7 @@ Install PyLightcurve through pip:
 pip install pylightcurve
 ```
 
-... or download this repo, cd in it and use the setup.py:
+... or download this repo, cd in it and use the setup.py file:
  
 ```bash
 git clone pylightcurve
@@ -606,6 +606,15 @@ mid_time_in_hjd_utc = 2458485.00380255
 mid_time_in_bjd_tdb = target.convert_to_bjd_tdb(mid_time_in_hjd_utc, 'HJD_UTC')
 # available formats: JD_UTC, MJD_UTC, HJD_UTC, HJD_TDB, BJD_UTC, BJD_TDB
 ```
+
+### Star PSF fitting
+
+### Emcee wrapper
+
+### Distributions
+
+### Numerical integration
+
 
 
 

@@ -1,15 +1,11 @@
+
 import os
-import sys
 import glob
-import gzip
 import time
 import shutil
-import datetime
-import numpy as np
 from scipy.interpolate import interp1d
-import warnings
 
-from pylightcurve.processes.files import open_dict, save_dict, open_yaml, download
+from pylightcurve.processes.files import open_dict, open_yaml, download
 from pylightcurve import __version__
 
 try:
@@ -18,10 +14,9 @@ try:
 except:
     download_zip = False
 
-
 databases_file = '__databases__.pickle'
 package_name = 'pylightcurve4'
-github_link = 'https://github.comm/ucl-exoplanets/pylightcurve/blob/master/__databases__.pickle?raw=true'
+github_link = 'https://github.com/ucl-exoplanets/pylightcurve/raw/master/pylightcurve/__databases__.pickle?raw=true'
 
 
 class PlcData:
