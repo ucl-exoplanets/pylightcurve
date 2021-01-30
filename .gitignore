@@ -1,5 +1,11 @@
 *.pyc
-*.egg-info/
+*.egg-info
+*.eggs
+*.pytest_cache
 *.idea
+*.coverage*
+tests/test_eclipse
+tests/test_transit
+tests/test_emcee
 MANIFEST.in
 pylightcurve/*_local_*

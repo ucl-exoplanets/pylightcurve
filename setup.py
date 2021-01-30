@@ -1,65 +1,29 @@
-from setuptools import setup, Extension
+
 import os
-import sys
-import glob
-import time
-import codecs
-import shutil
-import socket
-import numpy
 
-if sys.version_info[0] > 2:
-    from urllib.request import urlopen, urlretrieve
-else:
-    from urllib import urlopen, urlretrieve
-    input = raw_input
+from setuptools import setup
 
-name = 'pylightcurve'
-description = 'A python package for modeling and analysing transit light-curves.'
-url = 'https://https://github.com/ucl-exoplanets/pylightcurve'
-install_requires = ['matplotlib', 'numpy', 'exodata', 'emcee', 'seaborn', 'astropy', 'scipy', 'sklearn', 'astroquery']
+package = 'pylightcurve'
+version = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), package, '__version__.txt')).read()
+author = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), package, '__author__.txt')).read()
+author_email = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), package, '__author_email__.txt')).read()
+description = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), package, '__description__.txt')).read()
+url = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), package, '__url__.txt')).read()
+
+install_requires = ['matplotlib>=3.3.3', 'numpy>=1.19.2', 'emcee>=3.0.2', 'astropy>=4.2', 'scipy>=1.5.2',
+                    'pyyaml']
+entry_point = ''
 
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
-subdirs_to_include = []
-for x in os.walk(name):
-    if os.path.isdir(x[0]):
-        if x[0] != name:
-            subdirs_to_include.append(x[0])
-
-files_to_include = []
-for x in glob.glob(os.path.join(name, '*')):
-    if os.path.isfile(x):
-        if x.split('.')[-1] not in ['py']:
-            files_to_include.append(os.path.join(name, os.path.split(x)[1]))
-
-files_to_include.append('README.md')
-files_to_include.append('LICENSE')
-files_to_include.append('readme.md')
-files_to_include.append('licence')
-
-w = open('MANIFEST.in', 'w')
-for i in subdirs_to_include:
-    w.write('include ' + os.path.join(i, '*') + ' \n')
-
-for i in files_to_include:
-    w.write('include ' + i + ' \n')
-
-w.close()
-
-version = ' '
-for i in open(os.path.join(name, '__init__.py')):
-    if len(i.split('__version__')) > 1:
-        version = i.split()[-1][1:-1]
-
 setup(
-    name=name,
+    name=package,
     version=version,
     description=description,
-    long_description='Visit https://github.com/ucl-exoplanets/pylightcurve',
+    long_description='Visit {0} for more details.'.format(url),
     url=url,
-    author='Angelos Tsiaras',
-    author_email='aggelostsiaras@gmail.com',
+    author=author,
+    author_email=author_email,
     license='MIT',
     classifiers=['Development Status :: 4 - Beta',
                  'Environment :: Console',
@@ -69,8 +33,13 @@ setup(
                  'Operating System :: MacOS :: MacOS X',
                  'Programming Language :: Python :: 3.7',
                  ],
-    packages=[name],
+    entry_points={},
+    packages=[package],
     install_requires=install_requires,
     include_package_data=True,
     zip_safe=False,
+    setup_requires=["pytest-runner"],
+    tests_require=['pytest'],
 )
+
+import pylightcurve
