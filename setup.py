@@ -10,7 +10,7 @@ author_email = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), pac
 description = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), package, '__description__.txt')).read()
 url = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), package, '__url__.txt')).read()
 
-install_requires = ['matplotlib>=3.3.3', 'numpy>=1.19.2', 'emcee>=3.0.2', 'astropy>=4.2', 'scipy>=1.5.2',
+install_requires = ['matplotlib>=3.3.3', 'numpy>=1.19.2', 'emcee>=3.0.2', 'astropy>=4.2', 'scipy',
                     'pyyaml']
 entry_point = ''
 
