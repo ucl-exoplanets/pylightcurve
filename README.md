@@ -37,6 +37,7 @@ If you are using PyLightcurve for your research please cite all the above refere
 
 [Tsiaras et al. 2016](https://ui.adsabs.harvard.edu/abs/2016ApJ...832..202T/abstract)
 
+
 # Updates in version 4.0
 
 #### Deprecation notice
