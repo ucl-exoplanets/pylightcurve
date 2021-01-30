@@ -3,7 +3,6 @@ __all__ = ['curve_fit']
 
 import warnings
 
-import scipy
 from scipy.optimize import curve_fit as scipy_curve_fit
 
 
