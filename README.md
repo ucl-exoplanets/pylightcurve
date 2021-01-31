@@ -4,11 +4,11 @@
 
 [![Downloads](https://pepy.tech/badge/pylightcurve)](https://pepy.tech/project/pylightcurve)
 
-![](logo.png)
-
 # PyLightcurve 
 
 A python package for analysing exoplanet light-curves.
+
+<img src="https://github.com/ucl-exoplanets/pylightcurve/blob/master/logo.png" width="25%">
 
 In PyLightcurve you will find tools for:
 
