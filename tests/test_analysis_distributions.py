@@ -86,14 +86,14 @@ def test_distribution_two_d():
 
     c = plc.two_d_distribution(distr_1, distr_2, step=1, max_value_x=15.0, max_value_y=25.0)
     assert round(np.max(c[0]), 1) <= 15.5
-    assert round(np.max(c[1]), 1) <= 25.6
+    assert round(np.max(c[1]), 1) <= 25.7
 
     c = plc.two_d_distribution(distr_1, distr_2, step=1, min_value_x=5.0, max_value_x=15.0, min_value_y=15.0,
                                max_value_y=25.0)
     assert round(np.min(c[0]), 1) >= 5.0
     assert round(np.max(c[0]), 1) <= 15.6
     assert round(np.min(c[1]), 1) >= 15.0
-    assert round(np.max(c[1]), 1) <= 25.6
+    assert round(np.max(c[1]), 1) <= 25.7
 
     a = plc.two_d_distribution(distr_1, distr_2, step=10)
     assert abs(a[0].flatten()[np.argmax(a[2])] - test_mean_1) < test_std_1
