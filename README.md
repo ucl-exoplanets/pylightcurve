@@ -1,6 +1,12 @@
+![Python package](https://github.com/ucl-exoplanets/pylightcurve/workflows/Python%20package/badge.svg?branch=pylightcurve-3)
+![](https://travis-ci.com/ucl-exoplanets/pylightcurve.svg?&branch=pylightcurve-3) 
+[![codecov](https://codecov.io/gh/ucl-exoplanets/pylightcurve/branch/pylightcurve-3/graph/badge.svg?)](https://codecov.io/gh/ucl-exoplanets/pylightcurve)
+
+[![Downloads](https://pepy.tech/badge/pylightcurve)](https://pepy.tech/project/pylightcurve)
+
 # PyLightcurve
 
-<img src="https://github.com/ucl-exoplanets/pylightcurve/blob/master/logo.jpg" width="20%">
+<img src="https://github.com/ucl-exoplanets/pylightcurve/blob/pylightcurve-3/logo.jpg" width="20%">
 
 A python package for modeling and analysing transit light-curves.
 
