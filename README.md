@@ -1,632 +1,548 @@
-![](https://travis-ci.com/ucl-exoplanets/pylightcurve.svg?&branch=master) 
-[![codecov](https://codecov.io/gh/ucl-exoplanets/pylightcurve/branch/master/graph/badge.svg?)](https://codecov.io/gh/ucl-exoplanets/pylightcurve)
-[![Downloads](https://pepy.tech/badge/pylightcurve)](https://pepy.tech/project/pylightcurve)
+# PyLightcurve
 
-![](logo.png)
+<img src="https://github.com/ucl-exoplanets/pylightcurve/blob/master/logo.jpg" width="20%">
 
-# PyLightcurve 
+A python package for modeling and analysing transit light-curves.
 
-A python package for analysing exoplanet light-curves.
-
-In PyLightcurve you will find tools for:
-
+* Easy search for parameters of current exoplanets.
 * Calculation of limb darkening coefficients.
 * Calculation of exoplanetary orbits.
-* Calculation of exoplanet transit and eclipse properties.
-* Exoplanet transit and eclipse modeling.
-* Flexible fitting of multi-epoch and multi-colour exoplanet transit and eclipse 
-light-curves.
-* Transformations between different angle and timing systems.
+* Calculation of transit models.
+* Flexible fitting of transit light-curves.
 
-Developed by [Angelos Tsiaras](www.angelostsiaras.com)
+This module makes use of:
 
-PyLightcurve makes use of the following packages:
-
-* [Emcee](https://github.com/dfm/emcee), [Foreman-Mackey et al. 2013](http://iopscience.iop.org/article/10.1086/670067)
-* [ExoTETHyS](https://github.com/ucl-exoplanets/ExoTETHyS), [Morello et al. 2020](https://iopscience.iop.org/article/10.3847/1538-3881/ab63dc)
-* [Matplotlib](https://matplotlib.org), [Hunter 2007](https://ieeexplore.ieee.org/document/4160265)
-* [Numpy](https://numpy.org), [Oliphant 2006](https://archive.org/details/NumPyBook)
-* [SciPy](https://www.scipy.org), [Virtanen et al. 2020](https://www.nature.com/articles/s41592-019-0686-2)
-* [Astropy](https://www.astropy.org), [Astropy Collaboration 2013](https://www.aanda.org/articles/aa/abs/2013/10/aa22068-13/aa22068-13.html)
-
-and of the following catalogues:
-
-* Exoplanet Characterisation Catalogue, developed as part of the [ExoClock Project](www.exoclock.space), [Kokori et al. 2020](https://ui.adsabs.harvard.edu/abs/2020arXiv201207478K/abstract)
-
-If you are using PyLightcurve for your research please cite all the above references individually and also:
-
-[Tsiaras et al. 2016](https://ui.adsabs.harvard.edu/abs/2016ApJ...832..202T/abstract)
+* [exodata](https://github.com/ryanvarley/ExoData), [Varley (2016)](http://www.sciencedirect.com/science/article/pii/S0010465516301254)
+* [emcee](https://github.com/dfm/emcee), [Foreman-Mackey et al. (2013)](http://iopscience.iop.org/article/10.1086/670067)
 
 
-# Updates in version 4.0
+## Installation
 
-#### Deprecation notice
+For the latest stable version 2.3.2, open a terminal and type `pip install pylightcurve`.
 
-PyLightcurve 4.0 no longer supports the use of the Open Exoplanet Catalogue (OEC), due to the large number 
-of mistakes in the catalogue and the absence of parameters updates. OEC has been replaced by the 
-Exoplanet Characterisation Catalogue, dedicated to transiting exoplanets. This catalogue does not contain all the 
-exoplanets at the moment but will be continuously updated with more planets.
-
-#### Multi-epoch and multi-color data fitting
-
-Version 4.0 brings a new easy way of simultaneously fitting light curves from different 
-sources (different flux and time formats, different exposure times), different filters
-(multi-colour) and different epochs (multi-epoch). 
-
-#### Eclipse model and eclipse data fitting
-
-We now have the option of modeling eclipse data (finally!) and also tools to calculate the 
-eclipse mid-time, eclipse depth and eclipse duration, based of the orbital characteristics 
-of the planet. 
-
-#### Limb-darkening coefficients
-
-In this version, the default limb-darkening coefficients are calculated using the new 
-package [ExoTETHyS](https://github.com/ucl-exoplanets/ExoTETHyS). This allows the 
-calculation of the limb-darkening coefficients even for stars cooler than 3500 K. 
-
-#### Angles and times
-
-PyLighrcurve 4.0 includes flexible objects for converting different expressions of 
-angles (e.g. '+47:12:34.05' to degrees) and of timing systems (e.g. HJD_UTC to BJD_TDB).
-
-# Installation
-
-## Version 4
-
-Install PyLightcurve through pip:
-
-```bash
-pip install pylightcurve
-```
-
-... or download this repo, cd in it and use the setup.py file:
- 
-```bash
-git clone pylightcurve
-cd pylightcurve
-python setup.py install
-```
-
-## Version 3
-
-If you want to install the previous version use pip:
-
-```bash
-pip install pylightcurve==3.0.5
-```
-
-or download the package files (including the README file) from PyPi:
-
-https://pypi.org/project/pylightcurve/3.0.5/#files
+For the new (under development) version 3.0.0, download this repo, unzip and type `python setup.py install`.
 
 
-# Usage
+## Usage
 
-## Exoplanets - using the plc.Planet object
+The code in the examples below can be found in the example/example.py file in this repo.
 
-In Pylightcurve 4.0.0 we can access all the old and new calculations related to 
-exoplanets through the newly introduced plc.Planet object. These calculation aare:
-- limb-darkening coefficients
-- transit model
-- transit data fitting
-- transit duration
-- transit depth
-- planet-to-star flux ratio
-- eclipse time
-- eclipse model
-- eclipse data fitting
-- eclipse duration
-- eclipse depth
-- exoplanet orbital position
-- planet-star projected distance
+	>>> import pylightcurve as plc
+	>>> import matplotlib.pyplot as plt
+	>>> import numpy as np
+	
+	>>> plt.ion()
 
-We start by importing Pylightcurve, together with Numpy and Matplotib.
 
-```python
-import pylightcurve as plc
-import matplotlib.pyplot as plt
-import numpy as np
-```
+##### plc.find_oec_parameters(target)
 
-We can then define a plc.Planet object for our favorite exoplanet, HD 209458 b.
+Returns the following stellar and transit parameters: planet oec name, logarithmic stellar surface gravity, stellar 
+effective temperature, stellar metallicity, planetary radius relative to teh stellar radius, planetary bolometric 
+emission relative o the stellar bolometric emision, orbital period, orbital semi-major axis relative to the stellar 
+radius, orbital eccentricity, orbital inclination, orbital argument of periastron, transit mid-time.
 
-```python
-planet = plc.Planet(
-    name='HD209458b', 
+Note: The database is automatically updated on a daily basis if internet access is available.
+
+- target  
+Name of the planet (str). 
+
+For example, we can find the parameters of HD209458b:
+	
+	>>> (planet, stellar_logg, stellar_temperature, stellar_metallicity, rp_over_rs, fp_over_fs, 
+	     period, sma_over_rs, eccentricity, inclination, periastron, mid_time) = plc.find_oec_parameters('hd209458b')
+
+	>>> print (planet, stellar_logg, stellar_temperature, stellar_metallicity, rp_over_rs, fp_over_fs, 
+	           period, sma_over_rs, eccentricity, inclination, periastron, mid_time)
+	('HD 209458 b', 4.375254713815686, 6075.0, 0.02, 0.12035170971037652, 5.1956599618667065e-05, 3.52474859, 
+	 8.8593557009493, 0.0004, 86.59, 0.0, 2451370.048)
+
+
+##### plc.clablimb(method, stellar_logg, stellar_temperature, stellar_metallicity, photometric_filter, stellar_model='ATLAS')
+
+Returns a list of limb darkening coefficients.
+
+- method  
+Limb darkening law (str, 'claret' is the only one currently supported).
+
+- stellar_logg  
+Logarithmic stellar surface gravity (float, in cm/s/s).
+
+- stellar_temperature  
+Stellar effective temperature (float, in Kelvin).
+
+- stellar_metallicity  
+Stellar metallicity (float, dex Fe/H).
+
+- photometric_filter  
+Photometric band of the observation (str, available filters: 'B', 'C', 'H', 'I', 'J', 'K', 'Kp', 'R', 'S1', 'S2', 
+'S3', 'S4', 'U', 'V', 'b', 'g,', 'i,', 'r,', 'u', 'u,', 'v', 'y', 'z,').
+
+For example, we can calculate the limb darkening coefficients for the claret law for HD209458b in the optical band:
+
+	>>> limb_darkening_coefficients = plc.clablimb('claret', stellar_logg, stellar_temperature, 
+	                                               stellar_metallicity, 'V')
+
+	>>> print limb_darkening_coefficients
+	[ 0.38606363  0.58637444 -0.19471546 -0.00559748]
+
+
+##### plc.exoplanet_orbit(period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array)
+
+Returns the position vector of the planet in a coordinate system with the parent star at (x,y,z) = (0,0,0), the 
+observer at (x,y,z) = (+inf,0,0) and the z-axis perpendicular to the plane of reference.
+
+- period  
+Orbital period (float, in days).
+
+- sma_over_rs  
+Orbital semi-major axis relative to the stellar radius (float, no units).
+
+- eccentricity  
+Orbital eccentricity (float, no units).
+
+- inclination  
+Orbital inclination (float, in degrees).
+
+- periastron  
+Orbital argument of periastron (float, in degrees).
+
+- mid_time  
+Transit mid-time (float, in days).
+
+- time_array  
+A time sequence (numpy array, in days).
+
+For example, we can calculate the position vector of HD209458b from 2 hours before the mid-transit to 2 hours after 
+the mid-transit with a frequency of 1 point per minute:
+
+    >>> time_array = np.arange(mid_time - 2.0 / 24.0, mid_time + 2.0 / 24.0, 1.0 / 60.0 / 24.0)
+
+    >>> (position_x, position_y, position_z) = plc.exoplanet_orbit(period, sma_over_rs, eccentricity, inclination, 
+                                                                   periastron, mid_time, time_array)
+                                        
+    >>> plt.subplot(3,1,1)
+    >>> plt.plot(time_array, position_x, 'ko', ms=3)
+    >>> plt.ylabel('x (R star)')
+    >>> plt.subplot(3,1,2)
+    >>> plt.plot(time_array, position_y, 'ko', ms=3)
+    >>> plt.ylabel('y (R star)')
+    >>> plt.subplot(3,1,3)
+    >>> plt.plot(time_array, position_z, 'ko', ms=3)
+    >>> plt.ylabel('z (R star)')
+    >>> plt.xlabel('time (days)')
+
+
+##### plc.transit_projected_distance(period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array, precision=3)
+
+Returns the projected distance between the planet and its parent star. When the planet is further than the star, 
+the values returned are negative.
+
+- period  
+Orbital period (float, in days).
+
+- sma_over_rs  
+Orbital semi-major axis relative to the stellar radius (float, no units).
+
+- eccentricity  
+Orbital eccentricity (float, no units).
+
+- inclination  
+Orbital inclination (float, in degrees).
+
+- periastron  
+Orbital argument of periastron (float, in degrees).
+
+- mid_time  
+Transit mid-time (float, in days).
+
+- time_array  
+A time sequence (numpy array, in days).
+
+For example, we can calculate the projected distance of HD209458b from its host star from 2 hours before the 
+mid-transit to 2 hours after the mid-transit with a frequency of 1 point per minute:
     
-    ra = 330.795,                  # float values are assumed to be in degrees,
-                                   # alternatively, you can provide a plc.Hours or plc.Degrees object
-                                   # here it would be plc.Hours('22:03:10.7729')
-    
-    dec = 18.884,                  # float values are assumed to be in degrees,
-                                   # alternatively, you can provide a plc.Hours or plc.Degrees object
-                                   # here it would be plc.Degrees('+18:53:03.548')
-    
-    stellar_logg = 4.36,           # float, in log(cm/s^2)
-    
-    stellar_temperature = 6065.0,  # float, in Kelvin
-    
-    stellar_metallicity = 0.0,     # float, in dex(Fe/H) or dex(M/H)
-    
-    rp_over_rs = 0.12086,          # float, no units
-    
-    period = 3.5247486,            # float, in days
-    
-    sma_over_rs = 8.76,            # float, no units
-    
-    eccentricity = 0.0,            # float, no units
-    
-    inclination = 86.71,           # float values are assumed to be in degrees,
-                                   # alternatively, you can provide a plc.Hours or plc.Degrees object
-                                   # here it would be plc.Degrees(86.71)           
-    
-    periastron = 0.0,              # float values are assumed to be in degrees,
-                                   # alternatively, you can provide a plc.Hours or plc.Degrees object
-                                   # here it would be plc.Degrees(0.0)
-    
-    mid_time = 2452826.62928,      # float, in days
-    
-    mid_time_format = 'BJD_TDB',   # str, available formats are JD_UTC, MJD_UTC, HJD_UTC, HJD_TDB, BJD_UTC, BJD_TDB    
-    
-    ldc_method = 'claret',         # str, default = claret, the other methods are: linear, quad, sqrt
-    
-    ldc_stellar_model = 'phoenix', # str, default = phoenix, the other model is atlas
-    
-    albedo = 0.15,                 # float, default = 0.15, no units 
-    
-    emissivity = 1.0,              # float, default = 1.0, no units
-)
-```
-
-We can quickly create a plc.Planet object based on catalague data as follows: 
-
-```python
-planet = plc.get_planet('hd209458b')
-```
-
-At the moment the data provided are base on the Exoplanet Characterisation Catalogue (ECC) developed as part of the 
-ExoClock Project. The catalogue contains 370 objects and will gradually expand in future releases.
-
-To retrieve a list of all the available planet names we can type:
-
-```python
-all_planets = plc.get_all_planets()
-```
-
-
-### Filters
-
-There is a number of parameters for every planet that do depend on the observing filter
-and are necessary to calculate the correct transit/eclipse models at different 
-wavelengths and to allow the simultaneous analysis of multi-wavelength light-curves:
-- the planet-to-star radius ratio (rp_over_rs)
-- the limb-darkening coefficients (limb_darkening_coefficients)
-- the planet-to-star flux ratio (fp_over_fs)
-
-By default, a plc.Planet object contains the above parameters for a number of standard 
-filters:
-- clear
-- luminance
-- JOHNSON_U 
-- JOHNSON_B 
-- JOHNSON_V 
-- COUSINS_R 
-- COUSINS_I
-- 2mass_j 
-- 2mass_h
-- 2mass_ks
-- sdss_u 
-- sdss_g 
-- sdss_r 
-- sdss_i
-- sdss_z
-- Kepler 
-- TESS
-- irac1 (available only for the atlas model, if phoenix is chosen, it will change 
-    automatically to atlas, with more restrictions on the minimum temperature 
-        available, 3500K)
-- irac2 (available only for the atlas model, if phoenix is chosen, it will change 
-    automatically to atlas, with more restrictions on the minimum temperature 
-        available, 3500K)
-- irac3 (available only for the atlas model, if phoenix is chosen, it will change 
-    automatically to atlas, with more restrictions on the minimum temperature 
-        available, 3500K)
-- irac4 (available only for the atlas model, if phoenix is chosen, it will change 
-    automatically to atlas, with more restrictions on the minimum temperature 
-        available, 3500K)
-
-In these default calculations:
-- the rp_over_rs is equal to the value defined when creating the plc.Planet object,
-- the limb-darkening coefficients are calculated using the filter response curves, together 
-    with the stellar parameters, the ldc_method and the the ldc_stellar_model defined when 
-    creating the plc.Planet object (more in the [ExoTETHyS](https://github.com/ucl-exoplanets/ExoTETHyS) package),
-- the planet-to-star flux ratio (reflected + emmitted) is calculated using the albedo and 
-    the emissivity defined when creating the plc.Planet object, assuming the star are 
-    emitting as black bodies.
-
-The default calculations can be accessed by typing:
-```python
-limb_darkening_coefficients = planet.filter('COUSINS_R').limb_darkening_coefficients
-fp_over_fs = planet.filter('COUSINS_R').fp_over_fs
-rp_over_rs = planet.filter('COUSINS_R').rp_over_rs # no difference from planet.rp_over_rs if we have not defined our own filter
-```
-
-Of course we can define additional filters (that can be accessed in the same way) or alter 
-the parameters in the existing filters by typing:
-
-```python
-planet.add_filter('my_filter', rp_over_rs, ldc1, ldc2, ldc3, ldc4, fp_over_fs)
-```
-
-### Fitting Transit / Eclipse light-curves
-
-For the purpose of this excersise, we will create some simulated data. In real life, you will 
-provide your own light-curves with their characteristics. 
-
-To model-fit observations, we first need to add them to the plc.Planet object. We should 
-be careful to add either only transit data or only eclipse data.
-
-```python
-
-# first observation
-time = np.arange(planet.mid_time - 0.1, planet.mid_time + 0.1, 0.001)
-
-transit = planet.transit_integrated(time, time_format='BJD_TDB', exp_time=120, time_stamp = 'mid', filter_name='COUSINS_R', max_sub_exp_time=1)
-systematics = 1.2 * (1 + 0.013 * (time - time[0]) + 0.03 * ((time - time[0]) ** 2))
-error = np.random.normal(0, 0.002, len(time))
-flux = transit * systematics + error
-
-flux_unc = np.ones_like(error) * np.std(error)
-
-planet.add_observation(
-    time = time,                # the time vector of our observation
-                                # np.array of float values 
-    
-    time_format = 'BJD_TDB',    # format in which our time vector is expressed
-                                # str, available formats are: JD_UTC, MJD_UTC, HJD_UTC, HJD_TDB, BJD_UTC, BJD_TDB 
-
-    exp_time = 120,             # exposure time of our time vector
-                                # float, in seconds
-        
-    time_stamp = 'mid',         # exposure time stamp for our time vector (do the numbers refer to the exposure start, the mid-exposure, or the exposure end?)
-                                # str, available stamps are: start, mid, end 
-    
-    flux = flux,                # the flux vector of our observation
-                                # np.array of float values, 
-    
-    flux_unc = flux_unc,        # the flux-uncertainty vector of our observation
-                                # np.array of float values, 
-    
-    flux_format = 'flux',       # format in which our flux and flux-uncertainty vectors are expressed
-                                # str, available formats are: flux, mag
-    
-    filter_name = 'COUSINS_R'   # filter used for this observation 
-                                # str, available filters are: all the default filters and those added manually by us
-)
-
-# second observation
-time = np.arange(planet.mid_time - 0.05, planet.mid_time + 0.15, 0.001)
-
-transit = planet.transit_integrated(time, time_format='HJD_UTC', exp_time=30, time_stamp = 'mid', filter_name='TESS', max_sub_exp_time=1)
-systematics = 3.6 * (1 - 0.02 * (time - time[0]) + 0.05 * ((time - time[0]) ** 2))
-error = np.random.normal(0, 0.0005, len(time))
-flux = transit * systematics + error
-
-flux_unc = np.ones_like(error) * np.std(error)
-
-planet.add_observation(
-    time = time,                                         
-    time_format = 'HJD_UTC',                                                              
-    exp_time = 30,
-    time_stamp = 'mid',                                  
-    flux = flux,                                   
-    flux_unc = flux_unc,                         
-    flux_format = 'flux',                       
-    filter_name = 'TESS'                   
-)
-```
-
-Once added, we can fit all the observations simultaneously using the following command:
-
-```python
-planet.transit_fitting(output_folder)
-```
-
-where the output_folder is the path where we want to save the results. There is a number of options 
-when fitting the data:
-
-```python
-detrending_order            # default:2, instance:float, accepted values: 0, 1, 2
-                            # indicates the order of a polynomial that will be fitted together with the observation 
-                            # for de-trending purposes (every observation will be de-trended by a different polynomial
-
-iterations                  # default:130000, instance:float
-                            # indicates the number of MCMC iterations
+    >>> z_over_rs = plc.transit_projected_distance(period, sma_over_rs, eccentricity, inclination, periastron,
+                                                   mid_time, time_array)
 
-walkers                     # default:200, instance:float
-                            # indicates the number of MCMC wakers
+    >>> plt.plot(time_array, z_over_rs, 'ko', ms=3)
+    >>> plt.axhline(1, color='k', ls='--')
+    >>> plt.text(0.5 * (plt.xlim()[1] + plt.xlim()[0]), 0.99, 'transit', ha='center', va='top')
+    >>> plt.xlabel('time (days)')
+    >>> plt.ylabel('projected distance (R star)')
 
-burn_in                     # default:30000, instance:float
-                            # indicates the number of MCMC burn-in
 
-fit_rp_over_rs              # default:True, instance:bool
-                            # indicates whether to fit for the rp_over_rs or not
+##### plc.transit_flux_drop(method, limb_darkening_coefficients, rp_over_rs, z_over_rs, precision=3)
 
-fit_individual_rp_over_rs   # default:False, instance:bool
-                            # indicates whether to fit different value for the rp_over_rs over different filters, 
-                            # or not
-
-fit_sma_over_rs             # default:False, instance:bool 
-                            # indicates whether to fit for the sma_over_rs or not
+Returns the observed stellar flux as a function of time - i.e. the transit light-curve.
 
-fit_inclination             # default:False, instance:bool
-                            # indicates whether to fit for the inclination or not
+- method  
+Limb darkening law (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
 
-fit_mid_time                # default:False, instance:bool
-                            # indicates whether to fit for the transit mid-time or not
+- limb_darkening_coefficients  
+A list containing the limb darkening coefficients. The list should contain 1 element if the method used is the 
+'linear', 2 if the method used is the 'quad' or teh 'sqrt', and 4 if the method used is the 'claret'.
 
-fit_individual_times        # default:False, instance:bool
-                            # indicates whether to fit different value for the transit mid-time over different epochs, 
-                            # or not
+- rp_over_rs  
+Planetary radius relative to the stellar radius (float, no units)
 
-fit_period                  # default:False, instance:bool
-                            # indicates whether to fit for the period or not (we cannot activate both fit_period and 
-                            # fit_individual_times)
+- z_over_rs  
+Projected distance between the planet and its parent star relative to the stellar radius (numpy array, no units).
 
-fit_ldc1                    # default:False, instance:bool 
-                            # indicates whether to fit for first limb-darkening coefficient or not
+- precision  
+The level of the numerical precision for the calculation (int, 0 to 6, default value is 3).
 
-fit_ldc2                    # default:False, instance:bool 
-                            # indicates whether to fit for second limb-darkening coefficient or not
+For example, we can calculate the transit light-curve of HD209458b from 2 hours before the mid-transit to 2 hours 
+after the mid-transit with a frequency of 1 point per minute:
 
-fit_ldc3                    # default:False, instance:bool  
-                            # indicates whether to fit for third limb-darkening coefficient or not
+    >>> flux_drop = plc.transit_flux_drop('claret', limb_darkening_coefficients, rp_over_rs, z_over_rs)
 
-fit_ldc4                    # default:False, instance:bool 
-                            # indicates whether to fit for forth limb-darkening coefficient or not
+    >>> plt.plot(time_array, flux_drop, 'ko', ms=3)
+    >>> plt.ylim(plt.ylim()[0], 1.001)
+    >>> plt.xlabel('time (days)')
+    >>> plt.ylabel('observed flux (%)')
 
-fit_rp_over_rs_limits       # default:[0.5, 2.0], instance:list (length=2)
-                            # indicates the prior limits for the rp_over_rs, as a factor - by default the limits are 
-                            # from half the initial rp_over_rs value to twice the initial rp_over_rs value
-
-fit_sma_over_rs_limits      # default:[0.5, 2.0], instance:list (length=2)
-                            # indicates the prior limits for the sma_over_rs, as a factor - by default the limits are 
-                            # from half the initial sma_over_rs value to twice the initial sma_over_rs value
-
-fit_inclination_limits      # default:[70.0, 90.0], instance:list (length=2)
-                            # indicates the prior limits for the inclination, as a value - by default the limits are 
-                            # from 70 to 90 degrees
-                            
-fit_mid_time_limits         # default:[-0.2, 0.2], instance:list (length=2)
-                            # indicates the prior limits for the transit mid_time, as a difference - by default the 
-                            # limits are from 0.2 days before the initial transit mid_time to 0.2 days after the initial 
-                            # transit mid-time
-
-fit_period_limits           # default:[0.8, 1.2], instance:list (length=2)
-                            # indicates the prior limits for the period, as a factor - by default the limits are from 
-                            # 0.8 times the initial period value to 1.2 times the initial period value
 
-fit_ldc_limits              # default:[0.0, 1.0], instance:list (length=2)
-                            # indicates the prior limits for the limb-darkening coefficients, as a value - by default 
-                            # the limits are from 0 to 1
+##### plc.transit(method, limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array, precision=3)
 
-max_sub_exp_time            # default:10, instance:float
-                            # maximum sub-exposure to be used when calculaing the exposure-integrated models
+Returns the transit light-curve, directly from the orbital parameters.
 
-precision                   # default:3, instance:float
-                            # numerical precision to be used when calculating the models
-```
+- method  
+Limb darkening law (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
 
-For eclipse observations, we need to type:
+- limb_darkening_coefficients  
+A list containing the limb darkening coefficients. The list should contain 1 element if the method used is the 
+'linear', 2 if the method used is the 'quad' or teh 'sqrt', and 4 if the method used is the 'claret'.
 
-```python
-planet.eclipse_fitting(output_folder)
-```
+- rp_over_rs  
+Planetary radius relative to the stellar radius (float, no units)
 
-and the fitting options are very similar:
+- period  
+Orbital period (float, in days).
 
+- sma_over_rs  
+Orbital semi-major axis relative to the stellar radius (float, no units).
 
-```python
-
-detrending_order            # default:2, instance:float, accepted values: 0, 1, 2
-                            # indicates the order of a polynomial that will be fitted together with the observation 
-                            # for de-trending purposes (every observation will be de-trended by a different polynomial
-
-iterations                  # default:130000, instance:float
-                            # indicates the number of MCMC iterations
-
-walkers                     # default:200, instance:float
-                            # indicates the number of MCMC wakers
+- eccentricity  
+Orbital eccentricity (float, no units).
 
-burn_in                     # default:30000, instance:float
-                            # indicates the number of MCMC burn-in
+- inclination  
+Orbital inclination (float, in degrees).
 
-fit_fp_over_fs              # default:True, instance:bool
-                            # indicates whether to fit for the fp_over_fs or not
-
-fit_individual_fp_over_fs   # default:False, instance:bool
-                            # indicates whether to fit for different values of fp_over_fs over different filters or not
+- periastron  
+Orbital argument of periastron (float, in degrees).
 
-fit_rp_over_rs              # default:True, instance:bool
-                            # indicates whether to fit for the rp_over_rs or not
+- mid_time  
+Transit mid-time (float, in days).
 
-fit_individual_rp_over_rs   # default:False, instance:bool
-                            # indicates whether to fit for different values of rp_over_rs over different filters or not
-                            
-fit_sma_over_rs             # default:False, instance:bool 
-                            # indicates whether to fit for the sma_over_rs or not
+- time_array  
+A time sequence (numpy array, in days).
 
-fit_inclination             # default:False, instance:bool
-                            # indicates whether to fit for the inclination or not
+- precision  
+The level of the numerical precision for the calculation (int, 0 to 6, default value is 3).
 
-fit_mid_time                # default:False, instance:bool
-                            # indicates whether to fit for the eclipse mid-time or not
+For example, we can calculate the transit light-curve of HD209458b from 2 hours before the mid-transit to 2 hours after 
+the mid-transit with a frequency of 1 point per minute:
 
-fit_individual_times        # default:False, instance:bool
-                            # indicates whether to fit different value for the transit mid-time over different epochs, 
-                            # or not
+    >>> transit_light_curve = plc.transit('claret', limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, 
+                                          eccentricity, inclination, periastron, mid_time, time_array)
 
-fit_period                  # default:False, instance:bool
-                            # indicates whether to fit for the period or not (we cannot activate both fit_period and 
-                            # fit_individual_times)
+    >>> plt.plot(time_array, transit_light_curve, 'ko', ms=3)
+    >>> plt.ylim(plt.ylim()[0], 1.001)
+    >>> plt.xlabel('time (days)')
+    >>> plt.ylabel('observed flux (%)')
 
-fit_fp_over_fs_limits       # default:[0.001, 1000.0], instance:list (length=2)
-                            # indicates the prior limits for the fp_over_fs, as a factor - by default the limits are 
-                            # 0.1% of the initial fp_over_fs value to 1000 times the initial fp_over_fs value
 
-fit_rp_over_rs_limits       # default:[0.5, 2.0], instance:list (length=2)
-                            # indicates the prior limits for the rp_over_rs, as a factor - by default the limits are 
-                            # from half the initial rp_over_rs value to twice the initial rp_over_rs value
+##### plc.transit_integrated(method, limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array, exp_time, time_factor, precision=3)
 
-fit_sma_over_rs_limits      # default:[0.5, 2.0], instance:list (length=2)
-                            # indicates the prior limits for the sma_over_rs, as a factor - by default the limits are 
-                            # from half the initial sma_over_rs value to twice the initial sma_over_rs value
+Returns the exposure-integrated transit light-curve, directly from the orbital parameters.
 
-fit_inclination_limits      # default:[70.0, 90.0], instance:list (length=2)
-                            # indicates the prior limits for the inclination, as a value - by default the limits are 
-                            # from 70 to 90 degrees
-                            
-fit_mid_time_limits         # default:[-0.2, 0.2], instance:list (length=2)
-                            # indicates the prior limits for the eclipse mid_time, as a difference - by default the 
-                            # limits are  from 0.2 days before the initial eclipse mid_time to 0.2 days after the 
-                            # initial eclipse mid-time
+- method  
+Limb darkening law (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
 
-fit_period_limits           # default:[0.8, 1.2], instance:list (length=2)
-                            # indicates the prior limits for the period, as a factor - by default the limits are from 
-                            # 0.8 times the initial period value to 1.2 times the initial period value
+- limb_darkening_coefficients  
+A list containing the limb darkening coefficients. The list should contain 1 element if the method used is the 
+'linear', 2 if the method used is the 'quad' or teh 'sqrt', and 4 if the method used is the 'claret'.
 
-max_sub_exp_time            # default:10, instance:float
-                            # maximum sub-exposure to be used when calculaing the exposure-integrated models
+- rp_over_rs  
+Planetary radius relative to the stellar radius (float, no units)
 
-precision                   # default:3, instance:float
-                            # numerical precision to be used when calculating the models
-```
+- period  
+Orbital period (float, in days).
 
+- sma_over_rs  
+Orbital semi-major axis relative to the stellar radius (float, no units).
 
+- eccentricity  
+Orbital eccentricity (float, no units).
 
-### Models of Transits / Eclipses light-curves
+- inclination  
+Orbital inclination (float, in degrees).
 
-Getting the forward model of a transit/eclipse light-curve is as easy as it used to be.
+- periastron  
+Orbital argument of periastron (float, in degrees).
 
-For a specific time series (let's call it time_array with size N), defined in 
-any of the acceptable time formats (JD_UTC, MJD_UTC, HJD_UTC, HJD_TDB, BJD_UTC, BJD_TDB) 
-we can calculate the transit/eclipse model or the integrated transit/eclipse model for a 
-given exposure time and time stamp (start, mid, end, representing the tart the middle and 
-the end of the exposure, respectively) as follows:
+- mid_time  
+Transit mid-time (float, in days).
 
-```python
-time_array = np.arange(planet.mid_time - 0.1, planet.mid_time + 0.1, 0.001)
-transit_model = planet.transit(time_array, time_format='BJD_TDB', filter_name='COUSINS_R')
-transit_model_integrated = planet.transit_integrated(time_array, time_format='BJD_TDB', 
-                                                     exp_time=120, time_stamp='mid',
-                                                     filter_name='COUSINS_R')
+- time_array  
+A time sequence (numpy array, in days).
 
-time_array = np.arange(planet.eclipse_mid_time - 0.1, planet.eclipse_mid_time + 0.1, 0.001)
-eclipse_model = planet.eclipse(time_array, time_format='BJD_TDB', filter_name='COUSINS_R')
-eclipse_model_integrated = planet.eclipse_integrated(time_array, time_format='BJD_TDB',
-                                                     exp_time=120, time_stamp='mid',
-                                                     filter_name='COUSINS_R')
-```
+- exp_time  
+Exposure time (float, in seconds).
 
-For the integrated models, the calculation is done on a sub-exposure basis. The code calculates
-the model values for a number of shorter exposures, which are then averaged. The length of the 
-sub-exposures can be controlled through the max_sub_exp_time argument, for which the default 
-value is 10 (in seconds). The lower the number, the more precise the integrated model will be, 
-but the computation time will be increased. For all exoplanets, a max_sub_exp_time=10 should be
-sufficient.
+- time_factor  
+Number of sub-exposures to be calculated per exposure (int, no units).
 
-### Other Transit / Eclipse calculations
+- precision  
+The level of the numerical precision for the calculation (int, 0 to 6, default value is 3).
 
-Based on the parameters defined when creating the plc.Planet object, the eclipse mid-time
-(in the BJD_TDB format) is calculated automatically and we can access it by typing:
+For example, we can calculate the transit light-curve of HD209458b from 2 hours before the mid-transit to 2 hours after 
+the mid-transit with a frequency of 1 point per minute, assuming an exposure time of 30 seconds which is divided into 
+10 sub-exposures:
 
-```python
-eclipse_mid_time = planet.eclipse_mid_time
-```
+    >>> transit_light_curve = plc.transit_integrated('claret', limb_darkening_coefficients, rp_over_rs, period, 
+                                                     sma_over_rs, eccentricity, inclination, periastron, mid_time, 
+                                                     time_array, 30, 10)
 
-Also, we can calculate the transit/eclipse depth and duration for different filters:
+    >>> plt.plot(time_array, transit_light_curve, 'ko', ms=3)
+    >>> plt.ylim(plt.ylim()[0], 1.001)
+    >>> plt.xlabel('time (days)')
+    >>> plt.ylabel('observed flux (%)')
 
-```python
-transit_duration = planet.transit_duration('COUSINS_R')
-transit_depth = planet.transit_depth('COUSINS_R')
-eclipse_duration = planet.eclipse_duration('COUSINS_R')
-eclipse_depth = planet.eclipse_depth('COUSINS_R')
-```
 
-### Orbital calculations
+##### plc.TransitAndPolyFitting(data, method, limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron, mid_time, iterations, walkers, burn, precision=3, exp_time=0, time_factor=1, fit_first_order=False, fit_second_order=False, fit_rp_over_rs=False, fit_period=False, fit_sma_over_rs=False, fit_eccentricity=False, fit_inclination=False, fit_periastron=False, fit_mid_time=False, counter=True, counter_window=False):
 
-For a specific time series (let's call it time_array with size N), we can calculate 
-other series, related to the orbit of the planet. These are:
+Offers a range of options for fitting observed transit light-curves, simultaneously with a second-order polynomial 
+de-trending function.
 
-1. the 3D position of the planet as a function of time. The planet.planet_orbit function 
-will return a 3xN array where the elements corresponds to the x,y,z coordinates of the 
-planet. The coordinate system assumes that the star is at (x,y,z)=(0,0,0), the Earth is 
-at (x,y,z) = (+inf,0,0) and that the planet is at its periastron during the mid-transit 
-time when periastron = 90 degrees. All coordinates are in units of stellar radii.
+- data  
+A list containing the input data sets. Each element in the list is a list of 3 arrays, 
+representing the time (in Heliocentric Julian Date), the stellar flux and the uncertainty in the stellar flux
+example: `data=[[time_0, flux_0, error_0], [time_1, flux_1, error_1], [time_2, flux_2, error_2]]`
 
-2. the projected distance between the planet and the star as a function of time. The 
-planet.planet_star_projected_distance function will return an array of size N. All 
-distances are in units of stellar radii.
+- method  
+Limb darkening law (str, available methods: 'claret', 'quad', 'sqrt' or 'linear').
 
-3. the orbital phase of the planet. The planet.planet_phase function will return an array 
-of size N.
+- limb_darkening_coefficients  
+A list containing the limb darkening coefficients. The list should contain 1 element if the method used is the 
+'linear', 2 if the method used is the 'quad' or teh 'sqrt', and 4 if the method used is the 'claret'.
+To fit for the limb darkening coefficients set `limb_darkening_coefficients='fit'`.
 
-```python
-time_array = np.arange(planet.mid_time - 0.1, planet.mid_time + 0.1, 0.001)
+- rp_over_rs  
+Initial value for the planetary radius relative to the stellar radius (float, no units)
 
-x, y, z = planet.planet_orbit(time_array, 'BJD_TDB')
-projected_distance = planet.planet_star_projected_distance(time_array, 'BJD_TDB')
-planet_phase = planet.planet_phase(time_array, 'BJD_TDB')
-```
+- period  
+Initial value for the orbital period (float, in days).
 
-## Data analysis toolkit
+- sma_over_rs  
+Initial value for the orbital semi-major axis relative to the stellar radius (float, no units).
 
-### Angles and times
+- eccentricity  
+Initial value for the orbital eccentricity (float, no units).
 
-In this version we can easily convert angles to different formats. For example:
+- inclination  
+Initial value for the orbital inclination (float, in degrees).
 
-```python
-ra = plc.Hours('22:03:10.7729')
+- periastron  
+Initial value for the orbital argument of periastron (float, in degrees).
 
-ra_in_degrees = ra.deg()
-ra_in_hours = ra.hours()
-ra_in_rad = ra.rad()
-ra_in_dms = ra.dms()
-ra_in_dms_coordinate = ra.dms_coord() # this will give the angle between -90 and 90 degrees
-ra_in_hms = ra.hms()
-ra_in_degrees_coordinate = ra.deg_coord() # this will give the angle between -90 and 90 degrees
-```
+- mid_time  
+Initial value for the transit mid-time (float, in days).
 
-To convert between different time systems we need forst to define aa plc.FixtedTarget 
-object:
+- time_array  
+A time sequence (numpy array, in days).
 
-```python
-ra = plc.Hours('22:03:10.7729')
-dec = plc.Degrees('+18:53:03.548')
-target = plc.FixedTarget(ra, dec)
+- iterations  
+Number of total mcmc iterations (int, no units).
 
-mid_time_in_hjd_utc = 2458485.00380255
-mid_time_in_bjd_tdb = target.convert_to_bjd_tdb(mid_time_in_hjd_utc, 'HJD_UTC')
-# available formats: JD_UTC, MJD_UTC, HJD_UTC, HJD_TDB, BJD_UTC, BJD_TDB
-```
+- walkers  
+Number of walkers, as defined in the emcee package (int, no units).
 
-### Star PSF fitting
+- burn  
+Number of iterations to be excluded from the beginning of the chains (int, no units).
 
-### Emcee wrapper
+- precision  
+The level of the numerical precision for the calculation (int, 0 to 6, default value is 3).
 
-### Distributions
+- exp_time  
+Exposure time (float, in seconds, default value is 0).
 
-### Numerical integration
+- time_factor  
+Number of sub-exposures to be calculated per exposure (int, no units, default value is 1).
 
+- fit_first_order  
+Flag for including a first order time-dependent de-trending factor (bool, default value is False).
 
+- fit_second_order  
+Flag for including a second order time-dependent de-trending factor (bool, default value is False).
+
+- fit_rp_over_rs  
+A 2-element list containing the lower and upper limits for fitting the planetary radius relative to the stellar radius.
+To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
+
+- fit_period  
+A 2-element list containing the lower and upper limits for fitting the orbital period.
+To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
+
+- fit_sma_over_rs  
+A 2-element list containing the lower and upper limits for fitting the orbital semi-major axis relative to the stellar radius.
+To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
+
+- fit_eccentricity  
+A 2-element list containing the lower and upper limits for fitting the orbital eccentricity.
+To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
+
+- fit_inclination  
+A 2-element list containing the lower and upper limits for fitting the orbital inclination.
+To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
+
+- fit_periastron  
+A 2-element list containing the lower and upper limits for fitting the orbital argument of periastron.
+To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
+
+- fit_mid_time  
+A 2-element list containing the lower and upper limits for fitting the the transit mid-time.
+To avoid fitting set `fit_rp_over_rs=False`. Default value is False.
+
+- counter  
+Flag for printing a counter of the completed iterations (bool, default value is True).
+
+- counter_window=False  
+Flag for showing a counter of the completed iterations in an additional Tk window (bool, default value is False).
+
+##### plc.TransitAndPolyFitting methods:
+
+###### .run_mcmc()
+
+Sets up and runs the mcmc.
+
+###### .save_all(export_file)
+
+Saves all the mcmc results (including the chains) in the form of a pickle file.
+
+- export_file  
+File to be created (str).
+
+###### .save_results(export_file)
+
+Saves the final values and uncertainties of the fitted parameters in the form of a txt file.
+
+- export_file  
+File to be created (str).
+
+###### .plot_corner(export_file)
+
+Plots the correlations between the fitted parameters.
+
+- export_file  
+File to be created (str).
+
+###### .plot_traces(export_file)
+
+Plots the mcmc chains of the fitted parameters.
+
+- export_file  
+File to be created (str).
+
+###### .plot_models(export_file)
+
+Plots the original data and the full model fitted. A prefix is added to indicate the different data sets (set_1, set_2, etc.).
+
+- export_file  
+File to be created (str).
+
+###### .plot_detrended_models(export_file)
+
+Plots the data corrected by the de-trending function and the transit model fitted. A prefix is added to indicate the 
+different data sets (set_1, set_2, etc.).
+
+- export_file  
+File to be created (str).
+
+In the following example we will create 3 simulated observations of HD209458b, with an exposure time of 2 minutes and 
+additional second-order time-dependent systematics, and fit them using the **plc.TransitAndPolyFitting** class. To 
+avoid an extremely slow process, we will use a time factor of 2 for the fitting, while we will use a time factor of 
+120 to create the simulated observations:
+
+    >>> time_array = np.arange(mid_time + 10.0 * period - 0.11, mid_time + 10.0 * period + 0.11, 2.0 / 60.0 / 24.0)
+    >>> flux_array = plc.transit_integrated('claret', limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, 
+                                            eccentricity, inclination, periastron, mid_time, time_array, 120, 120, 
+                                            precision=6)
+    >>> systematics_array = 1.2 * (1 + 0.013 * (time_array - time_array[0]) + 
+                                   0.03 * ((time_array - time_array[0]) ** 2))
+    >>> error_array = np.random.normal(0, 0.002, len(time_array))
+
+    >>> time0 = time_array
+    >>> flux0 = flux_array * systematics_array + error_array
+    >>> error0 = np.ones_like(error_array) * np.std(error_array)
+
+    >>> time_array = np.arange(mid_time + 25.0 * period - 0.13, mid_time + 25.0 * period + 0.13, 2.0 / 60.0 / 24.0)
+    >>> flux_array = plc.transit_integrated('claret', limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, 
+                                            eccentricity, inclination, periastron, mid_time, time_array, 120, 120, 
+                                            precision=6)
+    >>> systematics_array = 3.6 * (1 - 0.02 * (time_array - time_array[0]) + 
+                                   0.05 * ((time_array - time_array[0]) ** 2))
+    >>> error_array = np.random.normal(0, 0.005, len(time_array))
+
+    >>> time1 = time_array
+    >>> flux1 = flux_array * systematics_array + error_array
+    >>> error1 = np.ones_like(error_array) * np.std(error_array)
+
+    >>> time_array = np.arange(mid_time + 31.0 * period - 0.115, mid_time + 31.0 * period + 0.115, 2.0 / 60.0 / 24.0)
+    >>> flux_array = plc.transit_integrated('claret', limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, 
+                                            eccentricity, inclination, periastron, mid_time, time_array, 120, 120, 
+                                            precision=6)
+    >>> systematics_array = 0.75 * (1 - 0.01 * (time_array - time_array[0]) 
+                                    + 0.0001 * ((time_array - time_array[0]) ** 2))
+    >>> error_array = np.random.normal(0, 0.0009, len(time_array))
+
+    >>> time2 = time_array
+    >>> flux2 = flux_array * systematics_array + error_array
+    >>> error2 = np.ones_like(error_array) * np.std(error_array)
+
+    >>> plt.close('all')
+    >>> plt.ioff()
+
+    >>> fitting = plc.TransitAndPolyFitting(
+            data=[[time0, flux0, error0], [time1, flux1, error1], [time2, flux2, error2]],
+            method='claret',
+            limb_darkening_coefficients=limb_darkening_coefficients,
+            rp_over_rs=rp_over_rs,
+            period=period,
+            sma_over_rs=sma_over_rs,
+            eccentricity=eccentricity,
+            inclination=inclination,
+            periastron=periastron,
+            mid_time=mid_time,
+            iterations=150000,
+            walkers=50,
+            burn=50000,
+            precision=3,
+            time_factor=2,
+            exp_time=120,
+            fit_first_order=True,
+            fit_second_order=True,
+            fit_rp_over_rs=[rp_over_rs / 2.0, rp_over_rs * 2.0],
+            fit_period=[period / 2.0, period * 2.0],
+            fit_sma_over_rs=[sma_over_rs / 2, sma_over_rs * 2.0],
+            fit_inclination=[70, 90],
+            fit_mid_time=[mid_time - 0.1, mid_time + 0.1])
+
+    >>> fitting.run_mcmc()
+
+    >>> fitting.save_all('simulation_data_base.pickle')
+    >>> fitting.save_results('simulation_results.txt')
+    >>> fitting.plot_corner('simulation_correlations.pdf')
+    >>> fitting.plot_traces('simulation_traces.pdf')
+    >>> fitting.plot_models('simulation_full_models.pdf')
+    >>> fitting.plot_detrended_models('simulation_detrended_models.pdf')
 
 
 ## Licence
 
 MIT License
 
-Copyright (c) 2016-2021 Angelos Tsiaras, and collaborators
+Copyright (c) 2016-2021 Angelos Tsiaras, Konstantinos Karpouzas and Ryan Varley
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -645,11 +561,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-Collaborators:
-
-Mario Morvan
-
-Konstantinos Karpouzas 
-
-Ryan Varley

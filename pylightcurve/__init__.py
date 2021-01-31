@@ -1,27 +1,23 @@
-import os
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-__version__ = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), '__version__.txt')).read()
-__author__ = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), '__author__.txt')).read()
-__author_email__ = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), '__author_email__.txt')).read()
-__description__ = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), '__description__.txt')).read()
-__url__ = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), '__url__.txt')).read()
+__version__ = '3.0.5'
 
-from pylightcurve.analysis.distributions import *
-from pylightcurve.analysis.numerical_integration import *
-from pylightcurve.analysis.optimisation import *
-from pylightcurve.analysis.gaussian import *
+from ._0imports import *
 
-from pylightcurve.catalogues.catalogues import *
-
-from pylightcurve.images.find_stars import *
-
-from pylightcurve.models.exoplanet import *
-from pylightcurve.models.exoplanet_lc import *
-
-from pylightcurve.processes.counter import *
-from pylightcurve.processes.files import *
-
-from pylightcurve.spacetime.angles import *
-from pylightcurve.spacetime.targets import *
-
-from pylightcurve.errors import *
+from .tools_counter import *
+from .analysis_emcee_fitting import *
+from .catalogues_celestial_sphere import *
+from .exoplanet_orbit import *
+from .tools_figures import *
+from .tools_files import *
+from .analysis_gauss_numerical_integration import *
+from .tools_images import *
+from .analysis_optimisation import *
+from .catalogues_oec import *
+from .analysis_distribution_one_d import *
+from .stellar_flux import *
+from .exoplanet_lc_fitting import *
+from .exoplanet_lc import *
+from .analysis_distribution_two_d import *
