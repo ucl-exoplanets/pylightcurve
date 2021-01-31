@@ -96,6 +96,10 @@ If you want to install the previous version use pip:
 pip install pylightcurve==3.0.5
 ```
 
+or download the package files (including the README file) from PyPi:
+
+https://pypi.org/project/pylightcurve/3.0.5/#files
+
 
 # Usage
 
