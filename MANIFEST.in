@@ -13,3 +13,4 @@ include pylightcurve/__databases__.pickle
 include pylightcurve/__author_email__.txt
 include README.md 
 include LICENSE
+include requirements.txt
