@@ -6,7 +6,7 @@
 
 # PyLightcurve
 
-<img src="https://github.com/ucl-exoplanets/pylightcurve/blob/pylightcurve-3/logo.jpg" width="20%">
+<img src="https://github.com/ucl-exoplanets/pylightcurve/blob/pylightcurve-3/logo.png" width="20%">
 
 A python package for modeling and analysing transit light-curves.
 

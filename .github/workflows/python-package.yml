@@ -5,7 +5,7 @@ name: Python package
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master pylightcurve-3 ]
   pull_request:
     branches: [ master ]
 
