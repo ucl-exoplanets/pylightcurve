@@ -1,0 +1,9 @@
+matplotlib
+numpy
+exodata
+emcee
+seaborn
+astropy
+scipy
+sklearn
+astroquery

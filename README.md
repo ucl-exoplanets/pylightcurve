@@ -24,10 +24,19 @@ This module makes use of:
 
 ## Installation
 
-For the latest stable version 2.3.2, open a terminal and type `pip install pylightcurve`.
+Install PyLightcurve 3 through pip:
 
-For the new (under development) version 3.0.0, download this repo, unzip and type `python setup.py install`.
+```bash
+pip install pylightcurve==3.0.5
+```
 
+... or download this branch, cd in it and use the setup.py file:
+ 
+```bash
+git clone -b pylightcurve-3 https://github.com/ucl-exoplanets/pylightcurve
+cd pylightcurve
+python setup.py install
+```
 
 ## Usage
 
