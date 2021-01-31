@@ -1,5 +1,7 @@
+![Python package](https://github.com/ucl-exoplanets/pylightcurve/workflows/Python%20package/badge.svg?branch=master)
 ![](https://travis-ci.com/ucl-exoplanets/pylightcurve.svg?&branch=master) 
 [![codecov](https://codecov.io/gh/ucl-exoplanets/pylightcurve/branch/master/graph/badge.svg?)](https://codecov.io/gh/ucl-exoplanets/pylightcurve)
+
 [![Downloads](https://pepy.tech/badge/pylightcurve)](https://pepy.tech/project/pylightcurve)
 
 ![](logo.png)
