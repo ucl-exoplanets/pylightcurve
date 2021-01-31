@@ -7,5 +7,4 @@
 tests/test_eclipse
 tests/test_transit
 tests/test_emcee
-MANIFEST.in
 pylightcurve/*_local_*

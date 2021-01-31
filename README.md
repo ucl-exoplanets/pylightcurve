@@ -74,8 +74,6 @@ angles (e.g. '+47:12:34.05' to degrees) and of timing systems (e.g. HJD_UTC to B
 
 # Installation
 
-## Version 4
-
 Install PyLightcurve through pip:
 
 ```bash
@@ -85,22 +83,14 @@ pip install pylightcurve
 ... or download this repo, cd in it and use the setup.py file:
  
 ```bash
-git clone pylightcurve
+git clone https://github.com/ucl-exoplanets/pylightcurve
 cd pylightcurve
 python setup.py install
 ```
 
-## Version 3
+If you are looking for the previous version of PyLightcurve (v.3), check the relevant branch:
 
-If you want to install the previous version use pip:
-
-```bash
-pip install pylightcurve==3.0.5
-```
-
-or download the package files (including the README file) from PyPi:
-
-https://pypi.org/project/pylightcurve/3.0.5/#files
+https://github.com/ucl-exoplanets/pylightcurve/tree/pylightcurve-3 
 
 
 # Usage
