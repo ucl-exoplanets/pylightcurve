@@ -108,3 +108,14 @@ def download(link, destination, filename=None):
         except:
             print('    Could not download {0}'.format(filename))
             return False
+
+
+def open_dict_online(link):
+
+    try:
+        return pickle.load(urllib.request.urlopen(link))
+    except:
+        try:
+            return pickle.load(urllib.request.urlopen(link, context=ctx))
+        except:
+            return False

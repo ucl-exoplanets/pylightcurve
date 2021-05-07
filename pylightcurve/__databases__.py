@@ -5,7 +5,7 @@ import time
 import shutil
 from scipy.interpolate import interp1d
 
-from pylightcurve.processes.files import open_dict, open_yaml, download
+from pylightcurve.processes.files import open_dict, open_yaml, save_dict, download, open_dict_online
 from pylightcurve import __version__
 
 try:
@@ -44,10 +44,10 @@ class PlcData:
 
         # check for updates in the databases (identified on github)
 
-        if download(github_link, self.databases_file_path_new):
-            shutil.move(self.databases_file_path_new, self.databases_file_path)
-        else:
-            pass
+        test_online_db = open_dict_online(github_link)
+        test_local_db = open_dict(self.databases_file_path)
+        if test_online_db and test_online_db != test_local_db:
+            save_dict(test_online_db, self.databases_file_path)
 
         # load databases
 
