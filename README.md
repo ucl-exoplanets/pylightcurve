@@ -345,7 +345,7 @@ burn_in                     # default:30000, instance:float
 fit_rp_over_rs              # default:True, instance:bool
                             # indicates whether to fit for the rp_over_rs or not
 
-fit_individual_rp_over_rs   # default:False, instance:bool
+fit_individual_rp_over_rs   # default:True, instance:bool
                             # indicates whether to fit different value for the rp_over_rs over different filters, 
                             # or not
 
@@ -355,10 +355,10 @@ fit_sma_over_rs             # default:False, instance:bool
 fit_inclination             # default:False, instance:bool
                             # indicates whether to fit for the inclination or not
 
-fit_mid_time                # default:False, instance:bool
+fit_mid_time                # default:True, instance:bool
                             # indicates whether to fit for the transit mid-time or not
 
-fit_individual_times        # default:False, instance:bool
+fit_individual_times        # default:True, instance:bool
                             # indicates whether to fit different value for the transit mid-time over different epochs, 
                             # or not
 
@@ -440,7 +440,7 @@ fit_fp_over_fs              # default:True, instance:bool
 fit_individual_fp_over_fs   # default:False, instance:bool
                             # indicates whether to fit for different values of fp_over_fs over different filters or not
 
-fit_rp_over_rs              # default:True, instance:bool
+fit_rp_over_rs              # default:False, instance:bool
                             # indicates whether to fit for the rp_over_rs or not
 
 fit_individual_rp_over_rs   # default:False, instance:bool
