@@ -295,6 +295,8 @@ class PlcData:
             print('\n{0} features cannot be used.'.format(database_name))
             return False
         else:
+            if current_database != new_database:
+                shutil.copy(database_file_path, database_file_path_old)
             return database_directory_path
 
 
