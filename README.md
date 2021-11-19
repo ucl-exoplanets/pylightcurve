@@ -612,7 +612,13 @@ mid_time_in_bjd_tdb = target.convert_to_bjd_tdb(mid_time_in_hjd_utc, 'HJD_UTC')
 ### Numerical integration
 
 
+## Updates
+4.0.1
+- Fixed packaging and test issues.
 
+4.0.2 
+- Database updates checked in memory.
+- Fixed database updating loop.
 
 ## Licence
 
