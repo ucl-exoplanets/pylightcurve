@@ -135,6 +135,8 @@ class PlcData:
 
     def _setup_database(self, database_name):
 
+        print('Checking {0} database...'.format(database_name))
+
         # define paths
 
         database_directory_path = os.path.join(self.databases_directory_path, database_name)
@@ -222,8 +224,6 @@ class PlcData:
         # download database if there is an update
 
         # check all files in database, remove files that need to be updated
-
-        print('Checking {0} database...'.format(database_name))
 
         current_database = open_dict(database_file_path_old)
         new_database = open_dict(database_file_path)

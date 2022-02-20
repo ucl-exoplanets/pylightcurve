@@ -10,6 +10,7 @@ from pylightcurve.analysis.distributions import *
 from pylightcurve.analysis.numerical_integration import *
 from pylightcurve.analysis.optimisation import *
 from pylightcurve.analysis.gaussian import *
+from pylightcurve.analysis.curve_fit import *
 
 from pylightcurve.catalogues.catalogues import *
 
