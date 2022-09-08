@@ -60,7 +60,7 @@ def get_planet(name):
     name = _search_by_planet(name)
 
     planet_data = plc_data.ecc()['planets'][name]
-    star_data = plc_data.ecc()['stars'][name[:-1]]
+    star_data = plc_data.ecc()['stars'][planet_data['star']]
 
     planet = Planet(
         name,
@@ -79,12 +79,12 @@ def get_planet(name):
         'BJD_TDB',
     )
 
-    planet.all_data = {'planet': plc_data, 'star': star_data}
+    planet.all_data = {'planet': planet_data, 'star': star_data}
 
     return planet
 
 
-def locate_planet(ra, dec, radius=1/60.0):
+def locate_planet(ra, dec, radius=Degrees(0, 1, 0)):
 
     if isinstance(ra, float):
         ra = Degrees(ra)
@@ -96,6 +96,11 @@ def locate_planet(ra, dec, radius=1/60.0):
     else:
         _request_angle(dec)
 
+    if isinstance(radius, float):
+        radius = Degrees(radius)
+    else:
+        _request_angle(radius)
+
     pointing = FixedTarget(ra, dec)
 
     test_planets = []
@@ -106,7 +111,7 @@ def locate_planet(ra, dec, radius=1/60.0):
 
     test_planets.sort()
 
-    if test_planets[0][0] < radius:
+    if test_planets[0][0] < radius.deg():
         return get_planet(test_planets[0][1])
     else:
         raise PyLCLibraryError('Planet could not be located')
