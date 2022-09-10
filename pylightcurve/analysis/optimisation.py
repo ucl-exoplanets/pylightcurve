@@ -278,30 +278,19 @@ def values_to_print(value, error_minus, error_plus):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
-        if error_minus >= 1.0 or error_minus == 0.0:
-            digit1 = 1
-        else:
-            str_error_minus = '{0:.{test}f}'.format(error_minus, test=10 + abs(int(np.log10(error_minus))))
-            digit1 = np.where([ff not in ['0', '.'] for ff in str_error_minus])[0][0] - 1
+    if error_minus >= 1.0 or error_minus == 0.0:
+        digit1 = 2
+    else:
+        str_error_minus = '{0:.{test}f}'.format(error_minus, test=10 + abs(int(np.log10(error_minus))))
+        digit1 = np.where([ff not in ['0', '.'] for ff in str_error_minus])[0][0]
 
-        if error_plus >= 1.0 or error_plus == 0.0:
-            digit2 = 1
-        else:
-            str_error_plus = '{0:.{test}f}'.format(error_plus, test=10 + abs(int(np.log10(error_plus))))
-            digit2 = np.where([ff not in ['0', '.'] for ff in str_error_plus])[0][0] - 1
+    if error_plus >= 1.0 or error_plus == 0.0:
+        digit2 = 2
+    else:
+        str_error_plus = '{0:.{test}f}'.format(error_plus, test=10 + abs(int(np.log10(error_plus))))
+        digit2 = np.where([ff not in ['0', '.'] for ff in str_error_plus])[0][0]
 
-    width = max(1, digit1, digit2)
-
-    print_m_error = '{0:.{width}f}'.format(round(error_minus, width), width=width)
-    print_p_error = '{0:.{width}f}'.format(round(error_plus, width), width=width)
-
-    if print_m_error[-1] in ['1', '2'] and float(print_m_error[:-1]) == 0:
-        width += 1
-    elif print_p_error[-1] in ['1', '2'] and float(print_p_error[:-1]) == 0:
-        width += 1
-
-    if error_plus >= 1.0 and error_minus >= 1.0:
-        width = 1
+    width = max(2, digit1, digit2)
 
     print_value = '{0:.{width}f}'.format(round(value, width), width=width)
     print_m_error = '{0:.{width}f}'.format(round(error_minus, width), width=width)
