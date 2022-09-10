@@ -540,6 +540,9 @@ def exotethys(stellar_logg, stellar_temperature, stellar_metallicity, filter_nam
     elif stellar_model == 'phoenix' and filter_name in ['irac1', 'irac2', 'irac3', 'irac4']:
         print('PHOENIX models are not available for this filter. Setting stellar_model = atlas')
         stellar_model = 'atlas'
+    elif stellar_model == 'atlas' and filter_name in ['CHEOPS']:
+        print('ATLAS models are not available for this filter. Setting stellar_model = phoenix')
+        stellar_model = 'phoenix'
 
     data = open_dict(os.path.join(plc_data.exotethys(), '{0}_{1}.pickle'.format(stellar_model, filter_name)))
 
