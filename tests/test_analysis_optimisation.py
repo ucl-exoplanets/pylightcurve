@@ -66,7 +66,7 @@ def test_values_to_print():
 
     assert plc.values_to_print(3.1234567, 0.12456, 0.4345) == ('3.12', '0.12', '0.43')
     assert plc.values_to_print(3.1234567, 0.4345, 0.12456) == ('3.12', '0.43', '0.12')
-    assert plc.values_to_print(3.1234567, 0.456, 0.657) == ('3.1', '0.5', '0.7')
-    assert plc.values_to_print(3.1234567, 0.0, 0.00) == ('3.1', '0.0', '0.0')
-    assert plc.values_to_print(3.1234567, 3.3, 2.65789) == ('3.1', '3.3', '2.7')
-    assert plc.values_to_print(3.1234567, 3.0, 2.0) == ('3.1', '3.0', '2.0')
+    assert plc.values_to_print(3.1234567, 0.456, 0.657) == ('3.12', '0.46', '0.66')
+    assert plc.values_to_print(3.1234567, 0.0, 0.00) == ('3.12', '0.00', '0.00')
+    assert plc.values_to_print(3.1234567, 3.3, 2.65789) == ('3.12', '3.30', '2.66')
+    assert plc.values_to_print(3.1234567, 3.0, 2.0) == ('3.12', '3.00', '2.00')
