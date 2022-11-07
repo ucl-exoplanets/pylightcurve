@@ -3,8 +3,6 @@ import os
 import glob
 import time
 import shutil
-import datetime
-import numpy as np
 from scipy.interpolate import interp1d
 
 from pylightcurve.processes.files import open_dict, open_yaml, save_dict, download, open_dict_online
@@ -41,23 +39,15 @@ class PlcData:
         if not os.path.isdir(self.databases_directory_path):
             os.mkdir(self.databases_directory_path)
 
-        test = False
-
-        if test:
-
+        if not os.path.isfile(self.databases_file_path):
             shutil.copy(self.build_in_databases_file_path, self.databases_file_path)
 
-        else:
+        # check for updates in the databases (identified on github)
 
-            if not os.path.isfile(self.databases_file_path):
-                shutil.copy(self.build_in_databases_file_path, self.databases_file_path)
-
-            # check for updates in the databases (identified on github)
-
-            test_online_db = open_dict_online(github_link)
-            test_local_db = open_dict(self.databases_file_path)
-            if test_online_db and test_online_db != test_local_db:
-                save_dict(test_online_db, self.databases_file_path)
+        test_online_db = open_dict_online(github_link)
+        test_local_db = open_dict(self.databases_file_path)
+        if test_online_db and test_online_db != test_local_db:
+            save_dict(test_online_db, self.databases_file_path)
 
         # load databases
 
@@ -67,13 +57,9 @@ class PlcData:
         self.ephemerides_loaded = self._setup_database('ephemerides')
         self.photometry_loaded = self._setup_database('photometry')
         self.catalogues_loaded = self._setup_database('catalogues')
-        self.ut_loaded = self._setup_database('ut')
 
-        self.leap_seconds_data = None
-        self.earth_rotation_data = None
         self.barycenter_data = None
         self.sun_data = None
-        self.moon_data = None
         self.ecc_data = None
         self.all_filters_data = None
 
@@ -89,9 +75,6 @@ class PlcData:
     def catalogues(self):
         return self.catalogues_loaded
 
-    def ut(self):
-        return self.ut_loaded
-
     def all_filters(self):
 
         if not self.all_filters_data:
@@ -103,9 +86,10 @@ class PlcData:
     def ecc(self):
 
         if not self.ecc_data:
-            stars = open_dict(os.path.join(self.catalogues(), 'ecc_stars.pickle'))
-            planets = open_dict(os.path.join(self.catalogues(), 'ecc_planets.pickle'))
-            self.ecc_data = {'stars': stars, 'planets': planets}
+            stars = open_yaml(os.path.join(self.catalogues(), 'ecc_stars.yaml'))
+            planets = open_yaml(os.path.join(self.catalogues(), 'ecc_planets.yaml'))
+
+            self.ecc_data = {'stars': stars, 'planets':planets}
 
         return self.ecc_data
 
@@ -148,60 +132,6 @@ class PlcData:
         ssb_dt = interp1d(ssb_t, ssb_dt, kind='cubic')(utc_jd)
 
         return ssb_ra, ssb_dec, ssb_d, ssb_dt
-
-    def mooncentre(self, utc_jd):
-
-        if not self.moon_data:
-            self.moon_data = open_dict(os.path.join(self.ephemeris(), 'moon_dict.pickle'))
-
-        moon_dict = self.moon_data[int(utc_jd)]
-
-        ssb_t = moon_dict['t']
-        ssb_ra = moon_dict['ra']
-        ssb_dec = moon_dict['dec']
-        ssb_d = moon_dict['d']
-        ssb_dt = moon_dict['dt']
-
-        ssb_ra = interp1d(ssb_t, ssb_ra, kind='cubic')(utc_jd)
-        ssb_dec = interp1d(ssb_t, ssb_dec, kind='cubic')(utc_jd)
-        ssb_d = interp1d(ssb_t, ssb_d, kind='cubic')(utc_jd)
-        ssb_dt = interp1d(ssb_t, ssb_dt, kind='cubic')(utc_jd)
-
-        return ssb_ra, ssb_dec, ssb_d, ssb_dt
-
-    def leap_seconds(self, utc):
-
-        if not self.leap_seconds_data:
-            self.leap_seconds_data = [[datetime.datetime(int(line[3]), int(line[2]), int(line[1])), line[4]] for line in
-                                      np.loadtxt(open(os.path.join(self.ut(), 'leap_seconds.txt')))]
-
-        ls = self.leap_seconds_data[-1][1]
-
-        if utc < self.leap_seconds_data[0][0]:
-            print('Conversion to TT is not valid before {0}'.format(self.leap_seconds_data[0][0].isoformat()))
-            ls = self.leap_seconds_data[0][1]
-        else:
-            for check in range(1, len(self.leap_seconds_data)):
-                if utc < self.leap_seconds_data[check][0]:
-                    ls = self.leap_seconds_data[check - 1][1]
-                    break
-
-        return ls
-
-    def earth_rotation(self, utc_jd):
-
-        if not self.earth_rotation_data:
-
-            earth_rotation_data_x = []
-            earth_rotation_data_y = []
-            for ff in open(os.path.join(self.ut(), 'earth_rotation.txt')).readlines():
-                if ff[58:68].replace(' ', '') != '':
-                    earth_rotation_data_x.append(float(ff[7:12]) + 2400000.5)
-                    earth_rotation_data_y.append(float(ff[58:68].replace(' ', '')))
-
-            self.earth_rotation_data = interp1d(earth_rotation_data_x, earth_rotation_data_y, kind='cubic')
-
-        return float(self.earth_rotation_data(utc_jd))
 
     def _setup_database(self, database_name):
 
