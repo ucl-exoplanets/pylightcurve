@@ -21,8 +21,8 @@ def fit_gaussian(datax, datay, positive=False, sampled=False, sampled_precision=
 
     # TODO option to restrict the space searched
 
-    datax = np.array(datax, dtype=np.float)
-    datay = np.array(datay, dtype=np.float)
+    datax = np.array(datax, dtype=float)
+    datay = np.array(datay, dtype=float)
 
     # TODO option to point towards the solution
 
@@ -74,9 +74,9 @@ def two_d_gaussian(x_array, y_array, model_norm, model_floor, model_x_mean, mode
 def fit_two_d_gaussian(datax, datay, dataz, positive=False, symmetric=False, point_xy=None, sigma=None,
                        maxfev=10000):
 
-    datax = np.array(datax, dtype=np.float)
-    datay = np.array(datay, dtype=np.float)
-    dataz = np.array(dataz, dtype=np.float)
+    datax = np.array(datax, dtype=float)
+    datay = np.array(datay, dtype=float)
+    dataz = np.array(dataz, dtype=float)
 
     initial_floor = np.median(dataz)
     initial_norm = np.max(dataz) - initial_floor
