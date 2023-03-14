@@ -620,6 +620,9 @@ mid_time_in_bjd_tdb = target.convert_to_bjd_tdb(mid_time_in_hjd_utc, 'HJD_UTC')
 - Database updates checked in memory.
 - Fixed database updating loop.
 
+4.0.3
+- Fix np.float bug.
+
 ## Licence
 
 MIT License
