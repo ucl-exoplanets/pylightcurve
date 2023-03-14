@@ -1,24 +1,11 @@
 
-__all__ = ['Degrees', 'Hours', 'Rad', 'arcsin', 'arccos', 'arctan', 'pi']
+__all__ = ['Degrees', 'Hours', 'Rad', 'arcsin', 'arccos', 'arctan']
 
 
 import numpy as np
 from functools import lru_cache
 
 from pylightcurve.errors import *
-
-
-def _break_seconds(seconds):
-
-    seconds = float(seconds)
-    seconds_int = int(seconds)
-    seconds_dec = int(str(seconds).split('.')[1])
-    a = int(seconds_int / 3600.0)
-    seconds_int = int(round(seconds_int - a * 3600.0))
-    b = int(seconds_int / 60.0)
-    seconds_int = int(round(seconds_int - b * 60.0))
-    c = round(float('{0}.{1}'.format(seconds_int, seconds_dec)), 6)
-    return a, b, c
 
 
 def _collapse_to_seconds(degrees_hours, minutes, seconds):
@@ -38,7 +25,7 @@ def _collapse_to_seconds(degrees_hours, minutes, seconds):
                             minutes = '-{0}'.format(minutes)
                             seconds = '-{0}'.format(seconds)
                     except:
-                        raise PyLCInputError('Not valid angle format')
+                        raise PyLCInputError('Not valid angle format: ', degrees_hours, minutes, seconds)
 
         try:
 
@@ -57,56 +44,48 @@ def _collapse_to_seconds(degrees_hours, minutes, seconds):
             raise PyLCInputError('Not valid angle format. Hours, degrees, minutes and seconds should be either ALL '
                                  'positive or ALL negative.')
 
-        return round(degrees_hours * 3600.0 + minutes * 60.0 + seconds, 6)
-
-
-class _DMS:
-
-    def __init__(self, arcseconds):
-        self.d, self.m, self.s = _break_seconds(arcseconds)
-        self.list = [self.d, self.m, self.s]
-
-    def __str__(self):
-        return '{0}:{1}:{2}{3}'.format(str(self.d).zfill(2), str(self.m).zfill(2), '0'*(self.s < 10), str(self.s))
-
-    def __repr__(self):
-        return self.__str__()
-
-
-class _HMS:
-
-    def __init__(self, seconds):
-        self.h, self.m, self.s = _break_seconds(seconds)
-
-        self.list = [self.h, self.m, self.s]
-
-    def __str__(self):
-        return '{0}:{1}:{2}{3}'.format(str(self.h).zfill(2), str(self.m).zfill(2), '0'*(self.s < 10), str(self.s))
-
-    def __repr__(self):
-        return self.__str__()
+        return degrees_hours * 3600.0 + minutes * 60.0 + seconds
 
 
 class _Angle:
 
     def __init__(self, arcseconds):
 
-        arcseconds = round(arcseconds, 6)
+        arcseconds = arcseconds
 
         if arcseconds < 0:
             arcseconds += 1296000.0 * (int(abs(arcseconds) / 1296000.0) + 1.0)
         arcseconds -= 1296000.0 * int(arcseconds / 1296000.0)
 
-        self.arcseconds = arcseconds
+        self._arcseconds = arcseconds
 
-        self._definition = '{0} arcsec'.format(arcseconds)
+    def _break_seconds(self, seconds):
+
+        seconds = float(seconds)
+        seconds_int = int(seconds)
+        seconds_dec = int(str(seconds).split('.')[1])
+        a = int(seconds_int / 3600.0)
+        seconds_int = int(round(seconds_int - a * 3600.0))
+        b = int(seconds_int / 60.0)
+        seconds_int = int(round(seconds_int - b * 60.0))
+        c = round(float('{0}.{1}'.format(seconds_int, seconds_dec)), 6)
+
+        return a, b, c
 
     @lru_cache()
     def deg(self):
-        return self.arcseconds / 3600.0
+        """
+
+        :returns:
+        """
+        return self._arcseconds / 3600.0
 
     @lru_cache()
     def deg_coord(self):
+        """
+
+        :returns:
+        """
         if self.deg() <= 90:
             return self.deg()
 
@@ -121,18 +100,35 @@ class _Angle:
 
     @lru_cache()
     def hours(self):
-        return self.arcseconds / 15.0 / 3600.0
+        """
+
+        :returns:
+        """
+        return self._arcseconds / 15.0 / 3600.0
 
     @lru_cache()
     def rad(self):
-        return (self.arcseconds / 3600.0) * np.pi / 180.0
+        """
+
+        :returns:
+        """
+        return (self._arcseconds / 3600.0) * np.pi / 180.0
 
     @lru_cache()
     def dms(self):
-        return _DMS(self.arcseconds)
+        """
+
+        :returns:
+        """
+        d, m, s = self._break_seconds(self._arcseconds)
+        return '{0}:{1}:{2}{3}'.format(str(d).zfill(2), str(m).zfill(2), '0'*(s < 10), str(s))
 
     @lru_cache()
     def dms_coord(self):
+        """
+
+        :returns:
+        """
 
         if self.deg() <= 90:
             sign = '+'
@@ -140,24 +136,33 @@ class _Angle:
 
         elif self.deg() <= 180:
             sign = '+'
-            dec_print = pi - self
+            dec_print = Degrees(180.0) - self
 
         elif self.deg() <= 270:
             sign = '-'
-            dec_print = self - pi
+            dec_print = self - Degrees(180.0)
 
         else:
             sign = '-'
-            dec_print = 2 * pi - self
+            dec_print = 2 * Degrees(180.0) - self
 
         return '{0}{1}'.format(sign, dec_print.dms())
 
     @lru_cache()
     def hms(self):
-        return _HMS(self.arcseconds / 15.0)
+        """
+
+        :returns:
+        """
+        h, m, s = self._break_seconds(self._arcseconds / 15.0)
+        return '{0}:{1}:{2}{3}'.format(str(h).zfill(2), str(m).zfill(2), '0'*(s < 10), str(s))
 
     @lru_cache()
     def sin(self):
+        """
+
+        :returns:
+        """
         return np.sin(self.rad())
 
     @lru_cache()
@@ -166,74 +171,84 @@ class _Angle:
 
     @lru_cache()
     def tan(self):
-        return np.tan(self.rad())
+        """
 
-    @lru_cache()
-    def _get_class(self):
-        return 'plc.{0}'.format(str(self.__class__).split('.')[-1][:-2])
+        :returns:
+        """
+        return np.tan(self.rad())
 
     def __add__(self, other):
         _request_angle(other)
-        return Degrees(0, 0, self.arcseconds + other.arcseconds)
+        return Degrees(0, 0, self._arcseconds + other._arcseconds)
 
     def __sub__(self, other):
         _request_angle(other)
-        return Degrees(0, 0, self.arcseconds - other.arcseconds)
+        return Degrees(0, 0, self._arcseconds - other._arcseconds)
 
     def __mul__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return Degrees(0, 0, self.arcseconds * other)
+            return Degrees(0, 0, self._arcseconds * other)
         else:
             raise PyLCError('Operation not supported between {0} and {1}.'.format(self._get_class(), type(other)))
 
     def __truediv__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return Degrees(0, 0, self.arcseconds / other)
+            return Degrees(0, 0, self._arcseconds / other)
         else:
             raise PyLCError('Operation not supported between {0} and {1}.'.format(self._get_class(), type(other)))
 
     def __rmul__(self, other):
         return self.__mul__(other)
 
-    def __repr__(self):
-        return self.__str__()
+    @lru_cache()
+    def _get_class(self):
+        return 'plc.{0}'.format(str(self.__class__).split('.')[-1][:-2])
 
-    def __str__(self):
-        return '{0}({1} DMS, defined as {2})'.format(self._get_class(), self.dms(), self._definition)
+    def __repr__(self):
+
+        if self._get_class() in ['plc.Angle', 'plc.Degrees']:
+            return '{0}({1} DMS)'.format(self._get_class(), self.dms())
+        elif self._get_class() == 'plc.Hours':
+            return '{0}({1} HMS)'.format(self._get_class(), self.hms())
+        elif self._get_class() == 'plc.Rad':
+            return '{0}({1} RAD)'.format(self._get_class(), self.rad())
 
 
 class Degrees(_Angle):
 
     def __init__(self, degrees, arcminutes=0.0, arcseconds=0.0):
+        """
 
+        :param degrees:
+        :param arcminutes:
+        :param arcseconds:
+        """
         total_arcseconds = _collapse_to_seconds(degrees, arcminutes, arcseconds)
 
         _Angle.__init__(self, total_arcseconds)
-
-        if arcminutes == 0 and arcseconds == 0:
-            self._definition = '{0} degrees'.format(degrees)
-        else:
-            self._definition = '{0} degrees, {1} arcminutes, {2} arcseconds'.format(degrees, arcminutes, arcseconds)
 
 
 class Hours(_Angle):
 
     def __init__(self, hours, minutes=0.0, seconds=0.0):
+        """
 
+        :param hours:
+        :param minutes:
+        :param seconds:
+        """
         total_arcseconds = _collapse_to_seconds(hours, minutes, seconds) * 15.0
 
         _Angle.__init__(self, total_arcseconds)
-
-        if minutes == 0 and seconds == 0:
-            self._definition = '{0} hours'.format(hours)
-        else:
-            self._definition = '{0} hours, {1} minutes, {2} seconds'.format(hours, minutes, seconds)
 
 
 class Rad(_Angle):
 
     def __init__(self, rad):
+        """
 
+        :param rad:
+        """
         try:
             arcseconds = float(rad) * 648000.0 / np.pi
         except:
@@ -241,21 +256,20 @@ class Rad(_Angle):
 
         _Angle.__init__(self, arcseconds)
 
-        self._definition = '{0} rad'.format(rad)
-
-
-def _is_angle(obsject):
-    if isinstance(obsject, Degrees) or isinstance(obsject, Hours) or isinstance(obsject, Rad):
-        return True
-    else:
-        return False
-
 
 def _request_angle(item):
-    if _is_angle(item):
+    if isinstance(item, Degrees) or isinstance(item, Hours) or isinstance(item, Rad):
         pass
     else:
         raise PyLCInputError('An angle object is required (plc.Degrees, plc.Hours or plc.Rad)')
+
+
+def _reformat_or_request_angle(item):
+    try:
+        return Degrees(float(item))
+    except:
+        _request_angle(item)
+        return item
 
 
 def arccos(number):
@@ -269,6 +283,4 @@ def arcsin(number):
 def arctan(number):
     return Rad(np.arctan(number))
 
-
-pi = Degrees(180.0)
 

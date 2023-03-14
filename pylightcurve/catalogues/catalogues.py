@@ -1,9 +1,11 @@
 
-__all__ = ['get_planet', 'get_all_planets', 'locate_planet']
+__all__ = ['get_planet', 'get_system', 'get_all_planets', 'locate_planet', 'locate_system']
 
 
-from pylightcurve.errors import *
-from pylightcurve.__databases__ import plc_data
+from .simbad import simbad_search_by_name
+
+from ..errors import *
+from ..databases import plc_data
 from pylightcurve.models.exoplanet import Planet
 from pylightcurve.spacetime.angles import Degrees, Hours, _request_angle
 from pylightcurve.spacetime.targets import FixedTarget
@@ -76,7 +78,6 @@ def get_planet(name):
         planet_data['inclination'],
         planet_data['periastron'],
         planet_data['ephem_mid_time'],
-        'BJD_TDB',
     )
 
     planet.all_data = {'planet': planet_data, 'star': star_data}
@@ -84,24 +85,40 @@ def get_planet(name):
     return planet
 
 
+def get_system(star_name):
+
+    target = simbad_search_by_name(star_name)
+    if not target:
+        return []
+
+    test = list(set(target.all_names).intersection(list(plc_data.ecc()['hosts'])))
+
+    if len(test) == 0:
+        return []
+
+    planets = plc_data.ecc()['hosts'][test[0]]
+
+    return [get_planet(planet) for planet in planets]
+
+
 def locate_planet(ra, dec, radius=Degrees(0, 1, 0)):
 
-    if isinstance(ra, float):
+    try:
+        ra = float(ra)
+        dec = float(dec)
         ra = Degrees(ra)
-    else:
-        _request_angle(ra)
-
-    if isinstance(dec, float):
         dec = Degrees(dec)
-    else:
-        _request_angle(dec)
+    except:
+        pass
 
-    if isinstance(radius, float):
+    try:
+        radius = float(radius)
         radius = Degrees(radius)
-    else:
-        _request_angle(radius)
+    except:
+        pass
 
     pointing = FixedTarget(ra, dec)
+    _request_angle(radius)
 
     test_planets = []
 
@@ -115,3 +132,8 @@ def locate_planet(ra, dec, radius=Degrees(0, 1, 0)):
         return get_planet(test_planets[0][1])
     else:
         raise PyLCLibraryError('Planet could not be located')
+
+
+def locate_system(ra, dec, radius=Degrees(0, 1, 0)):
+
+    return get_system(locate_planet(ra, dec, radius).all_data['star']['simbad_id'])

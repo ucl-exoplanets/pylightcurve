@@ -3,7 +3,8 @@ __all__ = ['open_dict', 'save_dict', 'copy_dict',
            'open_yaml', 'save_yaml', 'copy_yaml',
            'open_fits', 'save_fits', 'copy_fits',
            'fits_sci', 'fits_err', 'fits_sci_err',
-           'download'
+           'download', 'zip_files', 'zip_directory',
+           'open_dict_online'
            ]
 
 import os
@@ -13,21 +14,40 @@ import yaml
 import numpy as np
 import pickle
 import urllib
+import zipfile
 
-from urllib.request import urlretrieve
 from astropy.io import fits as pf
+from urllib.request import urlretrieve
+
+from .counter import Counter
 
 
 def open_dict(path):
-    try:
-        return pickle.load(open(path, 'rb'))
-    except UnicodeDecodeError:
-        return pickle.load(open(path, 'rb'), encoding='latin-1')
 
+    class Dummy(object):
+        def __init__(self, *argv, **kwargs):
+            pass
+
+    _ = Dummy(5)
+
+    class Unpickler(pickle._Unpickler):
+        def find_class(self, module, name):
+            try:
+                return super().find_class(module, name)
+            except Exception as e:
+                print(e)
+                return Dummy
+
+    with open(path, 'rb') as f:
+        unpickler = Unpickler(f)
+        try:
+            return unpickler.load()
+        except UnicodeDecodeError:
+            return unpickler.load(encoding='latin-1')
 
 def save_dict(dictionary, path):
     internal_copy = copy_dict(dictionary)
-    pickle.dump(dictionary, open(path, 'wb'), protocol=2)
+    pickle.dump(internal_copy, open(path, 'wb'), protocol=2)
     del internal_copy
 
 
@@ -50,7 +70,16 @@ def copy_yaml(dictionary):
 def open_fits(path):
     with pf.open(path, memmap=False) as hdulist:
         internal_copy = copy_fits(hdulist)
-    internal_copy.verify('fix')
+        try:
+            internal_copy.verify('fix')
+        except pf.VerifyError as e:
+            hdu = int(str(e.args)[4:-4].split('\\n')[1].replace('HDU ', '').replace(':', ''))
+            card = int(str(e.args)[4:-4].split('\\n')[2].replace('Card ', '').replace(':', ''))
+            del internal_copy[hdu].header[card]
+            internal_copy.verify('fix')
+        for i in internal_copy:
+            while i.header[-1] == '':
+                i.header = i.header[:-1]
     return internal_copy
 
 
@@ -88,34 +117,52 @@ ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
 
 
-def download(link, destination, filename=None):
+def download(link, destination, filename=None, verbose=True):
 
     if not filename:
         filename = os.path.split(destination)[1]
 
-    print('    Downloading {0}...'.format(filename))
+    if verbose:
+        print('    Downloading {0}...'.format(filename))
+        print('           from {0} '.format(link))
     try:
-        urlretrieve(link, destination)
-        print('    Done!')
-        return True
-    except:
-        try:
-            with urllib.request.urlopen(link, context=ctx) as u, \
-                    open(destination, 'wb') as f:
-                f.write(u.read())
+        with urllib.request.urlopen(link, context=ctx) as u, \
+                open(destination, 'wb') as f:
+            f.write(u.read())
+        if verbose:
             print('    Done!')
-            return True
-        except:
-            print('    Could not download {0}'.format(filename))
-            return False
+        return True
+    except Exception as e:
+        print('ERROR: {0}\n    Could not download {1}', e, filename)
+        return False
 
 
 def open_dict_online(link):
 
     try:
-        return pickle.load(urllib.request.urlopen(link))
+        return pickle.load(urllib.request.urlopen(link, context=ctx))
     except:
-        try:
-            return pickle.load(urllib.request.urlopen(link, context=ctx))
-        except:
-            return False
+        return False
+
+
+def zip_files(list_of_files, output):
+
+    zip = zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED)
+    counter = Counter('Zipping', len(list_of_files))
+    for file in list_of_files:
+        zip.write(file)
+        counter.update('Adding file: {0}'.format(file))
+
+    zip.close()
+
+
+def zip_directory(directory, output):
+
+    list_of_files = []
+
+    for root, directories, files in os.walk(directory):
+        for filename in files:
+            filepath = os.path.join(root, filename)
+            list_of_files.append(filepath)
+
+    zip_files(list_of_files, output)

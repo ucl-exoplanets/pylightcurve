@@ -1,13 +1,13 @@
+import os.path
 
 import numpy as np
-
-from pylightcurve.errors import *
-from pylightcurve.analysis.distributions import two_d_distribution
-
-import matplotlib.cm as cm
+import matplotlib
 import matplotlib.gridspec as gridspec
+
 from matplotlib.figure import Figure
-from matplotlib.backend_bases import FigureCanvasBase
+
+from ..errors import *
+from ..analysis.distributions import two_d_distribution
 
 
 # mcmc plots
@@ -42,39 +42,35 @@ def plot_mcmc_fitting(fitting_object, output_file):
     fsbig = 1.5 * fsmain
 
     fig = Figure(figsize=(fwidth, fheight))
-    canvas = FigureCanvasBase(fig)
-    try:
-        gs = gridspec.GridSpec(frow, fcol, fig, fleft, fbottom, 1.0 - fright, 1.0 - ftop, 0.0, 0.0)
-    except TypeError:
-        gs = gridspec.GridSpec(frow, fcol, fleft, fbottom, 1.0 - fright, 1.0 - ftop, 0.0, 0.0)
+    gs = gridspec.GridSpec(frow, fcol, fig, fleft, fbottom, 1.0 - fright, 1.0 - ftop, 0.0, 0.0)
 
     # raw
     ax1 = fig.add_subplot(gs[0:f1, 0:])
 
-    ax1.errorbar(results['input_series'][results['input_series_x']],
-                 results['input_series'][results['input_series_y']],
-                 results['input_series'][results['input_series_y_unc']],
+    ax1.errorbar(results['input_series'][results['settings']['data_x_name']],
+                 results['input_series'][results['settings']['data_y_name']],
+                 results['input_series'][results['settings']['data_y_name'] + '_unc'],
                  fmt='o', color='k', ms=2)
-    ax1.plot(results['input_series'][results['input_series_x']],
+    ax1.plot(results['input_series'][results['settings']['data_x_name']],
              results['output_series']['model'], 'r-')
 
-    fig.text(lebels_right, fbottom + (f2 + f1 / 2) * frow_height, results['input_series_y_print'],
+    fig.text(lebels_right, fbottom + (f2 + f1 / 2) * frow_height, results['settings']['data_y_print_name'],
              fontsize=fsbig, va='center', ha='center', rotation='vertical')
 
     ax1.tick_params(labelbottom=False, labelsize=fsmain)
 
     # residuals
     ax2 = fig.add_subplot(gs[f1:f1 + f2, 0:])
-    ax2.errorbar(results['input_series'][results['input_series_x']],
+    ax2.errorbar(results['input_series'][results['settings']['data_x_name']],
                  results['output_series']['residuals'],
-                 results['input_series'][results['input_series_y_unc']],
+                 results['input_series'][results['settings']['data_y_name'] + '_unc'],
                  fmt='o', color='k', ms=2)
-    ax2.plot(results['input_series'][results['input_series_x']],
+    ax2.plot(results['input_series'][results['settings']['data_x_name']],
              results['output_series']['residuals'] * 0, 'r-')
 
     ax2.set_ylim(- 8 * results['statistics']['res_std'], 8 * results['statistics']['res_std'])
 
-    ax2.set_xlabel(results['input_series_x_print'], fontsize=fsbig)
+    ax2.set_xlabel(results['settings']['data_x_print_name'], fontsize=fsbig)
     fig.text(lebels_right, fbottom + (f2 / 2) * frow_height, 'residuals', fontsize=fsbig, va='center', ha='center',
              rotation='vertical')
 
@@ -118,17 +114,11 @@ def plot_mcmc_corner(fitting_object, export_file):
 
     correlation = fitting_object.results['statistics']['corr_matrix']
 
-
     all_var = len(traces)
 
     fig = Figure(figsize=(2.5 * all_var + 0.5, 2.5 * all_var + 0.5))
-    canvas = FigureCanvasBase(fig)
-    cmap = cm.get_cmap('brg')
-    try:
-        gs = gridspec.GridSpec(all_var, all_var, fig, 0.5 / (2.5 * all_var + 0.5), 0.85 / (2.5 * all_var + 0.5),
-                               1 - 0.5 / (2.5 * all_var + 0.5), 1 - 0.15 / (2.5 * all_var + 0.5), 0.0, 0.0)
-    except TypeError:
-        gs = gridspec.GridSpec(all_var, all_var, 0.5 / (2.5 * all_var + 0.5), 0.85 / (2.5 * all_var + 0.5),
+    cmap = matplotlib.colormaps['brg']
+    gs = gridspec.GridSpec(all_var, all_var, fig, 0.5 / (2.5 * all_var + 0.5), 0.85 / (2.5 * all_var + 0.5),
                                1 - 0.5 / (2.5 * all_var + 0.5), 1 - 0.15 / (2.5 * all_var + 0.5), 0.0, 0.0)
 
     fontsize = 20
@@ -147,8 +137,10 @@ def plot_mcmc_corner(fitting_object, export_file):
         ax.set_yticks([])
         ax.tick_params(left=False, right=False, top=False, bottom=False, labelbottom=False, labelleft=False)
 
-        ax.set_xlabel('{0}{3}{0}\n{0}{4}_{1}-{5}{2}^{1}+{6}{2}{0}'.format(
-            '$', '{', '}', names[var], print_results[var], print_errors1[var], print_errors2[var]), fontsize=fontsize)
+        ax.set_xlabel(
+            names[var] + '\n' +
+            '${0}_{{-{1}}}^{{+{2}}}$'.format(print_results[var], print_errors1[var], print_errors2[var]),
+            fontsize=fontsize, ha='right', x=0.8)
 
         ax.set_xlim(results[var] - 6 * errors[var], results[var] + 6 * errors[var])
         ax.set_ylim(0, ax.get_ylim()[1])
@@ -160,7 +152,7 @@ def plot_mcmc_corner(fitting_object, export_file):
             binsx, binsy, final = two_d_distribution(traces[j], traces[var])
             ax2.imshow(np.where(final > 0, np.log(np.where(final > 0, final, 1)), 0),
                        extent=(np.min(binsx), np.max(binsx), np.min(binsy), np.max(binsy)),
-                       cmap=cm.Greys, origin='lower', aspect='auto')
+                       cmap='Greys', origin='lower', aspect='auto')
 
             ax2.set_xticks([])
             ax2.set_yticks([])
@@ -171,7 +163,7 @@ def plot_mcmc_corner(fitting_object, export_file):
             ax2.set_ylim(results[var] - 6 * errors[var], results[var] + 6 * errors[var])
             text_x = ax2.get_xlim()[1] - 0.05 * (ax2.get_xlim()[1] - ax2.get_xlim()[0])
             text_y = ax2.get_ylim()[1] - 0.05 * (ax2.get_ylim()[1] - ax2.get_ylim()[0])
-            ax2.text(text_x, text_y, '{0}{1}{2}'.format(r'$', str(round(correlation[var][j], 2)), '$'),
+            ax2.text(text_x, text_y, str(round(correlation[var][j], 2)),
                      color=cmap(abs(correlation[var][j]) / 2.),
                      fontsize=fontsize, ha='right', va='top')
 
@@ -185,8 +177,6 @@ def plot_mcmc_traces(fitting_object, export_file):
         raise PyLCProcessError('MCMC not completed')
 
     fig = Figure(figsize=(7, 2.5 * len(fitting_object.fitted_parameters)), tight_layout=False)
-    canvas = FigureCanvasBase(fig)
-    cmap = cm.get_cmap('brg')
 
     for var_num, var in enumerate(fitting_object.fitted_parameters):
 
@@ -198,33 +188,30 @@ def plot_mcmc_traces(fitting_object, export_file):
         ax.axhline(fitting_object.results['parameters'][var]['value'] + fitting_object.results['parameters'][var]['m_error'],
                    ls='--', c='r', lw=0.5)
 
-        ax.set_yticks([])
-        ax.tick_params(left=False, right=False, labelleft=False)
+        # ax.set_yticks([])
+        # ax.tick_params(left=False, right=False, labelleft=False)
 
-        ax.set_ylabel('{0} = {1}\n{2}\n{3}'.format(r'${0}$'.format(fitting_object.results['parameters'][var]['print_name']),
-                                                  r'${0}$'.format(fitting_object.results['parameters'][var]['print_value']),
-                                                  r'$-{0}$'.format(fitting_object.results['parameters'][var]['print_m_error']),
-                                                  r'$+{0}$'.format(fitting_object.results['parameters'][var]['print_p_error'])),
-                      fontsize=15)
+        ax.set_title(
+            fitting_object.results['parameters'][var]['print_name'] + '\n' +
+            '${0}_{{-{1}}}^{{+{2}}}$'.format(fitting_object.results['parameters'][var]['print_value'],
+                fitting_object.results['parameters'][var]['print_m_error'],
+                fitting_object.results['parameters'][var]['print_p_error'])
+            , fontsize=10)
 
         if var_num != len(fitting_object.fitted_parameters) - 1:
             ax.tick_params(labelbottom='off')
         else:
             ax.set_xlabel(r'$\mathrm{iteration}$', fontsize=13)
 
-        ax.set_ylim(fitting_object.results['parameters'][var]['value'] - 6 * fitting_object.results['parameters'][var]['m_error'],
-                    fitting_object.results['parameters'][var]['value'] + 6 * fitting_object.results['parameters'][var]['m_error'])
+        # ax.set_ylim(fitting_object.results['parameters'][var]['value'] - 6 * fitting_object.results['parameters'][var]['m_error'],
+        #             fitting_object.results['parameters'][var]['value'] + 6 * fitting_object.results['parameters'][var]['m_error'])
 
-    fig.subplots_adjust(hspace=0, wspace=0)
+    fig.subplots_adjust(hspace=0.5, wspace=0)
     fig.savefig(export_file, transparent=False)
     del fig
 
 
-def plot_transit_fitting_models(results, output_file):
-
-    for observation in results['observations']:
-
-        data = results['observations'][observation]
+def plot_transit_fitting_models(data, output_file):
 
         f1 = 3
         f2 = 3
@@ -245,26 +232,22 @@ def plot_transit_fitting_models(results, output_file):
         fsmain = 10
         fsbig = 15
         fig = Figure(figsize=(funit * fcol / (1 - fright - fleft), funit * frow / (1 - fbottom - ftop)))
-        canvas = FigureCanvasBase(fig)
-        try:
-            gs = gridspec.GridSpec(frow, fcol, fig, fleft, fbottom, 1.0 - fright, 1.0 - ftop, 0.0, 0.0)
-        except TypeError:
-            gs = gridspec.GridSpec(frow, fcol, fleft, fbottom, 1.0 - fright, 1.0 - ftop, 0.0, 0.0)
+        gs = gridspec.GridSpec(frow, fcol, fig, fleft, fbottom, 1.0 - fright, 1.0 - ftop, 0.0, 0.0)
 
         fig.text(lebels_right, 1 - ftop / 2, 'relative flux', fontsize=fsbig, va='center', ha='left')
 
         # raw
         ax1 = fig.add_subplot(gs[0:f1, 0:])
 
-        ax1.plot(data['time'], data['flux'], 'ko', ms=2)
-        ax1.plot(data['time'], data['model'], 'r-', lw=1)
+        ax1.plot(data['input_series']['time'], data['input_series']['flux'], 'ko', ms=2)
+        ax1.plot(data['input_series']['time'], data['output_series']['model'], 'r-', lw=1)
 
         fig.text(lebels_right, fbottom + (f3 + f2 + f1 / 2) * frow_height, 'raw', fontsize=fsbig, va='center',
                  ha='center', rotation='vertical')
 
-        data_ymin = (min(data['flux']) - 3 * np.std(data['residuals']))
+        data_ymin = (min(data['input_series']['flux']) - 3 * np.std(data['output_series']['residuals']))
 
-        data_ymax = (max(data['flux']) + 2 * np.std(data['residuals']))
+        data_ymax = (max(data['input_series']['flux']) + 2 * np.std(data['output_series']['residuals']))
 
         ax1.set_yticks(ax1.get_yticks()[np.where(ax1.get_yticks() > data_ymin)])
 
@@ -277,15 +260,15 @@ def plot_transit_fitting_models(results, output_file):
         # de-trended
         ax2 = fig.add_subplot(gs[f1:f1+f2, 0:])
 
-        ax2.plot(data['time'], data['detrended_flux'], 'ko', ms=2)
-        ax2.plot(data['time'], data['detrended_model'], 'r-', lw=1)
+        ax2.plot(data['input_series']['time'], data['detrended_series']['flux'], 'ko', ms=2)
+        ax2.plot(data['input_series']['time'], data['detrended_series']['model'], 'r-', lw=1)
 
         fig.text(lebels_right, fbottom + (f3 + f2 / 2) * frow_height, 'de-trended', fontsize=fsbig, va='center',
                  ha='center', rotation='vertical')
 
-        data_ymin = (min(data['detrended_flux']) - 3 * np.std(data['detrended_residuals']))
+        data_ymin = (min(data['detrended_series']['flux']) - 3 * np.std(data['detrended_series']['residuals']))
 
-        data_ymax = (max(data['detrended_flux']) + 2 * np.std(data['detrended_residuals']))
+        data_ymax = (max(data['detrended_series']['flux']) + 2 * np.std(data['detrended_series']['residuals']))
 
         ax2.set_yticks(ax2.get_yticks()[np.where(ax2.get_yticks() > data_ymin)])
 
@@ -297,11 +280,11 @@ def plot_transit_fitting_models(results, output_file):
 
         # residuals
         ax3 = fig.add_subplot(gs[f1 + f2:f1 + f2 + f3, 0:])
-        ax3.plot(data['time'], data['detrended_residuals'], 'ko', ms=2)
-        ax3.plot(data['time'], np.zeros_like(data['time']), 'r-', lw=1)
+        ax3.plot(data['input_series']['time'], data['detrended_series']['residuals'], 'ko', ms=2)
+        ax3.plot(data['input_series']['time'], np.zeros_like(data['input_series']['time']), 'r-', lw=1)
 
-        ax3.set_ylim(- 8 * np.std(data['detrended_residuals']),
-                     8 * np.std(data['detrended_residuals']))
+        ax3.set_ylim(- 8 * np.std(data['detrended_series']['residuals']),
+                     8 * np.std(data['detrended_series']['residuals']))
 
         ax3.set_xlabel('t [BJD_$\mathrm{TDB}$]', fontsize=fsbig)
         fig.text(lebels_right, fbottom + (f3 / 2) * frow_height, 'residuals', fontsize=fsbig, va='center', ha='center',
@@ -309,7 +292,7 @@ def plot_transit_fitting_models(results, output_file):
 
         ax3.tick_params(labelsize=fsmain)
 
-        ax1.set_title('{0} - Dataset {1} - {2}'.format(data['target'], observation + 1, data['date']))
+        ax1.set_title('{0} - {1} - {2}'.format(data['model_info']['target'], data['model_info']['obs_id'], data['model_info']['date']))
 
-        fig.savefig('.'.join(output_file.split('.')[:-1]) + '_dataset_{0}.'.format(observation + 1) + output_file.split('.')[-1])
+        fig.savefig(output_file)
 

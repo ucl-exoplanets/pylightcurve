@@ -9,7 +9,7 @@ from pylightcurve.analysis.distributions import one_d_distribution
 
 
 def find_single_star(data_array, predicted_x, predicted_y, mean=None, std=None, burn_limit=65000, star_std=2,
-                     std_limit=5.0):
+                     std_limit=5.0, maxfev=1000):
     star = None
 
     if 0 < predicted_x < len(data_array[0]) and 0 < predicted_x < len(data_array):
@@ -30,7 +30,8 @@ def find_single_star(data_array, predicted_x, predicted_y, mean=None, std=None, 
         centroids = sorted(centroids, key=lambda x: np.sqrt((x[0] - predicted_x) ** 2 + (x[1] - predicted_y) ** 2))
 
         for centroid in centroids:
-            star = _star_from_centroid(data_array, centroid[0], centroid[1], mean, std, burn_limit, star_std, std_limit)
+            star = _star_from_centroid(data_array, centroid[0], centroid[1], mean, std, burn_limit, star_std, std_limit,
+                                       maxfev=maxfev)
             if star:
                 star = [star[0][2], star[0][3], star[0][0], star[0][1], star[0][4], star[0][5], centroid[0], centroid[1]]
                 break
@@ -38,7 +39,7 @@ def find_single_star(data_array, predicted_x, predicted_y, mean=None, std=None, 
     return star
 
 
-def _star_from_centroid(data_array, centroid_x, centroid_y, mean, std, burn_limit, star_std, std_limit):
+def _star_from_centroid(data_array, centroid_x, centroid_y, mean, std, burn_limit, star_std, std_limit, maxfev=1000):
 
     star = None
     try:
@@ -53,16 +54,16 @@ def _star_from_centroid(data_array, centroid_x, centroid_y, mean, std, burn_limi
 
         dataz = data_array[y_min: y_max + 1, x_min: x_max + 1]
         popt, pcov = fit_two_d_gaussian(datax, datay, dataz, positive=True, point_xy=(centroid_x, centroid_y),
-                                        sigma=star_std, maxfev=1000)
+                                        sigma=star_std, maxfev=maxfev)
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            if popt[0] > std_limit * std and popt[0] + popt[1] < burn_limit:
-                if np.sqrt(pcov[0][0]) != np.inf:
-                    if popt[0] > std_limit * np.sqrt(pcov[0][0]):
-                        star = (popt, pcov)
-                else:
-                    star = (popt, pcov)
+            if np.nan not in [pcov[ff][ff] for ff in range(len(pcov) - 1)]:
+                if np.inf not in [pcov[ff][ff] for ff in range(len(pcov) - 1)]:
+                    if not np.sum([pcov[ff][ff]<0 for ff in range(len(pcov))]):
+                        if popt[0] > std_limit * std and popt[0] + popt[1] < burn_limit:
+                            star = (popt, pcov)
+
     except:
         pass
 
