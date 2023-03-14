@@ -90,7 +90,7 @@ properties and calculations.
 - Time conversions are now available through the Planet class 
 - Flux/Mag conversions are now available through the Planet class
 
-### v4.0 - [latest (v4.0.2)](https://github.com/ucl-exoplanets/pylightcurve/releases/tag/v4.0.2)
+### v4.0 - [latest (v4.0.3)](https://github.com/ucl-exoplanets/pylightcurve/releases/tag/v4.0.3)
 
 - PyLightcurve 4.0 no longer supports the use of the Open Exoplanet Catalogue (OEC), due to the large number
 of mistakes in the catalogue and the absence of parameters updates. OEC has been replaced by the
@@ -119,6 +119,8 @@ angles (e.g. '+47:12:34.05' to degrees) and of timing systems (e.g. HJD_UTC to B
 - Database updates checked in memory.
 - Fixed database updating loop.
 
+### 4.0.3
+- Fix np.float bug.
 
 
 
