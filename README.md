@@ -41,17 +41,11 @@ If you are using PyLightcurve for your research please cite all the above refere
 
 # Installation
 
-Install PyLightcurve through pip:
+Install the dev brunch of PyLightcurve through pip:
 
-```bash
-pip install pylightcurve
-```
-
-... or download this repo, cd in it and use the setup.py file:
+by downloading this repo, cd in it and using the setup.py file:
  
 ```bash
-git clone https://github.com/ucl-exoplanets/pylightcurve
-cd pylightcurve
 python setup.py install
 ```
 
@@ -64,10 +58,10 @@ Please check the "notebooks" directory for usage examples and explanations.
 properties and calculations.
 
 - Check the notebooks under the "notebooks/2_detrending_examples" directory 
-  to see how to model your lightcurves.
+  to see how to model your light-curves.
 
 - Check the notebook "2_core_calculations" for higher efficiency 
-  (suggestedfor developers).
+  (suggested for developers).
 
 
 
@@ -76,9 +70,9 @@ properties and calculations.
 ### v4.1
 
 #### Changes in usage:
-- New way of acessing the LDCs and the Fp/Fs in the planet class
+- New way of accessing the LDCs and the Fp/Fs in the planet class
 - New way of adding custom filters in the planet class
-- Stellar model is no longer defined when initialising a Plannet object, it is defined when adding an observation
+- Stellar model is no longer defined when initialising a Planet object, it is defined when adding an observation
 - New way of defining the iterations in MCMC
 
 #### New features:
