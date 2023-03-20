@@ -94,7 +94,10 @@ def planet_star_projected_distance(period, sma_over_rs, eccentricity, inclinatio
 
 
 def planet_phase(period, mid_time, time_array):
-    return (time_array - mid_time)/period
+
+    phase = (time_array - mid_time)/period
+
+    return phase - np.int_(phase)
 
 # flux drop - new
 
