@@ -28,7 +28,9 @@ class PlcData:
 
         self.build_in_databases_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), databases_file)
 
-        self.databases_directory_path = os.path.join(os.path.abspath(os.path.expanduser('~')),
+        base_path = os.environ.get('PYLC_CACHE_DIR',None) or os.path.expanduser('~')
+
+        self.databases_directory_path = os.path.join(os.path.abspath(base_path),
                                                      '.{0}'.format(self.package_name))
 
         self.databases_file_path = os.path.join(self.databases_directory_path, databases_file)
