@@ -105,8 +105,8 @@ def download(link, destination, filename=None):
                 f.write(u.read())
             print('    Done!')
             return True
-        except:
-            print('    Could not download {0}'.format(filename))
+        except Exception as e:
+            print('    Could not download {0}: {1}'.format(filename, e))
             return False
 
 
@@ -117,5 +117,6 @@ def open_dict_online(link):
     except:
         try:
             return pickle.load(urllib.request.urlopen(link, context=ctx))
-        except:
+        except Exception as e:
+            print('    Could not open dictionary {0}: {1}'.format(link, e))
             return False
