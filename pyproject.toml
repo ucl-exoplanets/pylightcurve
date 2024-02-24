@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "pylightcurve"
+version = "4.0.3"
+description = "A python package for modeling and analysing transit light-curves."
+authors = ["Angelos Tsiaras <aggelostsiaras@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+numpy = "^1.26.4"
+emcee = "^3.1.4"
+astropy = "^6.0.0"
+scipy = "^1.12.0"
+pyyaml = "^6.0.1"
+matplotlib = "^3.8.3"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.1"
+pytest-runner = "^6.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

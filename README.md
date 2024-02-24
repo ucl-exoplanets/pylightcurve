@@ -39,6 +39,54 @@ If you are using PyLightcurve for your research please cite all the above refere
 
 [Tsiaras et al. 2016](https://ui.adsabs.harvard.edu/abs/2016ApJ...832..202T/abstract)
 
+# Updates in branch
+
+### Poetry masonary
+
+Moved the masonry to poetry as distutils is deprecated. Should be easier than ever to develop, version, update and install.
+
+#### Installation for development
+
+Install poetry and then you can do:
+```bash
+
+poetry install
+```
+Which will install the package and dependancies as a virtual environment for development.
+
+#### Adding packages
+
+ To add new packages to the library you can do:
+```bash
+poetry add <package>
+```
+or add a package used only in development (i.e flake8 for linting) you can do:
+```bash
+poetry add --dev <package>
+```
+
+#### Versioning
+
+To automatically version you can do
+
+```bash
+poetry version <major/minor/patch>
+```
+
+To update either the major, minor or patch version. To publish to pypi you can do
+
+#### Publishing
+
+```bash
+poetry build
+poetry publish
+```
+which automatically upload sdists and wheels to pypi.
+
+### Database cache
+
+Database can now move locations depending on the environment variable ``PYLC_CACHE_DIR``. If not set, it will default to the user's home directory. Additionally the ``IGNORE_CHECK`` environment variable can be set to ignore the database check. This is especially useful when
+dealing with multicore enviroments/containers where the database is being checked multiple times by different processes.
 
 # Updates in version 4.0
 
