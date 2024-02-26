@@ -24,6 +24,7 @@ import urllib
 
 from urllib.request import urlretrieve
 from astropy.io import fits as pf
+from functools import lru_cache
 
 
 def open_dict(path):
@@ -43,9 +44,10 @@ def copy_dict(dictionary):
     return copy.deepcopy(dictionary)
 
 
+@lru_cache(maxsize=100)
 def open_yaml(path):
     with open(path, "r") as f:
-        return yaml.load(f, Loader=yaml.SafeLoader)
+        return yaml.load(f, Loader=yaml.CSafeLoader)
 
 
 def save_yaml(dictionary, path):

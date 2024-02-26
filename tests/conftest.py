@@ -1,3 +1,3 @@
 import os
 
-os.environ["IGNORE_CHECK"] = "True"
+os.environ["PYLC_IGNORE_CHECK"] = "True"

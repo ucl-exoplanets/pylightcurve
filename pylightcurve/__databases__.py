@@ -39,7 +39,7 @@ ignore_check = os.environ.get("PYLC_IGNORE_CHECK", "False").lower() in (
 
 class PlcData:
 
-    def __init__(self, _reset=False, _test=False):
+    def __init__(self, _reset=False, _test=False, cache_dir=None, ignore_check=None):
 
         self.package_name = package_name
         self.version = ".".join(__version__.split(".")[:2])
@@ -48,7 +48,10 @@ class PlcData:
             os.path.abspath(os.path.dirname(__file__)), databases_file
         )
 
-        self.databases_directory_path = cache_directory
+        self.cache_dir = cache_dir or cache_directory
+        self.ignore_check = ignore_check or ignore_check
+
+        self.databases_directory_path = self.cache_dir
 
         self.databases_file_path = os.path.join(
             self.databases_directory_path, databases_file
@@ -66,7 +69,7 @@ class PlcData:
             shutil.copy(self.build_in_databases_file_path, self.databases_file_path)
 
         # check for updates in the databases (identified on github)
-        if not ignore_check:
+        if not self.ignore_check:
             test_online_db = open_dict_online(github_link)
             test_local_db = open_dict(self.databases_file_path)
             if test_online_db and test_online_db != test_local_db:
@@ -255,13 +258,14 @@ class PlcData:
         # check if everything exists, if not reset database
 
         # download database if there is an update
-        if ignore_check:
+        if self.ignore_check:
             print("Ignoring check for updates.")
+            return database_directory_path
 
         if (
             self.databases[self.version][database_name]
             != open(database_link_file_path).read()
-            and not ignore_check
+            and not self.ignore_check
         ):
 
             if not download(
@@ -279,7 +283,7 @@ class PlcData:
         # download database if there is an update
 
         # check all files in database, remove files that need to be updated
-        if not ignore_check:
+        if not self.ignore_check:
             current_database = open_dict(database_file_path_old)
             new_database = open_dict(database_file_path)
 
@@ -379,4 +383,20 @@ class PlcData:
         return database_directory_path
 
 
-plc_data = PlcData()
+# if plc_data is access then the databases are loaded
+class PlcDataLoader:
+
+    def __init__(self):
+        self._plc_data = None
+
+    # When accessed like a variable i.e plc_data then load the databases
+    @property
+    def plc_data(self):
+        if self._plc_data is None:
+            self._plc_data = PlcData(
+                cache_dir=cache_directory, ignore_check=ignore_check
+            )
+        return self._plc_data
+
+
+plcl = PlcDataLoader()

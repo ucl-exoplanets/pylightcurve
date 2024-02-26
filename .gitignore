@@ -10,3 +10,4 @@ tests/test_emcee
 pylightcurve/*_local_*
 
 .venv
+.vscode/settings.json
