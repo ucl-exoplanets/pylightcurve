@@ -87,7 +87,7 @@ which automatically upload sdists and wheels to pypi.
 
 Database load is deferred until the first time it is used. This is to speed up the initialisation of the package.
 
-Database can now move locations depending on the environment variable ``PYLC_CACHE_DIR``. If not set, it will default to the user's home directory. Additionally the ``IGNORE_CHECK`` environment variable can be set to ignore the database check. This is especially useful when
+Database can now move locations depending on the environment variable ``PYLC_CACHE_DIR``. If not set, it will default to the user's home directory. Additionally the ``PYLC_IGNORE_CHECK`` environment variable can be set to ignore the database check. This is especially useful when
 dealing with multicore enviroments/containers where the database is being checked multiple times by different processes.
 
 There is also a new program that will download the cache to your directory of choice. This is useful for when you are working in a container and want to download the cache to the container. This can be done by running:
