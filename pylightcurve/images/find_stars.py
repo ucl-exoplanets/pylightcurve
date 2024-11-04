@@ -4,8 +4,8 @@ __all__ = ['find_single_star']
 import numpy as np
 import warnings
 
-from pylightcurve.analysis.gaussian import fit_two_d_gaussian
-from pylightcurve.analysis.distributions import one_d_distribution
+from ..analysis.gaussian import fit_two_d_gaussian
+from ..analysis.distributions import one_d_distribution
 
 
 def find_single_star(data_array, predicted_x, predicted_y, mean=None, std=None, burn_limit=65000, star_std=2,

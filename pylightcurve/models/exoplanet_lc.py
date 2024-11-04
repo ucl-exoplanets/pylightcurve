@@ -2,20 +2,35 @@
 __all__ = ['planet_orbit', 'planet_star_projected_distance', 'planet_phase',
            'transit', 'transit_integrated', 'transit_depth', 'transit_duration',
            'eclipse', 'eclipse_integrated', 'eclipse_depth', 'eclipse_duration', 'eclipse_mid_time',
-           'fp_over_fs', 'exotethys']
-
+           'fp_over_fs','transit_t12', 'exotethys', 'convert_to_bjd_tdb', 'convert_to_jd_utc', 'convert_to_relflux']
 
 import os
+import glob
 import numpy as np
+import logging
+import warnings
+import exoclock
+import astropy.units as u
 
-from pylightcurve.errors import *
-from pylightcurve.__databases__ import plc_data
-from pylightcurve.analysis.numerical_integration import gauss_numerical_integration
-from pylightcurve.analysis.curve_fit import curve_fit
-from pylightcurve.processes.files import open_dict
+from exotethys import sail
+from astropy.time import Time as astrotime
+from scipy.optimize import curve_fit as scipy_curve_fit
+from astropy.coordinates import ICRS, SkyCoord, AltAz, EarthLocation
+
+
+from ..errors import *
+from ..databases import plc_data
+from ..analysis.numerical_integration import gauss_numerical_integration
+from ..processes.files import open_dict
 
 
 # orbit
+
+def curve_fit(*args, **kwargs):
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore",
+                                message='Covariance of the parameters could not be estimated')
+        return scipy_curve_fit(*args, **kwargs)
 
 
 def planet_orbit(period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array, ww=0):
@@ -25,304 +40,256 @@ def planet_orbit(period, sma_over_rs, eccentricity, inclination, periastron, mid
     ww = ww * np.pi / 180.0
 
     if eccentricity == 0 and ww == 0:
-        vv = 2 * np.pi * (time_array - mid_time) / period
-        bb = sma_over_rs * np.cos(vv)
-        return [bb * np.sin(inclination), sma_over_rs * np.sin(vv), - bb * np.cos(inclination)]
 
-    if periastron < np.pi / 2:
-        aa = 1.0 * np.pi / 2 - periastron
+        e_t = (2 * np.pi / period) * (time_array - mid_time)
+        cos_e_t = np.cos(e_t)
+        sin_e_t = np.sin(e_t)
+
+        x_t = (sma_over_rs * np.sin(inclination)) * cos_e_t
+        y_t = sma_over_rs * sin_e_t
+        z_t = (- sma_over_rs * np.cos(inclination)) * cos_e_t
+
     else:
-        aa = 5.0 * np.pi / 2 - periastron
-    bb = 2 * np.arctan(np.sqrt((1 - eccentricity) / (1 + eccentricity)) * np.tan(aa / 2))
-    if bb < 0:
-        bb += 2 * np.pi
-    mid_time = float(mid_time) - (period / 2.0 / np.pi) * (bb - eccentricity * np.sin(bb))
-    m = (time_array - mid_time - np.int_((time_array - mid_time) / period) * period) * 2.0 * np.pi / period
-    u0 = m
-    stop = False
-    u1 = 0
-    for ii in range(10000):  # setting a limit of 1k iterations - arbitrary limit
-        u1 = u0 - (u0 - eccentricity * np.sin(u0) - m) / (1 - eccentricity * np.cos(u0))
-        stop = (np.abs(u1 - u0) < 10 ** (-7)).all()
-        if stop:
-            break
+
+        f_tmid = np.pi / 2 - periastron
+        e_tmid = 2 * np.arctan(np.sqrt((1 - eccentricity) / (1 + eccentricity)) * np.tan(f_tmid / 2))
+        if e_tmid < 0:
+            e_tmid += 2 * np.pi
+        tp = mid_time - (period / 2.0 / np.pi) * (e_tmid - eccentricity * np.sin(e_tmid))
+
+        m = (time_array - tp - np.int_((time_array - tp) / period) * period) * 2.0 * np.pi / period
+        e_t0 = m
+        e_t = e_t0
+        stop = False
+        for ii in range(10000):  # setting a limit of 10k iterations - arbitrary limit
+            e_t = e_t0 - (e_t0 - eccentricity * np.sin(e_t0) - m) / (1 - eccentricity * np.cos(e_t0))
+            stop = (np.abs(e_t - e_t0) < 10 ** (-7)).all()
+            if stop:
+                break
+            else:
+                e_t0 = e_t
+        if not stop:
+            raise RuntimeError('Failed to find a solution in 10000 loops')
+
+        f_t = 2 * np.arctan(np.sqrt((1 + eccentricity) / (1 - eccentricity)) * np.tan(e_t / 2))
+        r_t = sma_over_rs * (1 - (eccentricity ** 2)) / (1 + eccentricity * np.cos(f_t))
+        f_t_plus_periastron = f_t + periastron
+        cos_f_t_plus_periastron = np.cos(f_t_plus_periastron)
+        sin_f_t_plus_periastron = np.sin(f_t_plus_periastron)
+
+        x_t = r_t * sin_f_t_plus_periastron * np.sin(inclination)
+
+        if ww == 0:
+            y_t = - r_t * cos_f_t_plus_periastron
+            z_t = - r_t * sin_f_t_plus_periastron * np.cos(inclination)
+
         else:
-            u0 = u1
-    if not stop:
-        raise RuntimeError('Failed to find a solution in 10000 loops')
+            y_t = - r_t * (cos_f_t_plus_periastron * np.cos(ww) - sin_f_t_plus_periastron * np.sin(ww) * np.cos(inclination))
+            z_t = - r_t * (cos_f_t_plus_periastron * np.sin(ww) + sin_f_t_plus_periastron * np.cos(ww) * np.cos(inclination))
 
-    vv = 2 * np.arctan(np.sqrt((1 + eccentricity) / (1 - eccentricity)) * np.tan(u1 / 2))
-    #
-    rr = sma_over_rs * (1 - (eccentricity ** 2)) / (np.ones_like(vv) + eccentricity * np.cos(vv))
-    aa = np.cos(vv + periastron)
-    bb = np.sin(vv + periastron)
-    x = rr * bb * np.sin(inclination)
-    y = rr * (-aa * np.cos(ww) + bb * np.sin(ww) * np.cos(inclination))
-    z = rr * (-aa * np.sin(ww) - bb * np.cos(ww) * np.cos(inclination))
-
-    return [x, y, z]
+    return [x_t, y_t, z_t]
 
 
 def planet_star_projected_distance(period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array):
 
-    position_vector = planet_orbit(period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array)
+    x_t, y_t, z_t = planet_orbit(period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array)
 
-    return np.sqrt(position_vector[1] * position_vector[1] + position_vector[2] * position_vector[2])
+    return np.sqrt(y_t * y_t + z_t * z_t)
 
 
 def planet_phase(period, mid_time, time_array):
-    return (time_array - mid_time)/period
+
+    phase = (time_array - mid_time)/period
+
+    return phase - np.int_(phase)
+
+# flux drop - new
+
+class Integrals:
+
+    def __init__(self, rprs, limb_darkening_coefficients, method, precision):
+
+        self.rprs = rprs
+        self.limb_darkening_coefficients = limb_darkening_coefficients
+
+        self.kappa = {
+            'linear': self.kappa_linear,
+            'quad': self.kappa_quad,
+            'power2': self.kappa_power2,
+            'claret': self.kappa_claret,
+            'eclipse': self.kappa_eclipse
+        }[method]
+
+        self.a1 = limb_darkening_coefficients[0]
+        if method != 'linear':
+            self.a2 = limb_darkening_coefficients[1]
+        if method == 'claret':
+            self.a3 = limb_darkening_coefficients[2]
+            self.a4 = limb_darkening_coefficients[3]
+
+        self.precision = precision
+
+    def kappa_power2(self, r):
+        mu44 = np.abs(1.0 - r * r)
+        return -((1.0 - self.a1)/2) * mu44 - (self.a1 / (2.0 + self.a2)) * (mu44 ** (1.0 + self.a2 / 2.0))
+
+    def kappa_claret(self, r):
+        mu44 = np.abs(1.0 - r * r)
+        mu24 = np.sqrt(mu44)
+        mu14 = np.sqrt(mu24)
+        return - mu44 * (((1.0 - self.a1 - self.a2 - self.a3 - self.a4) / 2) + (2 * self.a1 / 5) * mu14 + (2 * self.a2 / 6) * mu24 + (2 * self.a3 / 7) * mu24 * mu14 + (2 * self.a4 / 8) * mu44)
+
+    def kappa_quad(self, r):
+        musq = np.abs(1.0 - r * r)
+        mu = np.sqrt(musq)
+        return (1.0 / 12) * (-4.0 * (self.a1 + 2.0 * self.a2) * mu * musq + 6.0 * (-1 + self.a1 + self.a2) * musq + 3.0 * self.a2 * musq * musq)
+
+    def kappa_linear(self, r):
+        musq = np.abs(1.0 - r * r)
+        return (-1.0 / 6) * musq * (3.0 + self.a1 * (-3.0 + 2.0 * np.sqrt(musq)))
+
+    def kappa_eclipse(self, r):
+        musq = np.abs(1.0 - r * r)
+        return (-1.0 / 6) * musq * 3.0
+
+    def kappa_r(self, u, z, zsq, sign):
+        a = z * np.cos(u)
+        return self.kappa(a + sign * np.sqrt(np.abs(self.rprs*self.rprs - zsq + a*a)))
+
+    def integral_kappa_r(self, u1, u2, spoint, sign, z, zsq):
+
+        if self.precision == 'ref':
+
+            splits = 100
+
+            u11 = u1
+            u12 = u1 + 0.999 * (u2-u1)
+            u21 = u1 + 0.999 * (u2-u1)
+            u22 = u2
+
+            result = np.zeros(len(z))
+            du = (u12-u11)/splits
+            for ii in np.arange(0, splits, 1):
+                result += gauss_numerical_integration(self.kappa_r, u11 + ii * du, u11 + (ii + 1) * du, 10, z, zsq, sign)
+            du = (u22-u21)/splits
+            for ii in np.arange(0, splits, 1):
+                result += gauss_numerical_integration(self.kappa_r, u21 + ii * du, u21 + (ii + 1) * du, 10, z, zsq, sign)
+
+            return result
+
+        else:
+
+            return (
+                    gauss_numerical_integration(self.kappa_r, u1, spoint, self.precision, z, zsq, sign)
+                    + gauss_numerical_integration(self.kappa_r, spoint, u2, self.precision, z, zsq, sign)
+            )
 
 
-# flux drop
 
+def transit_flux_drop(limb_darkening_coefficients, rp_over_rs, z_over_rs, method, precision,  spoint=None):
 
-def integral_r_claret(limb_darkening_coefficients, r):
-    a1, a2, a3, a4 = limb_darkening_coefficients
-    mu44 = 1.0 - r * r
-    mu24 = np.sqrt(mu44)
-    mu14 = np.sqrt(mu24)
-    return - (2.0 * (1.0 - a1 - a2 - a3 - a4) / 4) * mu44 \
-           - (2.0 * a1 / 5) * mu44 * mu14 \
-           - (2.0 * a2 / 6) * mu44 * mu24 \
-           - (2.0 * a3 / 7) * mu44 * mu24 * mu14 \
-           - (2.0 * a4 / 8) * mu44 * mu44
+    integral_class = Integrals(rp_over_rs, limb_darkening_coefficients, method, precision)
 
+    len_z_over_rs = len(z_over_rs)
 
-def num_claret(r, limb_darkening_coefficients, rprs, z):
-    a1, a2, a3, a4 = limb_darkening_coefficients
-    rsq = r * r
-    mu44 = 1.0 - rsq
-    mu24 = np.sqrt(mu44)
-    mu14 = np.sqrt(mu24)
-    return ((1.0 - a1 - a2 - a3 - a4) + a1 * mu14 + a2 * mu24 + a3 * mu24 * mu14 + a4 * mu44) \
-        * r * np.arccos(np.minimum((-rprs ** 2 + z * z + rsq) / (2.0 * z * r), 1.0))
-
-
-def integral_r_f_claret(limb_darkening_coefficients, rprs, z, r1, r2, precision=3):
-    return gauss_numerical_integration(num_claret, r1, r2, precision, limb_darkening_coefficients, rprs, z)
-
-
-# integral definitions for zero method
-
-
-def integral_r_zero(limb_darkening_coefficients, r):
-    musq = 1 - r * r
-    return (-1.0 / 6) * musq * 3.0
-
-
-def num_zero(r, limb_darkening_coefficients, rprs, z):
-    rsq = r * r
-    return r * np.arccos(np.minimum((-rprs ** 2 + z * z + rsq) / (2.0 * z * r), 1.0))
-
-
-def integral_r_f_zero(limb_darkening_coefficients, rprs, z, r1, r2, precision=3):
-    return gauss_numerical_integration(num_zero, r1, r2, precision, limb_darkening_coefficients, rprs, z)
-
-
-# integral definitions for linear method
-
-
-def integral_r_linear(limb_darkening_coefficients, r):
-    a1 = limb_darkening_coefficients[0]
-    musq = 1 - r * r
-    return (-1.0 / 6) * musq * (3.0 + a1 * (-3.0 + 2.0 * np.sqrt(musq)))
-
-
-def num_linear(r, limb_darkening_coefficients, rprs, z):
-    a1 = limb_darkening_coefficients[0]
-    rsq = r * r
-    return (1.0 - a1 * (1.0 - np.sqrt(1.0 - rsq))) \
-        * r * np.arccos(np.minimum((-rprs ** 2 + z * z + rsq) / (2.0 * z * r), 1.0))
-
-
-def integral_r_f_linear(limb_darkening_coefficients, rprs, z, r1, r2, precision=3):
-    return gauss_numerical_integration(num_linear, r1, r2, precision, limb_darkening_coefficients, rprs, z)
-
-
-# integral definitions for quadratic method
-
-
-def integral_r_quad(limb_darkening_coefficients, r):
-    a1, a2 = limb_darkening_coefficients[:2]
-    musq = 1 - r * r
-    mu = np.sqrt(musq)
-    return (1.0 / 12) * (-4.0 * (a1 + 2.0 * a2) * mu * musq + 6.0 * (-1 + a1 + a2) * musq + 3.0 * a2 * musq * musq)
-
-
-def num_quad(r, limb_darkening_coefficients, rprs, z):
-    a1, a2 = limb_darkening_coefficients[:2]
-    rsq = r * r
-    cc = 1.0 - np.sqrt(1.0 - rsq)
-    return (1.0 - a1 * cc - a2 * cc * cc) \
-        * r * np.arccos(np.minimum((-rprs ** 2 + z * z + rsq) / (2.0 * z * r), 1.0))
-
-
-def integral_r_f_quad(limb_darkening_coefficients, rprs, z, r1, r2, precision=3):
-    return gauss_numerical_integration(num_quad, r1, r2, precision, limb_darkening_coefficients, rprs, z)
-
-
-# integral definitions for square root method
-
-
-def integral_r_sqrt(limb_darkening_coefficients, r):
-    a1, a2 = limb_darkening_coefficients[:2]
-    musq = 1 - r * r
-    mu = np.sqrt(musq)
-    return ((-2.0 / 5) * a2 * np.sqrt(mu) - (1.0 / 3) * a1 * mu + (1.0 / 2) * (-1 + a1 + a2)) * musq
-
-
-def num_sqrt(r, limb_darkening_coefficients, rprs, z):
-    a1, a2 = limb_darkening_coefficients[:2]
-    rsq = r * r
-    mu = np.sqrt(1.0 - rsq)
-    return (1.0 - a1 * (1 - mu) - a2 * (1.0 - np.sqrt(mu))) \
-        * r * np.arccos(np.minimum((-rprs ** 2 + z * z + rsq) / (2.0 * z * r), 1.0))
-
-
-def integral_r_f_sqrt(limb_darkening_coefficients, rprs, z, r1, r2, precision=3):
-    return gauss_numerical_integration(num_sqrt, r1, r2, precision, limb_darkening_coefficients, rprs, z)
-
-
-# dictionaries containing the different methods,
-# if you define a new method, include the functions in the dictionary as well
-
-integral_r = {
-    'claret': integral_r_claret,
-    'linear': integral_r_linear,
-    'quad': integral_r_quad,
-    'sqrt': integral_r_sqrt,
-    'zero': integral_r_zero
-}
-
-integral_r_f = {
-    'claret': integral_r_f_claret,
-    'linear': integral_r_f_linear,
-    'quad': integral_r_f_quad,
-    'sqrt': integral_r_f_sqrt,
-    'zero': integral_r_f_zero,
-}
-
-
-def integral_centred(method, limb_darkening_coefficients, rprs, ww1, ww2):
-    return (integral_r[method](limb_darkening_coefficients, rprs)
-            - integral_r[method](limb_darkening_coefficients, 0.0)) * np.abs(ww2 - ww1)
-
-
-def integral_plus_core(method, limb_darkening_coefficients, rprs, z, ww1, ww2, precision=3):
-    if len(z) == 0:
-        return z
-    rr1 = z * np.cos(ww1) + np.sqrt(np.maximum(rprs ** 2 - (z * np.sin(ww1)) ** 2, 0))
-    rr1 = np.clip(rr1, 0, 1)
-    rr2 = z * np.cos(ww2) + np.sqrt(np.maximum(rprs ** 2 - (z * np.sin(ww2)) ** 2, 0))
-    rr2 = np.clip(rr2, 0, 1)
-    w1 = np.minimum(ww1, ww2)
-    r1 = np.minimum(rr1, rr2)
-    w2 = np.maximum(ww1, ww2)
-    r2 = np.maximum(rr1, rr2)
-    parta = integral_r[method](limb_darkening_coefficients, 0.0) * (w1 - w2)
-    partb = integral_r[method](limb_darkening_coefficients, r1) * w2
-    partc = integral_r[method](limb_darkening_coefficients, r2) * (-w1)
-    partd = integral_r_f[method](limb_darkening_coefficients, rprs, z, r1, r2, precision=precision)
-    return parta + partb + partc + partd
-
-
-def integral_minus_core(method, limb_darkening_coefficients, rprs, z, ww1, ww2, precision=3):
-    if len(z) == 0:
-        return z
-    rr1 = z * np.cos(ww1) - np.sqrt(np.maximum(rprs ** 2 - (z * np.sin(ww1)) ** 2, 0))
-    rr1 = np.clip(rr1, 0, 1)
-    rr2 = z * np.cos(ww2) - np.sqrt(np.maximum(rprs ** 2 - (z * np.sin(ww2)) ** 2, 0))
-    rr2 = np.clip(rr2, 0, 1)
-    w1 = np.minimum(ww1, ww2)
-    r1 = np.minimum(rr1, rr2)
-    w2 = np.maximum(ww1, ww2)
-    r2 = np.maximum(rr1, rr2)
-    parta = integral_r[method](limb_darkening_coefficients, 0.0) * (w1 - w2)
-    partb = integral_r[method](limb_darkening_coefficients, r1) * (-w1)
-    partc = integral_r[method](limb_darkening_coefficients, r2) * w2
-    partd = integral_r_f[method](limb_darkening_coefficients, rprs, z, r1, r2, precision=precision)
-    return parta + partb + partc - partd
-
-
-def transit_flux_drop(limb_darkening_coefficients, rp_over_rs, z_over_rs, method='claret', precision=3):
-
-    z_over_rs = np.where(z_over_rs < 0, 1.0 + 100.0 * rp_over_rs, z_over_rs)
-    z_over_rs = np.maximum(z_over_rs, 10**(-10))
-
-    # cases
     zsq = z_over_rs * z_over_rs
-    sum_z_rprs = z_over_rs + rp_over_rs
-    dif_z_rprs = rp_over_rs - z_over_rs
-    sqr_dif_z_rprs = zsq - rp_over_rs ** 2
-    case0 = np.where((z_over_rs == 0) & (rp_over_rs <= 1))
-    case1 = np.where((z_over_rs < rp_over_rs) & (sum_z_rprs <= 1))
-    casea = np.where((z_over_rs < rp_over_rs) & (sum_z_rprs > 1) & (dif_z_rprs < 1))
-    caseb = np.where((z_over_rs < rp_over_rs) & (sum_z_rprs > 1) & (dif_z_rprs > 1))
-    case2 = np.where((z_over_rs == rp_over_rs) & (sum_z_rprs <= 1))
-    casec = np.where((z_over_rs == rp_over_rs) & (sum_z_rprs > 1))
-    case3 = np.where((z_over_rs > rp_over_rs) & (sum_z_rprs < 1))
-    case4 = np.where((z_over_rs > rp_over_rs) & (sum_z_rprs == 1))
-    case5 = np.where((z_over_rs > rp_over_rs) & (sum_z_rprs > 1) & (sqr_dif_z_rprs < 1))
-    case6 = np.where((z_over_rs > rp_over_rs) & (sum_z_rprs > 1) & (sqr_dif_z_rprs == 1))
-    case7 = np.where((z_over_rs > rp_over_rs) & (sum_z_rprs > 1) & (sqr_dif_z_rprs > 1) & (-1 < dif_z_rprs))
-    plus_case = np.concatenate((case1[0], case2[0], case3[0], case4[0], case5[0], casea[0], casec[0]))
-    minus_case = np.concatenate((case3[0], case4[0], case5[0], case6[0], case7[0]))
-    star_case = np.concatenate((case5[0], case6[0], case7[0], casea[0], casec[0]))
 
-    # cross points
-    ph = np.arccos(np.clip((1.0 - rp_over_rs ** 2 + zsq) / (2.0 * z_over_rs), -1, 1))
-    theta_1 = np.zeros(len(z_over_rs))
-    ph_case = np.concatenate((case5[0], casea[0], casec[0]))
-    theta_1[ph_case] = ph[ph_case]
-    theta_2 = np.arcsin(np.minimum(rp_over_rs / z_over_rs, 1))
-    theta_2[case1] = np.pi
-    theta_2[case2] = np.pi / 2.0
-    theta_2[casea] = np.pi
-    theta_2[casec] = np.pi / 2.0
-    theta_2[case7] = ph[case7]
+    test1 = (z_over_rs > -1 + rp_over_rs) * (z_over_rs <= rp_over_rs)
+    test2 = (z_over_rs > rp_over_rs) * (z_over_rs < 1 + rp_over_rs)
+    test3 = (z_over_rs <= -1 + rp_over_rs)
+    test4 = z_over_rs <= 1 - rp_over_rs
+    test5 = zsq < rp_over_rs ** 2 + 1
 
-    # flux_upper
-    plusflux = np.zeros(len(z_over_rs))
-    plusflux[plus_case] = integral_plus_core(method, limb_darkening_coefficients, rp_over_rs, z_over_rs[plus_case],
-                                             theta_1[plus_case], theta_2[plus_case], precision=precision)
-    if len(case0[0]) > 0:
-        plusflux[case0] = integral_centred(method, limb_darkening_coefficients, rp_over_rs, 0.0, np.pi)
-    if len(caseb[0]) > 0:
-        plusflux[caseb] = integral_centred(method, limb_darkening_coefficients, 1, 0.0, np.pi)
-
-    # flux_lower
-    minsflux = np.zeros(len(z_over_rs))
-    minsflux[minus_case] = integral_minus_core(method, limb_darkening_coefficients, rp_over_rs,
-                                               z_over_rs[minus_case], 0.0, theta_2[minus_case], precision=precision)
-
-    # flux_star
-    starflux = np.zeros(len(z_over_rs))
-    starflux[star_case] = integral_centred(method, limb_darkening_coefficients, 1, 0.0, ph[star_case])
+    case1 = np.where(test1 * test4)
+    case2 = np.where(test2 * test4)
+    case3 = np.where(test2 * (~test4) * test5)
+    case4 = np.where(test2 * (~test4) * (~test5))
+    case5 = np.where(test1 * (~test4))
+    case6 = np.where(test3)
 
     # flux_total
-    total_flux = integral_centred(method, limb_darkening_coefficients, 1, 0.0, 2.0 * np.pi)
+    pi_kappa_zero = np.pi * integral_class.kappa(0)
 
-    return 1 - (2.0 / total_flux) * (plusflux + starflux - minsflux)
+    nom = np.zeros(len_z_over_rs)
+    u1 = np.zeros(len_z_over_rs)
+    u2 = np.zeros(len_z_over_rs)
+
+    u1[case3] = np.arccos((1.0 - rp_over_rs ** 2 + zsq[case3]) / (2.0 * z_over_rs[case3]))
+    u1[case5] = np.pi
+    u2[case1] = np.pi
+    u2[case2] = np.arcsin(rp_over_rs / z_over_rs[case2])
+    u2[case3] = np.arcsin(rp_over_rs / z_over_rs[case3])
+    u2[case4] = np.arccos((1.0 - rp_over_rs ** 2 + zsq[case4]) / (2.0 * z_over_rs[case4]))
+    u2[case5] = 2*np.pi - np.arccos((1.0 - rp_over_rs ** 2 + zsq[case5]) / (2.0 * z_over_rs[case5]))
+
+    if precision =='ref':
+        spoint_minus = np.ones(len_z_over_rs) * 0.999
+        spoint_plus = np.ones(len_z_over_rs) * 0.999
+    else:
+        if not spoint:
+            # spoint = [
+            #     0.9218282226562504,
+            #     0.9563458007812503,
+            #     0.9834234375000003,
+            #     0.9906437500000003,
+            #     0.9940283203125003,
+            #     0.9957342773437505,
+            #     0.9967330078125005,
+            #     0.9975126953125002,
+            #     0.9979268554687502,
+            #     0.9983170898437501,
+            #     0.9985122070312502,
+            #             ][precision]
+            spoint = [
+                0.9225257991338730,
+                0.9563656913370522,
+                0.9833882120344788,
+                0.9906884546577519,
+                0.9939895077561962,
+                0.9957191213127226,
+                0.9967800457030543,
+                0.9974678707122813,
+                0.9979509580161896,
+                0.998299306891859,
+                0.9985633304662771,
+            ][precision]
+
+        spoint_minus = spoint * u2
+        spoint_plus = u1 + spoint * (u2 - u1)
+
+        spoint_plus[case1] = np.pi/2
+        if len(case5[0]):
+            xx = np.where(u2 > 3 * np.pi/2)
+            spoint_plus[xx] = 3 * np.pi/2
+
+    case_plus = np.concatenate([case1[0], case2[0], case3[0], case5[0]])
+    nom[case_plus] += integral_class.integral_kappa_r(u1[case_plus], u2[case_plus], spoint_plus[case_plus], 1, z_over_rs[case_plus], zsq[case_plus])
+
+    case_minus = np.concatenate([case2[0], case3[0], case4[0]])
+    nom[case_minus] -= integral_class.integral_kappa_r(0, u2[case_minus], spoint_minus[case_minus], -1, z_over_rs[case_minus], zsq[case_minus])
+
+    case_star = np.concatenate([case1[0], case5[0], case6[0]])
+    nom[case_star] -= pi_kappa_zero
+
+    return 1 + nom / pi_kappa_zero
 
 
 # transit
 
 def transit(limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron,
-            mid_time, time_array, method='claret', precision=3):
+            mid_time, time_array, method='claret', precision=2):
 
     position_vector = planet_orbit(period, sma_over_rs, eccentricity, inclination, periastron, mid_time, time_array)
 
     projected_distance = np.where(
-        position_vector[0] < 0, 1.0 + 5.0 * rp_over_rs,
+        position_vector[0] < 0, 1.0 + 10.0 * rp_over_rs,
         np.sqrt(position_vector[1] * position_vector[1] + position_vector[2] * position_vector[2]))
 
-    return transit_flux_drop(limb_darkening_coefficients, rp_over_rs, projected_distance,
-                             method=method, precision=precision)
+    return transit_flux_drop(limb_darkening_coefficients, rp_over_rs, projected_distance, method, precision)
 
 
 def transit_integrated(limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, eccentricity, inclination,
-                       periastron, mid_time, time_array, exp_time, max_sub_exp_time=10, method='claret', precision=3):
+                       periastron, mid_time, time_array, exp_time, max_sub_exp_time=10, method='claret', precision=2):
 
     time_factor = int(exp_time / max_sub_exp_time) + 1
     exp_time /= (60.0 * 60.0 * 24.0)
@@ -334,12 +301,11 @@ def transit_integrated(limb_darkening_coefficients, rp_over_rs, period, sma_over
                                    inclination, periastron, mid_time, time_array_hr)
 
     projected_distance = np.where(
-        position_vector[0] < 0, 1.0 + 5.0 * rp_over_rs,
+        position_vector[0] < 0, 1.0 + 10.0 * rp_over_rs,
         np.sqrt(position_vector[1] * position_vector[1] + position_vector[2] * position_vector[2]))
 
     return np.mean(np.reshape(
-        transit_flux_drop(limb_darkening_coefficients, rp_over_rs, projected_distance,
-                          method=method, precision=precision),
+        transit_flux_drop(limb_darkening_coefficients, rp_over_rs, projected_distance, method, precision),
         (len(time_array), time_factor)), 1)
 
 
@@ -367,17 +333,33 @@ def transit_duration(rp_over_rs, period, sma_over_rs, eccentricity, inclination,
     return (popt2[0] - popt1[0]) / 24 / 60 / 60
 
 
+def transit_t12(rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron):
+
+    aprox = transit_duration(rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron) * 60 * 60 * 24
+
+    def function_to_fit(x, t):
+        return planet_star_projected_distance(period, sma_over_rs, eccentricity, inclination, periastron,
+                                              10000, np.array(10000 + t / 24 / 60 / 60))
+
+    popt1, pcov1 = curve_fit(function_to_fit, [0], [1.0 + rp_over_rs], p0=[-aprox / 2])
+    popt2, pcov2 = curve_fit(function_to_fit, [0], [1.0 - rp_over_rs], p0=[-aprox / 2])
+
+    return min((popt2[0] - popt1[0]) / 24 / 60 / 60,
+               0.5*transit_duration(rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron)
+               )
+
+
 def transit_depth(limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, eccentricity, inclination,
-                  periastron, method='claret', precision=6):
+                  periastron, method='claret', precision=2):
 
     return 1 - transit(limb_darkening_coefficients, rp_over_rs, period, sma_over_rs, eccentricity, inclination,
-                       periastron, 10000, np.array([10000]), method=method, precision=precision)[0]
+                       periastron, 10000, np.array([10000]), method, precision)[0]
 
 
 # eclipse
 
 def eclipse(fp_over_fs, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron, mid_time,
-            time_array, precision=3):
+            time_array, precision=2):
 
     position_vector = planet_orbit(period, sma_over_rs / rp_over_rs, eccentricity, inclination, periastron + 180,
                                    mid_time, time_array)
@@ -387,11 +369,11 @@ def eclipse(fp_over_fs, rp_over_rs, period, sma_over_rs, eccentricity, inclinati
         np.sqrt(position_vector[1] * position_vector[1] + position_vector[2] * position_vector[2]))
 
     return (1.0 + fp_over_fs * transit_flux_drop([0, 0, 0, 0], 1 / rp_over_rs, projected_distance,
-                                                 precision=precision, method='zero')) / (1.0 + fp_over_fs)
+                                                 'eclipse', precision)) / (1.0 + fp_over_fs)
 
 
 def eclipse_integrated(fp_over_fs, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron,
-                       mid_time, time_array, exp_time, max_sub_exp_time=10, precision=3):
+                       mid_time, time_array, exp_time, max_sub_exp_time=10, precision=2):
 
     time_factor = int(exp_time / max_sub_exp_time) + 1
     exp_time /= (60.0 * 60.0 * 24.0)
@@ -407,8 +389,8 @@ def eclipse_integrated(fp_over_fs, rp_over_rs, period, sma_over_rs, eccentricity
         np.sqrt(position_vector[1] * position_vector[1] + position_vector[2] * position_vector[2]))
 
     return np.mean(np.reshape(
-        (1.0 + fp_over_fs * transit_flux_drop([0, 0, 0, 0], 1 / rp_over_rs, projected_distance, method='zero',
-                                              precision=precision)) / (1.0 + fp_over_fs),
+        (1.0 + fp_over_fs * transit_flux_drop([0, 0, 0, 0], 1 / rp_over_rs, projected_distance, 'eclipse',
+                                              precision)) / (1.0 + fp_over_fs),
         (len(time_array), time_factor)), 1)
 
 
@@ -435,23 +417,13 @@ def eclipse_mid_time(period, sma_over_rs, eccentricity, inclination, periastron,
 
 def eclipse_duration(rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron):
 
-    ww = periastron * np.pi / 180
-    ii = inclination * np.pi / 180
-    ee = eccentricity
-    aa = sma_over_rs
-    ro_pt = (1 - ee ** 2) / (1 + ee * np.sin(ww))
-    b_pt = aa * ro_pt * np.cos(ii)
-    if b_pt > 1:
-        b_pt = 0.5
-    s_ps = 1.0 + rp_over_rs
-    df = np.arcsin(np.sqrt((s_ps ** 2 - b_pt ** 2) / ((aa ** 2) * (ro_pt ** 2) - b_pt ** 2)))
-    aprox = (period * (ro_pt ** 2)) / (np.pi * np.sqrt(1 - ee ** 2)) * df * 60 * 60 * 24
+    aprox = transit_duration(rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron) * 60 * 60 * 24
 
     emt = eclipse_mid_time(period, sma_over_rs, eccentricity, inclination, periastron, 10000)
 
     def function_to_fit(x, t):
         xx = planet_star_projected_distance(period, sma_over_rs, eccentricity, inclination, periastron,
-                                              10000, np.array(emt + t / 24 / 60 / 60))
+                                            10000, np.array(emt + t / 24 / 60 / 60))
         return xx
 
     popt1, pcov1 = curve_fit(function_to_fit, [0], [1.0 + rp_over_rs], p0=[-aprox / 2])
@@ -460,22 +432,13 @@ def eclipse_duration(rp_over_rs, period, sma_over_rs, eccentricity, inclination,
     return (popt2[0] - popt1[0]) / 24 / 60 / 60
 
 
-def eclipse_depth(fp_over_fs, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron, precision=6):
+def eclipse_depth(fp_over_fs, rp_over_rs, period, sma_over_rs, eccentricity, inclination, periastron, precision=2):
 
     return 1 - eclipse(fp_over_fs, rp_over_rs, period, sma_over_rs, eccentricity, inclination,
-                       periastron, 10000, np.array([10000]), precision=precision)[0]
+                       periastron, 10000, np.array([10000]), precision)[0]
 
 
-def _get_filter(photometric_filter):
-
-    if photometric_filter not in plc_data.all_filters():
-        raise PyLCInputError('{0} is not available. Available filters: {1}'.format(
-            photometric_filter, ','.join(plc_data.all_filters())))
-
-
-def fp_over_fs(rp_over_rs, sma_over_rs, albedo, emissivity, stellar_temperature, filter_name):
-
-    _get_filter(filter_name)
+def fp_over_fs(rp_over_rs, sma_over_rs, albedo, emissivity, stellar_temperature, filter_name, wlrange=None):
 
     def _black_body(w, t):
         # w in mu
@@ -488,7 +451,9 @@ def fp_over_fs(rp_over_rs, sma_over_rs, albedo, emissivity, stellar_temperature,
 
     planet_temperature = stellar_temperature * np.sqrt(0.5 / sma_over_rs) * (((1 - albedo) / emissivity) ** 0.25)
 
-    wavelength_array, band = np.loadtxt(os.path.join(plc_data.photometry(), filter_name + '.pass'), unpack=True)
+    sub_passband = plc_data.get_filter(filter_name, wlrange)
+    wavelength_array, band = np.swapaxes(sub_passband, 0, 1)
+
     binsedge = 0.5 * (wavelength_array[:-1] + wavelength_array[1:])
     binsedge1 = np.append(wavelength_array[0] - (binsedge[0] - wavelength_array[0]), binsedge)
     binsedge2 = np.append(binsedge, wavelength_array[-1] + (wavelength_array[-1] - binsedge[-1]))
@@ -506,161 +471,122 @@ def fp_over_fs(rp_over_rs, sma_over_rs, albedo, emissivity, stellar_temperature,
     return reflection + emission
 
 
-def exotethys(stellar_logg, stellar_temperature, stellar_metallicity, filter_name, method='claret',
-              stellar_model='phoenix'):
+def exotethys(stellar_logg, stellar_temperature, stellar_metallicity, filter_name, wlrange=None, method='claret',
+              stellar_model='Phoenix_2018'):
+    """Calculates the limb-darkening coefficients for the host star, by calling the ExoTehys package.
+     Not all the combinations of filters and stellar models are available. This will depend on the stellar temperature,
+     the stellar model and the wavelength range of the filter.
+     Please check the `ExoTETHyS <https://github.com/ucl-exoplanets/ExoTETHyS>`_,
+     `Morello et al. 2020 <https://iopscience.iop.org/article/10.3847/1538-3881/ab63dc>`_
+     documentation for all the available parameter space.
 
-    available_methods = ['claret', 'sqrt', 'quad', 'linear']
+     :param filter_name: Observing filter
+     :type filter_name: str
+     :param wlrange: A 2-element list, defining the wavelength range (in Angstrom) within the filter, Useful for spectroscopic observations.
+     :type wlrange: list
+     :param method: Limb-darkening model to de used. Available methods: claret, power2, quad, linear,
+     :type method: str
+     :param stellar_model: Stellar model to be used. Available methods: check ExoTethys documentation.
+     :type stellar_model: str
+     :return: Limb-darkening coefficients. Four coefficients are always returned (for methods that need less than four coefficents, the rest are 0).
+     :rtype: numpy.ndarray
+     """
 
-    if not isinstance(method, str) or method.lower() not in available_methods:
-        raise PyLCInputError('{0} is not available. Available methods: {1}'.format(
-            method, ','.join(available_methods)))
+    if 'phoenix' in stellar_model.lower() and stellar_metallicity != 0:
+        logging.warning('\nPHOENIX models are only computed for solar metallicity stars. '
+                      'Setting stellar_metallicity = 0.\n')
+        stellar_metallicity = 0
 
-    method = method.lower()
+    path = plc_data.exotethys()
+
+    available_stellar_models = ['Atlas_2000', 'Phoenix_2012_13', 'Phoenix_2018', 'Phoenix_drift_2012',
+                                'Stagger_2015', 'Stagger_2018']
+    if not isinstance(stellar_model, str) or stellar_model not in available_stellar_models:
+        raise PyLCInputError('Stellar_model {0} is not available. Available models: {1}. '
+                             'Please consult EXOTETHYS documentation for more details'.format(
+            stellar_model, ','.join(available_stellar_models)))
 
     method_map = {
         'claret': 'claret4',
-        'sqrt': 'square_root',
+        'power2': 'power2',
         'quad': 'quadratic',
         'linear': 'linear'
     }
+    if method not in method_map:
+        raise PyLCInputError('Method {0} is not valid. Available methods: {1}'.format(
+            method, ','.join(list(method_map.keys()))))
 
-    _get_filter(filter_name)
+    run_id = ''.join([str(np.random.randint(0, 99)) for ff in range(10)])
+    bandpass_file = os.path.join(path, 'ww_{0}.pass'.format(run_id))
+    parameters_file = os.path.join(path, 'ww_{0}_parameters.txt'.format(run_id))
+    output_file = os.path.join(path, 'ww_{0}_ldc.pickle'.format(run_id))
 
-    available_stellar_models = ['atlas', 'phoenix']
+    sub_passband = plc_data.get_filter(filter_name, wlrange)
+    np.savetxt(bandpass_file, sub_passband)
 
-    if not isinstance(stellar_model, str) or stellar_model.lower() not in available_stellar_models:
-        raise PyLCInputError('{0} is not available. Available stellar models: {1}'.format(
-            stellar_model, ','.join(available_stellar_models)))
+    r = open(os.path.join(path, 'ww_parameters.txt')).read()
+    r = r.replace('{{output}}', path)
+    r = r.replace('{{id}}', str(run_id))
+    r = r.replace('{{model}}', stellar_model)
+    r = r.replace('{{law}}', method_map[method])
+    r = r.replace('{{teff}}', str(stellar_temperature))
+    r = r.replace('{{logg}}', str(stellar_logg))
+    r = r.replace('{{meta}}', str(stellar_metallicity))
 
-    stellar_model = stellar_model.lower()
+    w = open(parameters_file, 'w')
+    w.write(r)
+    w.close()
 
-    if stellar_model == 'phoenix' and stellar_metallicity != 0:
-        print('PHOENIX models are only computed for solar metallicity stars. Setting stellar_metallicity = 0.')
-        stellar_metallicity = 0
-    elif stellar_model == 'phoenix' and filter_name in ['irac1', 'irac2', 'irac3', 'irac4']:
-        print('PHOENIX models are not available for this filter. Setting stellar_model = atlas')
-        stellar_model = 'atlas'
-    elif stellar_model == 'atlas' and filter_name in ['CHEOPS']:
-        print('ATLAS models are not available for this filter. Setting stellar_model = phoenix')
-        stellar_model = 'phoenix'
+    try:
+        sail.ldc_calculate(parameters_file)
 
-    data = open_dict(os.path.join(plc_data.exotethys(), '{0}_{1}.pickle'.format(stellar_model, filter_name)))
+        results = open_dict(output_file)
 
-    xin = float(stellar_logg)
-    yin = float(stellar_temperature)
-    zin = float(stellar_metallicity)
+        for ff in glob.glob(os.path.join(path, '*{0}*'.format(run_id))):
+            os.remove(ff)
 
-    xunique = np.unique(data['logg'])
-    xunique = sorted(xunique, key=lambda x:(x - xin)**2)
+        ldcs = results['passbands']['ww_{0}.pass'.format(run_id)][method_map[method]]['coefficients']
 
-    yunique = np.unique(data['teff'])
-    yunique = sorted(yunique, key=lambda x:(x - yin)**2)
+        while len(ldcs) < 4:
+            ldcs = np.append(ldcs, 0)
 
-    zunique = np.unique(data['meta'])
-    zunique = sorted(zunique, key=lambda x:(x - zin)**2)
+        return ldcs
 
-    xmin = 0
-    xmax = 0
-    ymin = 0
-    ymax = 0
-    zmin = 0
-    zmax = 0
+    except:
+        plc_data.reset_exotethys_data()
+        return exotethys(stellar_logg, stellar_temperature, stellar_metallicity, filter_name, wlrange, method,
+                         stellar_model)
 
-    complete = False
-    tsearch = 0
 
-    while not complete and tsearch < len(yunique):
+def convert_to_bjd_tdb(ra, dec, time_array, time_format):
+    return exoclock.convert_to_bjd_tdb(ra, dec, time_array, time_format)
 
-        ymin = min(yunique[:tsearch + 2])
-        ymax = max(yunique[:tsearch + 2])
 
-        tsearch += 1
+def convert_to_jd_utc(ra, dec, time_array, time_format):
+    return exoclock.convert_to_jd_utc(ra, dec, time_array, time_format)
 
-        gsearch = 0
 
-        while not complete and gsearch < len(xunique):
+def convert_to_relflux(flux_array, flux_unc_array, flux_format):
 
-            xmin = min(xunique[:gsearch + 2])
-            xmax = max(xunique[:gsearch + 2])
+    if flux_format == 'mag':
+        flux_unc_array = np.abs(flux_unc_array * (-0.921034 * np.exp(0.921034 * flux_array[0] - 0.921034 * np.array(flux_array))))
+        flux_array = 10 ** ((flux_array[0] - flux_array) / 2.5)
+    elif flux_format == 'flux':
+        pass
+    else:
+        raise PyLCInputError('Not acceptable flux format {0}. Please choose between "flux" and '
+                             '"mag".'.format(flux_format))
 
-            gsearch += 1
+    return flux_array, flux_unc_array
 
-            msearch = 0
 
-            while not complete and msearch < len(zunique):
+def airmass(observatory_latitude, observatory_longitude, ra, dec, time_array):
 
-                zmin = min(zunique[:msearch + 2])
-                zmax = max(zunique[:msearch + 2])
+    time_array = astrotime(convert_to_jd_utc(ra, dec, time_array, 'BJD_TDB'), format='jd')
+    location = EarthLocation.from_geodetic(lon=observatory_longitude, lat=observatory_latitude, height=0)
 
-                msearch += 1
+    altitude = SkyCoord(ra * u.deg, dec * u.deg, frame=ICRS).transform_to(
+        AltAz(obstime=time_array, location=location)
+    ).alt.deg
 
-                # print(xmin, xmax, ymin, ymax, zmin, zmax)
-
-                if all([
-                    len(np.where((data['logg'] == ff[0]) & (data['teff'] == ff[1]) & (data['meta'] == ff[2]))[0]) > 0
-                        for ff in [
-                        [xmin, ymin, zmin],
-                        [xmin, ymax, zmin],
-                        [xmax, ymin, zmin],
-                        [xmax, ymax, zmin],
-                        [xmin, ymin, zmax],
-                        [xmin, ymax, zmax],
-                        [xmax, ymin, zmax],
-                        [xmax, ymax, zmax],
-
-                    ]]):
-
-                    if xmin <= xin and xmax >= xin and ymin <= yin and ymax >= yin and zmin <= zin and zmax >= zin:
-
-                        complete = True
-
-    if not complete:
-        raise PyLCProcessError('LDCs could not be estimated for the given set of stellar parameters: '
-                               'Log(g): {0} to {1} (cgs), Teff: {2} to {3} K, MH: {4} to {5} (dex)'.format(
-            xmin, xmax, ymin, ymax, zmin, zmax))
-    # else:
-    #     print('Trilinear interpolation between: Log(g): {0} to {1} (cgs), Teff: {2} to {3} K, MH: {4} to {5} (dex)'.format(
-    #         xmin, xmax, ymin, ymax, zmin, zmax))
-
-    def tri_linear(x, y, z, x0, x1, y0, y1, z0, z1, v000, v100, v010, v001, v101, v011, v110, v111):
-        c0 = v000
-        c1 = v100 - v000
-        c2 = v010 - v000
-        c3 = v001 - v000
-        c4 = v110 - v010 - v100 + v000
-        c5 = v011 - v001 - v010 + v000
-        c6 = v101 - v001 - v100 + v000
-        c7 = v111 - v011 - v101 - v110 + v100 + v001 + v010 - v000
-        if x == x0 == x1:
-            dx = 0
-        else:
-            dx = (x - x0) / (x1 - x0)
-        if y == y0 == y1:
-            dy = 0
-        else:
-            dy = (y - y0) / (y1 - y0)
-        if z == z0 == z1:
-            dz = 0
-        else:
-            dz = (z - z0) / (z1 - z0)
-        return c0 + c1 * dx + c2 * dy + c3 * dz + c4 * dx * dy + c5 * dy * dz + c6 * dz * dx + c7 * dx * dy * dz
-
-    final_coefficients = []
-
-    for index in [1, 2, 3, 4]:
-
-        vv000 = data[method_map[method]]['ldc' + str(index)][np.where((data['logg'] == xmin) & (data['teff'] == ymin) & (data['meta'] == zmin))][0]
-        vv100 = data[method_map[method]]['ldc' + str(index)][np.where((data['logg'] == xmax) & (data['teff'] == ymin) & (data['meta'] == zmin))][0]
-        vv010 = data[method_map[method]]['ldc' + str(index)][np.where((data['logg'] == xmin) & (data['teff'] == ymax) & (data['meta'] == zmin))][0]
-        vv001 = data[method_map[method]]['ldc' + str(index)][np.where((data['logg'] == xmin) & (data['teff'] == ymin) & (data['meta'] == zmax))][0]
-        vv101 = data[method_map[method]]['ldc' + str(index)][np.where((data['logg'] == xmax) & (data['teff'] == ymin) & (data['meta'] == zmax))][0]
-        vv011 = data[method_map[method]]['ldc' + str(index)][np.where((data['logg'] == xmin) & (data['teff'] == ymax) & (data['meta'] == zmax))][0]
-        vv110 = data[method_map[method]]['ldc' + str(index)][np.where((data['logg'] == xmax) & (data['teff'] == ymax) & (data['meta'] == zmin))][0]
-        vv111 = data[method_map[method]]['ldc' + str(index)][np.where((data['logg'] == xmax) & (data['teff'] == ymax) & (data['meta'] == zmax))][0]
-
-        res = tri_linear(xin, yin, zin, xmin, xmax, ymin, ymax, zmin, zmax,
-                         vv000, vv100, vv010, vv001, vv101, vv011, vv110, vv111)
-
-        final_coefficients.append(res)
-
-    return np.array(final_coefficients)
+    return 1.0 / (np.cos((90 - altitude) * np.pi / 180) + 0.50572 * ((6.07995 + altitude) ** (-1.6364)))

@@ -1,0 +1,25 @@
+# variable    fix/fit  value                 uncertainty        initial                min.allowed          max.allowed       
+n             fit      0.145505              -7.2e-05 +7.3e-05  0.14550462793793484    0.13289290206522572  0.154034717385994 
+airmass       fit      -0.00609              -0.00064 +0.00064  -0.006113937025102656  -2.0                 2.0               
+a_1           fix      0.5391853403024727                                                                                     
+a_2           fix      -0.37264959241326223                                                                                   
+a_3           fix      1.1257479811875823                                                                                     
+a_4           fix      -0.4761825657534536                                                                                    
+rp_over_rs    fit      0.1467                -0.0018 +0.0018    0.14676597782902992    0.01457              1.4569999999999999
+period        fix      4.05528043                                                                                             
+sma_over_rs   fix      11.37                                                                                                  
+eccentricity  fix      0.0                                                                                                    
+inclination   fix      87.75                                                                                                  
+periastron    fix      0.0                                                                                                    
+mid_time      fit      2459333.36478         -0.00058 +0.00058  2459333.364775375      2459333.1654632897   2459333.56546329  
+
+#Residuals:
+#Mean: 3.0989811939289175e-06
+#STD: 0.0005350376710864824
+#RMS: 0.0005350466457852879
+#Chi squared: 221.00849021965064
+#Reduced chi squared: 1.0184723051596805
+#Max auto-correlation: 0.2356294999567778
+#Max auto-correlation flag: False
+#Shapiro test: 0.990524172782898
+#Shapiro test flag: False

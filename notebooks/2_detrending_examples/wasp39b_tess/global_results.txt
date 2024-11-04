@@ -1,0 +1,26 @@
+# variable    fix/fit  value                 uncertainty        initial               min.allowed         max.allowed       
+n             fit      1.00105               -0.00047 +0.00047  1.0010458591621263    0.9232893586158752  1.0589704513549805
+time_time     fit      -0.04                 -0.021 +0.021      -0.04045614948455345  -2.0                2.0               
+time          fit      0.0131                -0.008 +0.0077     0.013107509570403408  -2.0                2.0               
+a_1           fix      0.49893510519234197                                                                                  
+a_2           fix      -0.07295549722120057                                                                                 
+a_3           fix      0.46617321219107144                                                                                  
+a_4           fix      -0.21643294363957313                                                                                 
+rp_over_rs    fit      0.145                 -0.0031 +0.0032    0.1456619833270916    0.01457             1.4569999999999999
+period        fix      4.05528043                                                                                           
+sma_over_rs   fit      11.28                 -0.76 +0.92        11.100968648573899    0.01137             11370.0           
+eccentricity  fix      0.0                                                                                                  
+inclination   fit      87.61                 -0.71 +0.98        87.4356297500474      10.0                90.0              
+periastron    fix      0.0                                                                                                  
+mid_time      fit      2459702.39584         -0.00044 +0.00045  2459702.395883799     2459702.19598242    2459702.5959824203
+
+#Residuals:
+#Mean: -1.4079691944855434e-05
+#STD: 0.002339905123467466
+#RMS: 0.002339947483289862
+#Chi squared: 260.08895506327633
+#Reduced chi squared: 1.0280195852303413
+#Max auto-correlation: 0.1283405397916046
+#Max auto-correlation flag: False
+#Shapiro test: 0.992683470249176
+#Shapiro test flag: False

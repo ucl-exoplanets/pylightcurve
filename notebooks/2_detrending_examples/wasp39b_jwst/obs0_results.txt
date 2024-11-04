@@ -1,0 +1,42 @@
+# variable    fix/fit  value                   uncertainty        initial                min.allowed        max.allowed       
+n             fit      6792120.0               -140.0 +130.0      6792115.678977596      6320735.249790188  7108717.790418691 
+time_time     fit      0.00218                 -0.00095 +0.0009   0.0021715844422729447  -2.0               2.0               
+time          fit      -0.00068                -0.00032 +0.00034  -0.000669378312350144  -2.0               2.0               
+a_1           fix      0.5985089796355353      -- --              --                     --                 --                
+a_2           fix      -0.025920976432747087   -- --              --                     --                 --                
+a_3           fix      -0.010021731025638638   -- --              --                     --                 --                
+a_4           fix      -0.0057742806884076335  -- --              --                     --                 --                
+rp_over_rs    fit      0.145102                -8.3e-05 +7.7e-05  0.1450985987863956     0.01457            1.4569999999999999
+period        fix      4.05528043              -- --              --                     --                 --                
+sma_over_rs   fit      11.415                  -0.025 +0.025      11.416061115792422     0.01137            11370.0           
+eccentricity  fix      0.0                     -- --              --                     --                 --                
+inclination   fit      87.767                  -0.025 +0.024      87.76765600363002      10.0               90.0              
+periastron    fix      0.0                     -- --              --                     --                 --                
+mid_time      fit      2459787.556724          -1.7e-05 +1.7e-05  2459787.5567254843     2459787.35687145   2459787.75687145  
+
+#Filter: jwst_niriss1:8600.0-28000.0
+#Epoch: 715
+#Number of outliers removed: 5
+#Uncertainties scale factor: 0.9587711920555325
+
+#Residuals:
+#Mean: 3.9144862263806557
+#STD: 946.0467266458576
+#RMS: 946.0548251553704
+#Chi squared: 532.0437209418865
+#Reduced chi squared: 1.000082182221591
+#Max auto-correlation: 0.13993470331098803
+#Max auto-correlation flag: False
+#Shapiro test: 0.9959012269973755
+#Shapiro test flag: False
+
+#Detrended Residuals:
+#Mean: 5.763538585582047e-07
+#STD: 0.00013929072065419745
+#RMS: 0.00013929191306079455
+#Chi squared: 532.0437209418881
+#Reduced chi squared: 1.0000821822215942
+#Max auto-correlation: 0.1399347033109959
+#Max auto-correlation flag: False
+#Shapiro test: 0.9959012269973755
+#Shapiro test flag: False

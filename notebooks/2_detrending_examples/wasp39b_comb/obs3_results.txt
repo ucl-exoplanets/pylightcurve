@@ -1,0 +1,41 @@
+# variable    fix/fit  value                 uncertainty        initial                min.allowed          max.allowed       
+n             fit      0.145486              -7.7e-05 +7.8e-05  0.14548557611650242    0.13289290206522572  0.154034717385994 
+airmass       fit      -0.0061               -0.00069 +0.0007   -0.006098762597659846  -2.0                 2.0               
+a_1           fix      0.5391853403024727    -- --              --                     --                   --                
+a_2           fix      -0.37264959241326223  -- --              --                     --                   --                
+a_3           fix      1.1257479811875823    -- --              --                     --                   --                
+a_4           fix      -0.4761825657534536   -- --              --                     --                   --                
+rp_over_rs    fit      0.1464                -0.0018 +0.0017    0.1464829946011631     0.01457              1.4569999999999999
+period        fix      4.05528043            -- --              --                     --                   --                
+sma_over_rs   fit      11.42                 -0.021 +0.023      11.419782032926328     0.01137              11370.0           
+eccentricity  fix      0.0                   -- --              --                     --                   --                
+inclination   fit      87.773                -0.021 +0.023      87.77244721997879      10.0                 90.0              
+periastron    fix      0.0                   -- --              --                     --                   --                
+mid_time      fit      2459333.36448         -0.00063 +0.0006   2459333.364479083      2459333.1654632897   2459333.56546329  
+
+#Filter: luminance
+#Epoch: 603
+#Number of outliers removed: 2
+#Uncertainties scale factor: 1.0962105114475804
+
+#Residuals:
+#Mean: 5.639091101296289e-06
+#STD: 0.0005305937995402822
+#RMS: 0.0005306237645064928
+#Chi squared: 196.78874226149802
+#Reduced chi squared: 0.8944942830068091
+#Max auto-correlation: 0.21771998302373652
+#Max auto-correlation flag: False
+#Shapiro test: 0.9909476637840271
+#Shapiro test flag: False
+
+#Detrended Residuals:
+#Mean: 3.9104551885893454e-05
+#STD: 0.0036551244921143636
+#RMS: 0.003655333667236478
+#Chi squared: 196.78874226149821
+#Reduced chi squared: 0.8944942830068101
+#Max auto-correlation: 0.21771998302373716
+#Max auto-correlation flag: False
+#Shapiro test: 0.9909476637840271
+#Shapiro test flag: False

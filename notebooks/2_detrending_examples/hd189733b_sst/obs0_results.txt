@@ -1,0 +1,45 @@
+# variable    fix/fit  value                 uncertainty        initial                min.allowed           max.allowed       
+n             fit      45665.0               -54.0 +56.0        45662.78210316213      41651.754523536896    48354.48053417234 
+xpix_xpix     fit      0.131                 -0.054 +0.055      0.12902122314383657    -2.0                  2.0               
+xpix_ypix     fit      -0.008                -0.038 +0.038      -0.008931443314766918  -2.0                  2.0               
+xpix          fit      -0.012                -0.017 +0.016      -0.01102465896605187   -2.0                  2.0               
+ypix_ypix     fit      0.062                 -0.01 +0.01        0.061220965069987976   -2.0                  2.0               
+ypix          fit      -0.0574               -0.0063 +0.0063    -0.05704523210870516   -2.0                  2.0               
+a_1           fix      0.2816219280069006    -- --              --                     --                    --                
+a_2           fix      -0.11997094589598502  -- --              --                     --                    --                
+a_3           fix      0.014663328340121214  -- --              --                     --                    --                
+a_4           fix      0.02353282527382742   -- --              --                     --                    --                
+rp_over_rs    fit      0.15457               -0.0003 +0.00028   0.15457992649966637    0.015534000000000001  1.5534000000000001
+period        fix      2.218574944           -- --              --                     --                    --                
+sma_over_rs   fit      9.058                 -0.068 +0.069      9.058493374105757      0.00892               8920.0            
+eccentricity  fix      0.0                   -- --              --                     --                    --                
+inclination   fit      85.877                -0.073 +0.074      85.87704154221593      10.0                  90.0              
+periastron    fix      0.0                   -- --              --                     --                    --                
+mid_time      fit      2454281.65585         -5.8e-05 +5.9e-05  2454281.655851555      2454281.456017272     2454281.8560172725
+
+#Filter: irac4
+#Epoch: -862
+#Number of outliers removed: 6
+#Uncertainties scale factor: 1.0303924632984718
+
+#Residuals:
+#Mean: -0.4738549932111635
+#STD: 39.453996612262074
+#RMS: 39.456842083914644
+#Chi squared: 684.1453902763466
+#Reduced chi squared: 1.0002125588835475
+#Max auto-correlation: 0.18249042494786444
+#Max auto-correlation flag: True
+#Shapiro test: 0.9968221187591553
+#Shapiro test flag: False
+
+#Detrended Residuals:
+#Mean: -1.0399254771998288e-05
+#STD: 0.0008670962174027471
+#RMS: 0.0008671585753101707
+#Chi squared: 684.1453902763426
+#Reduced chi squared: 1.0002125588835418
+#Max auto-correlation: 0.1824904249478608
+#Max auto-correlation flag: True
+#Shapiro test: 0.9968221187591553
+#Shapiro test flag: False

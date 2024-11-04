@@ -1,0 +1,42 @@
+# variable    fix/fit  value                 uncertainty        initial               min.allowed         max.allowed       
+n             fit      1.00108               -0.00046 +0.00043  1.0010487327205049    0.9232893586158752  1.0589704513549805
+time_time     fit      -0.04                 -0.019 +0.02       -0.04062645224565831  -2.0                2.0               
+time          fit      0.0129                -0.0072 +0.0069    0.013155506061823807  -2.0                2.0               
+a_1           fix      0.49893510519234197   -- --              --                    --                  --                
+a_2           fix      -0.07295549722120057  -- --              --                    --                  --                
+a_3           fix      0.46617321219107144   -- --              --                    --                  --                
+a_4           fix      -0.21643294363957313  -- --              --                    --                  --                
+rp_over_rs    fit      0.1445                -0.0015 +0.0014    0.14448283143445767   0.01457             1.4569999999999999
+period        fix      4.05528043            -- --              --                    --                  --                
+sma_over_rs   fit      11.42                 -0.021 +0.023      11.419782032926328    0.01137             11370.0           
+eccentricity  fix      0.0                   -- --              --                    --                  --                
+inclination   fit      87.773                -0.021 +0.023      87.77244721997879     10.0                90.0              
+periastron    fix      0.0                   -- --              --                    --                  --                
+mid_time      fit      2459702.39586         -0.00044 +0.00043  2459702.395850253     2459702.19598242    2459702.5959824203
+
+#Filter: TESS
+#Epoch: 694
+#Number of outliers removed: 0
+#Uncertainties scale factor: 0.9827348743120348
+
+#Residuals:
+#Mean: -6.0245394305559795e-06
+#STD: 0.002341144200406136
+#RMS: 0.002341151951960965
+#Chi squared: 260.35404802061345
+#Reduced chi squared: 1.0013617231562055
+#Max auto-correlation: 0.12796889274224243
+#Max auto-correlation flag: False
+#Shapiro test: 0.9929477572441101
+#Shapiro test flag: False
+
+#Detrended Residuals:
+#Mean: -6.017552278628427e-06
+#STD: 0.0023373351644849134
+#RMS: 0.0023373429106729594
+#Chi squared: 260.3540480206128
+#Reduced chi squared: 1.001361723156203
+#Max auto-correlation: 0.12796889274224146
+#Max auto-correlation flag: False
+#Shapiro test: 0.9929477572441101
+#Shapiro test flag: False

@@ -1,4 +1,6 @@
+
 import os
+import exoclock
 
 __version__ = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), '__version__.txt')).read()
 __author__ = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), '__author__.txt')).read()
@@ -6,23 +8,30 @@ __author_email__ = open(os.path.join(os.path.abspath(os.path.dirname(__file__)),
 __description__ = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), '__description__.txt')).read()
 __url__ = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), '__url__.txt')).read()
 
-from pylightcurve.analysis.distributions import *
-from pylightcurve.analysis.numerical_integration import *
-from pylightcurve.analysis.optimisation import *
-from pylightcurve.analysis.gaussian import *
-from pylightcurve.analysis.curve_fit import *
 
-from pylightcurve.catalogues.catalogues import *
+from .analysis.distributions import *
+from .analysis.numerical_integration import *
+from .analysis.gaussian import *
+from .analysis.statistics import *
+from .analysis.optimisation import *
 
-from pylightcurve.images.find_stars import *
+from .models.exoplanet_lc import *
+from .models.exoplanet import *
 
-from pylightcurve.models.exoplanet import *
-from pylightcurve.models.exoplanet_lc import *
+from .images.find_stars import *
 
-from pylightcurve.processes.counter import *
-from pylightcurve.processes.files import *
+from .processes.counter import *
+from .processes.files import *
+from .plots.plots_fitting import *
 
-from pylightcurve.spacetime.angles import *
-from pylightcurve.spacetime.targets import *
+from .errors import *
+from .databases import *
 
-from pylightcurve.errors import *
+# for compatibility with iraclis v1.5
+FixedTarget = exoclock.FixedTarget
+Degrees = exoclock.Degrees
+
+def locate_planet(ra, dec, radius):
+    return get_planet(
+        exoclock.locate_planet(exoclock.Degrees(ra), exoclock.Degrees(dec), exoclock.Degrees(radius))['name']
+        )

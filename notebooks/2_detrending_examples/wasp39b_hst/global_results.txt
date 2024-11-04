@@ -1,0 +1,27 @@
+# variable    fix/fit  value                 uncertainty        initial                min.allowed         max.allowed       
+n             fit      136402400.0           -5400.0 +5400.0    136401998.7578836      128010934.92953071  141488415.83591858
+ls            fit      0.00139               -0.00021 +0.00021  0.0013869024161110577  -1.0                1.0               
+sa            fit      0.001415              -5.9e-05 +5.8e-05  0.0014145035667048056  -1.0                1.0               
+sd            fit      2.294                 -0.043 +0.043      2.295082539913287      0.0                 5.0               
+a_1           fix      0.45038007495085725                                                                                   
+a_2           fix      0.2609004213071497                                                                                    
+a_3           fix      -0.17332583459874426                                                                                  
+a_4           fix      0.01601986680568826                                                                                   
+rp_over_rs    fit      0.14529               -0.00011 +0.00011  0.14528255440686877    0.01457             1.4569999999999999
+period        fix      4.05528043                                                                                            
+sma_over_rs   fix      11.37                                                                                                 
+eccentricity  fix      0.0                                                                                                   
+inclination   fix      87.75                                                                                                 
+periastron    fix      0.0                                                                                                   
+mid_time      fit      2457630.1477          -4.1e-05 +4.1e-05  2457630.1477019116     2457629.94768269    2457630.3476826902
+
+#Residuals:
+#Mean: -154.0571419698
+#STD: 14346.545596872695
+#RMS: 14347.37272695385
+#Chi squared: 50.0131076463221
+#Reduced chi squared: 1.1366615374164113
+#Max auto-correlation: 0.2928122557161001
+#Max auto-correlation flag: False
+#Shapiro test: 0.9790969491004944
+#Shapiro test flag: False
