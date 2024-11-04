@@ -131,7 +131,7 @@ class EmceeFitting:
 
         sampler = emcee.EnsembleSampler(self.walkers, dimensions, probability)
         sampler.run_mcmc(walkers_initial_positions, int(self.iterations) // int(self.walkers))
-        mcmc_results = sampler.flatchain
+        mcmc_results = sampler.get_chain(flat=True)
 
         self.results['input_series'][self.data_x_name] = self.input_data_x
         self.results['input_series'][self.data_y_name] = self.input_data_y

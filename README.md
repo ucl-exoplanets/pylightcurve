@@ -603,14 +603,6 @@ mid_time_in_bjd_tdb = target.convert_to_bjd_tdb(mid_time_in_hjd_utc, 'HJD_UTC')
 # available formats: JD_UTC, MJD_UTC, HJD_UTC, HJD_TDB, BJD_UTC, BJD_TDB
 ```
 
-### Star PSF fitting
-
-### Emcee wrapper
-
-### Distributions
-
-### Numerical integration
-
 
 ## Updates
 4.0.1
@@ -623,11 +615,16 @@ mid_time_in_bjd_tdb = target.convert_to_bjd_tdb(mid_time_in_hjd_utc, 'HJD_UTC')
 4.0.3
 - Fix np.float bug.
 
+4.0.4
+- Fixed packaging and test issues.
+- Fixed latex strings in plots.
+- Fixed matplotlib.cm.get_cmap bug.
+
 ## Licence
 
 MIT License
 
-Copyright (c) 2016-2021 Angelos Tsiaras, and collaborators
+Copyright (c) 2016-present Angelos Tsiaras, and collaborators
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

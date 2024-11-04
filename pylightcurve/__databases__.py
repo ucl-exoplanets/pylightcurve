@@ -5,8 +5,7 @@ import time
 import shutil
 from scipy.interpolate import interp1d
 
-from pylightcurve.processes.files import open_dict, open_yaml, save_dict, download, open_dict_online
-from pylightcurve import __version__
+from .processes.files import open_dict, open_yaml, save_dict, download, open_dict_online
 
 try:
     import zipfile
@@ -16,7 +15,7 @@ except:
 
 databases_file = '__databases__.pickle'
 package_name = 'pylightcurve4'
-github_link = 'https://github.com/ucl-exoplanets/pylightcurve/raw/master/pylightcurve/__databases__.pickle?raw=true'
+github_link = 'https://www.dropbox.com/scl/fi/cmpsnfosniz108l97nugv/__databases__.pickle?rlkey=lv6oh6dqgs2blyvs5gwezsoyf&dl=1'
 
 
 class PlcData:
@@ -24,7 +23,8 @@ class PlcData:
     def __init__(self, _reset=False, _test=False):
 
         self.package_name = package_name
-        self.version = '.'.join(__version__.split('.')[:2])
+        self.version = '.'.join(open(os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                                                  '__version__.txt')).read().split('.')[:2])
 
         self.build_in_databases_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), databases_file)
 
