@@ -1,5 +1,9 @@
-![Python package](https://github.com/ucl-exoplanets/pylightcurve/workflows/Python%20package/badge.svg?branch=master)
-![](https://travis-ci.com/ucl-exoplanets/pylightcurve.svg?&branch=master) 
+[![Build Python 3.8](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.8.yml/badge.svg)](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.8.yml)
+[![Build Python 3.9](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.9.yml/badge.svg)](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.9.yml)
+[![Build Python 3.10](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.10.yml/badge.svg)](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.10.yml)
+[![Build Python 3.11](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.11.yml/badge.svg)](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.11.yml)
+
+
 [![codecov](https://codecov.io/gh/ucl-exoplanets/pylightcurve/branch/master/graph/badge.svg?)](https://codecov.io/gh/ucl-exoplanets/pylightcurve)
 
 [![Downloads](https://pepy.tech/badge/pylightcurve)](https://pepy.tech/project/pylightcurve)
