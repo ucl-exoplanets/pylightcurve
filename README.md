@@ -1,5 +1,9 @@
-![Python package](https://github.com/ucl-exoplanets/pylightcurve/workflows/Python%20package/badge.svg?branch=master)
-![](https://travis-ci.com/ucl-exoplanets/pylightcurve.svg?&branch=master) 
+[![Build Python 3.8](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.8.yml/badge.svg)](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.8.yml)
+[![Build Python 3.9](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.9.yml/badge.svg)](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.9.yml)
+[![Build Python 3.10](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.10.yml/badge.svg)](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.10.yml)
+[![Build Python 3.11](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.11.yml/badge.svg)](https://github.com/ucl-exoplanets/pylightcurve/actions/workflows/build-python-3.11.yml)
+
+
 [![codecov](https://codecov.io/gh/ucl-exoplanets/pylightcurve/branch/master/graph/badge.svg?)](https://codecov.io/gh/ucl-exoplanets/pylightcurve)
 
 [![Downloads](https://pepy.tech/badge/pylightcurve)](https://pepy.tech/project/pylightcurve)
@@ -603,14 +607,6 @@ mid_time_in_bjd_tdb = target.convert_to_bjd_tdb(mid_time_in_hjd_utc, 'HJD_UTC')
 # available formats: JD_UTC, MJD_UTC, HJD_UTC, HJD_TDB, BJD_UTC, BJD_TDB
 ```
 
-### Star PSF fitting
-
-### Emcee wrapper
-
-### Distributions
-
-### Numerical integration
-
 
 ## Updates
 4.0.1
@@ -623,11 +619,16 @@ mid_time_in_bjd_tdb = target.convert_to_bjd_tdb(mid_time_in_hjd_utc, 'HJD_UTC')
 4.0.3
 - Fix np.float bug.
 
+4.0.4
+- Fixed packaging and test issues.
+- Fixed latex strings in plots.
+- Fixed matplotlib.cm.get_cmap bug.
+
 ## Licence
 
 MIT License
 
-Copyright (c) 2016-2021 Angelos Tsiaras, and collaborators
+Copyright (c) 2016-present Angelos Tsiaras, and collaborators
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

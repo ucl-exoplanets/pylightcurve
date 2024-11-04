@@ -426,7 +426,7 @@ class Planet:
             if fit_individual_rp_over_rs:
 
                 names.append('rp_{0}'.format(phot_filter))
-                print_names.append('(R_\mathrm{p}/R_*)_{' + phot_filter + '}')
+                print_names.append(r'(R_\mathrm{p}/R_*)_{' + phot_filter + '}')
                 initial.append(rp_over_rs)
                 if fit_rp_over_rs:
                     limits1.append(rp_over_rs * fit_rp_over_rs_limits[0])
@@ -442,7 +442,7 @@ class Planet:
         if not fit_individual_rp_over_rs:
 
             names.append('rp')
-            print_names.append('(R_\mathrm{p}/R_*)')
+            print_names.append(r'(R_\mathrm{p}/R_*)')
             initial.append(self.rp_over_rs)
             if fit_rp_over_rs:
                 limits1.append(self.rp_over_rs * fit_rp_over_rs_limits[0])
@@ -505,7 +505,7 @@ class Planet:
             parameters_map[observation_num].append(len(names) - 1)
 
         names.append('w')
-        print_names.append('\omega')
+        print_names.append(r'\omega')
         initial.append(self.periastron)
         limits1.append(np.nan)
         limits2.append(np.nan)
@@ -560,7 +560,7 @@ class Planet:
             for epoch in unique_epochs:
 
                 names.append('T_mid_{0}'.format(epoch))
-                print_names.append('T_\mathrm{mid_' + str(epoch) + '}')
+                print_names.append(r'T_\mathrm{mid_' + str(epoch) + '}')
                 initial.append(new_mid_time + epoch * self.period)
                 if fit_mid_time:
                     limits1.append(new_mid_time + epoch * self.period + fit_mid_time_limits[0])
@@ -849,7 +849,7 @@ class Planet:
             if fit_individual_fp_over_fs:
 
                 names.append('fp_{0}'.format(phot_filter))
-                print_names.append('(F_\mathrm{p}/F_*)_{' + phot_filter + '}')
+                print_names.append(r'(F_\mathrm{p}/F_*)_{' + phot_filter + '}')
                 initial.append(fp_over_fs)
                 if fit_fp_over_fs:
                     limits1.append(fp_over_fs * fit_fp_over_fs_limits[0])
@@ -865,7 +865,7 @@ class Planet:
         if not fit_individual_fp_over_fs:
 
             names.append('fp')
-            print_names.append('(F_\mathrm{p}/F_*)')
+            print_names.append(r'(F_\mathrm{p}/F_*)')
             initial.append(fp_over_fs)
             if fit_fp_over_fs:
                 limits1.append(fp_over_fs * fit_fp_over_fs_limits[0])
@@ -886,7 +886,7 @@ class Planet:
             if fit_individual_rp_over_rs:
 
                 names.append('rp_{0}'.format(phot_filter))
-                print_names.append('(R_\mathrm{p}/R_*)_{' + phot_filter + '}')
+                print_names.append(r'(R_\mathrm{p}/R_*)_{' + phot_filter + '}')
                 initial.append(rp_over_rs)
                 if fit_rp_over_rs:
                     limits1.append(rp_over_rs * fit_rp_over_rs_limits[0])
@@ -902,7 +902,7 @@ class Planet:
         if not fit_individual_rp_over_rs:
 
             names.append('rp')
-            print_names.append('(R_\mathrm{p}/R_*)')
+            print_names.append(r'(R_\mathrm{p}/R_*)')
             initial.append(rp_over_rs)
             if fit_rp_over_rs:
                 limits1.append(rp_over_rs * fit_rp_over_rs_limits[0])
@@ -965,7 +965,7 @@ class Planet:
             parameters_map[observation_num].append(len(names) - 1)
 
         names.append('w')
-        print_names.append('\omega')
+        print_names.append(r'\omega')
         initial.append(self.periastron)
         limits1.append(np.nan)
         limits2.append(np.nan)

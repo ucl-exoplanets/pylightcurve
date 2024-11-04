@@ -4,7 +4,7 @@ import numpy as np
 from pylightcurve.errors import *
 from pylightcurve.analysis.distributions import two_d_distribution
 
-import matplotlib.cm as cm
+from matplotlib.cm import brg, Greys
 import matplotlib.gridspec as gridspec
 from matplotlib.figure import Figure
 from matplotlib.backend_bases import FigureCanvasBase
@@ -123,7 +123,7 @@ def plot_mcmc_corner(fitting_object, export_file):
 
     fig = Figure(figsize=(2.5 * all_var + 0.5, 2.5 * all_var + 0.5))
     canvas = FigureCanvasBase(fig)
-    cmap = cm.get_cmap('brg')
+    cmap = brg
     try:
         gs = gridspec.GridSpec(all_var, all_var, fig, 0.5 / (2.5 * all_var + 0.5), 0.85 / (2.5 * all_var + 0.5),
                                1 - 0.5 / (2.5 * all_var + 0.5), 1 - 0.15 / (2.5 * all_var + 0.5), 0.0, 0.0)
@@ -160,7 +160,7 @@ def plot_mcmc_corner(fitting_object, export_file):
             binsx, binsy, final = two_d_distribution(traces[j], traces[var])
             ax2.imshow(np.where(final > 0, np.log(np.where(final > 0, final, 1)), 0),
                        extent=(np.min(binsx), np.max(binsx), np.min(binsy), np.max(binsy)),
-                       cmap=cm.Greys, origin='lower', aspect='auto')
+                       cmap=Greys, origin='lower', aspect='auto')
 
             ax2.set_xticks([])
             ax2.set_yticks([])
@@ -171,7 +171,7 @@ def plot_mcmc_corner(fitting_object, export_file):
             ax2.set_ylim(results[var] - 6 * errors[var], results[var] + 6 * errors[var])
             text_x = ax2.get_xlim()[1] - 0.05 * (ax2.get_xlim()[1] - ax2.get_xlim()[0])
             text_y = ax2.get_ylim()[1] - 0.05 * (ax2.get_ylim()[1] - ax2.get_ylim()[0])
-            ax2.text(text_x, text_y, '{0}{1}{2}'.format(r'$', str(round(correlation[var][j], 2)), '$'),
+            ax2.text(text_x, text_y, r'{0}{1}{2}'.format(r'$', str(round(correlation[var][j], 2)), '$'),
                      color=cmap(abs(correlation[var][j]) / 2.),
                      fontsize=fontsize, ha='right', va='top')
 
@@ -186,7 +186,7 @@ def plot_mcmc_traces(fitting_object, export_file):
 
     fig = Figure(figsize=(7, 2.5 * len(fitting_object.fitted_parameters)), tight_layout=False)
     canvas = FigureCanvasBase(fig)
-    cmap = cm.get_cmap('brg')
+    cmap = brg
 
     for var_num, var in enumerate(fitting_object.fitted_parameters):
 
@@ -303,7 +303,7 @@ def plot_transit_fitting_models(results, output_file):
         ax3.set_ylim(- 8 * np.std(data['detrended_residuals']),
                      8 * np.std(data['detrended_residuals']))
 
-        ax3.set_xlabel('t [BJD_$\mathrm{TDB}$]', fontsize=fsbig)
+        ax3.set_xlabel(r't [BJD_$\mathrm{TDB}$]', fontsize=fsbig)
         fig.text(lebels_right, fbottom + (f3 / 2) * frow_height, 'residuals', fontsize=fsbig, va='center', ha='center',
                  rotation='vertical')
 
