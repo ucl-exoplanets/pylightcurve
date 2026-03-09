@@ -34,12 +34,16 @@ def fit_gaussian(datax, datay, errors=None, positive=False, sampled=False, sampl
         initial_floor = floor
 
     if norm is None:
-        initial_norm = 3 * mean_std_from_median_mad(datay-initial_floor)[1]
+        initial_norm = sorted(datay - initial_floor)[int(0.75 * len(datay))]
     else:
         initial_norm = norm
 
     if sigma is None:
-        initial_sigma = 1
+
+        average = np.average(datax, weights=np.maximum(0, datay - initial_floor))
+        variance = np.average((datax - average) ** 2, weights=np.maximum(0, datay - initial_floor))
+        initial_sigma = np.sqrt(variance)
+
     else:
         initial_sigma = sigma
 
@@ -52,13 +56,8 @@ def fit_gaussian(datax, datay, errors=None, positive=False, sampled=False, sampl
         initial_mean = point_x
 
     if norm is None:
-        test_x = np.clip(int(initial_mean), np.min(datax), np.max(datax))
-        test_x = np.argmin(np.abs(datax - test_x))
+        test_x = np.argmin(np.abs(datax - initial_mean))
         initial_norm = datay[test_x]
-
-    if sigma is None:
-        initial_sigma = max(min(datax[1:] - datax[:-1]),
-                            np.abs(datax[np.argmin(np.abs((datay - initial_norm - initial_floor) / 2))] - initial_mean))
 
     initial_values = [initial_norm, initial_floor, initial_mean, initial_sigma]
 

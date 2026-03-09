@@ -464,6 +464,13 @@ class Planet:
         return transit_duration(self.rp_over_rs, self.period, self.sma_over_rs, self.eccentricity, self.inclination,
                                 self.periastron)
 
+    def transit_epoch(self, time):
+        return round((time - self.mid_time)/self.period)
+
+    def transit_oc(self, time):
+        epoch = self.transit_epoch(time)
+        return time - (self.mid_time + epoch * self.period)
+
     def transit_t12(self):
         return transit_t12(self.rp_over_rs, self.period, self.sma_over_rs, self.eccentricity, self.inclination,
                            self.periastron)
@@ -473,6 +480,13 @@ class Planet:
                              self.rp_over_rs, self.period, self.sma_over_rs, self.eccentricity,
                              self.inclination, self.periastron,
                              self.ldc_method, self.precision)
+
+    def transit_impact_parameter(self):
+        return self.sma_over_rs * np.cos(self.inclination * np.pi / 180) *  ((1 - self.eccentricity ** 2) / (1 + self.eccentricity * np.sin(self.periastron * np.pi / 180)))
+
+    def transit_is_grazing(self):
+
+        return self.transit_impact_parameter() + self.rp_over_rs >= 1
 
     def eclipse(self, time, filter_name, wlrange=None):
         return eclipse(self.fp_over_fs(filter_name, wlrange), self.rp_over_rs,
@@ -692,7 +706,7 @@ class Planet:
         global_parameters_initial += [self.period, self.sma_over_rs, self.eccentricity, self.inclination, self.periastron]
         global_parameters_fit += [fit_period, fit_sma_over_rs, False, fit_inclination, False]
         global_parameters_limits += [fit_period_limits, fit_sma_over_rs_limits, False, fit_inclination_limits, False]
-        global_parameters_logspace += [True, True, False, True, False]
+        global_parameters_logspace += [False, True, False, True, False]
 
         if not fit_mid_time or not fit_individual_times or len(unique_epochs) == 1:
 
@@ -826,6 +840,7 @@ class Planet:
                           walkers=walkers, iterations=iterations, burn_in=burn_in,
                           counter=counter,
                           optimise_initial_parameters=True,
+                          optimise_initial_parameters_trials=optimise_initial_parameters_trials,
                           scale_uncertainties=False,
                           filter_outliers=False,
                           optimiser=optimiser,
@@ -1195,7 +1210,7 @@ class Planet:
         global_parameters_initial += [self.period, self.sma_over_rs, self.eccentricity, self.inclination, self.periastron]
         global_parameters_fit += [fit_period, fit_sma_over_rs, False, fit_inclination, False]
         global_parameters_limits += [fit_period_limits, fit_sma_over_rs_limits, False, fit_inclination_limits, False]
-        global_parameters_logspace += [True, True, False, True, False]
+        global_parameters_logspace += [False, True, False, True, False]
 
         if not fit_mid_time or not fit_individual_times or len(unique_epochs) == 1:
 
@@ -1329,6 +1344,7 @@ class Planet:
                           walkers=walkers, iterations=iterations, burn_in=burn_in,
                           counter=counter,
                           optimise_initial_parameters=True,
+                          optimise_initial_parameters_trials=optimise_initial_parameters_trials,
                           scale_uncertainties=False,
                           filter_outliers=False,
                           optimiser=optimiser,

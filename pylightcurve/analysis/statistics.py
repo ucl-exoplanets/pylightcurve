@@ -5,7 +5,7 @@ __all__ = ['waverage', 'mad', 'mean_std_from_median_mad', 'correlation',
 import numpy as np
 import warnings
 
-from scipy.stats import shapiro
+import scipy
 
 
 def waverage(data, uncertainties, axis=None):
@@ -120,18 +120,25 @@ def residual_statistics(datax, datay, datay_unc, model, number_of_free_parameter
     res_autocorr = res_autocorr[res_autocorr.size // 2:]
     res_autocorr /= res_autocorr[0]
 
-    limit3_autocorr = gaussian(np.log10(len(norm_residuals)), 1.08401, 0.03524, -0.26884, 1.49379)
+    log_len = np.log10(len(norm_residuals))
 
-    res_shapiro = shapiro(norm_residuals)
+    res_autocorr_model_mean = np.poly1d([0.01337266, -0.14360713,  0.09546788, -0.3990635])
+    res_autocorr_model_std = np.poly1d([0.00023335,  0.00171671, -0.03351896,  0.13821703])
 
-    limit3_shapiro = gaussian(np.log10(len(norm_residuals)), 0.65521, 0.00213, -0.21983, 0.96882)
+    res_max_autocorr_flag_sigma = (np.log10(np.max(np.abs(res_autocorr[1:]))) - res_autocorr_model_mean(log_len)) / res_autocorr_model_std(log_len)
+
+    res_shapiro = scipy.stats.shapiro(norm_residuals)
+
+    res_shapiro_flag_sigma = scipy.stats.norm.ppf(1 - res_shapiro.pvalue)
 
     statistics = {
         'res_autocorr': res_autocorr,
         'res_max_autocorr': np.max(np.abs(res_autocorr[1:])),
-        'res_max_autocorr_flag': np.max(np.abs(res_autocorr[1:])) > limit3_autocorr,
-        'res_shapiro': res_shapiro[0],
-        'res_shapiro_flag': (1 - res_shapiro[0]) > limit3_shapiro,
+        'res_max_autocorr_flag': res_max_autocorr_flag_sigma > 3,
+        'res_max_autocorr_flag_sigma': res_max_autocorr_flag_sigma,
+        'res_shapiro': res_shapiro.statistic,
+        'res_shapiro_flag': res_shapiro_flag_sigma > 3,
+        'res_shapiro_flag_sigma': res_shapiro_flag_sigma,
         'res_mean': np.mean(residuals),
         'res_std': np.std(residuals),
         'res_rms': np.sqrt(np.mean(residuals**2)),

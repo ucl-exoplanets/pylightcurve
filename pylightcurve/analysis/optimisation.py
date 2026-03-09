@@ -96,7 +96,7 @@ class Fitting:
 
         if optimiser not in ['emcee', 'curve_fit']:
             raise PyLCInputError('Optimiser {0} in not valid. Please choose between '
-                             'emcee, scipy_minimize.'.format(optimiser))
+                             'emcee, curve_fit.'.format(optimiser))
         self.optimiser = optimiser
 
         if not walkers:
@@ -637,3 +637,4 @@ class EmceeFitting(Fitting):
         Fitting.__init__(self, *args[:7], **kwargs)
 
         self.run_mcmc = self.run
+

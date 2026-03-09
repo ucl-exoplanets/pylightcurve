@@ -24,6 +24,40 @@ from ..analysis.numerical_integration import gauss_numerical_integration
 from ..processes.files import open_dict
 
 
+# overwrite exotethys loading
+
+def read_configuration(filename):
+    """
+    This function reads the input file line by line and returns a dictionary.
+    For each line the first word is a keyword, the following are values (either string or float).
+    The lines starting with '#' will be ignored. The values preceded by '!' (without spaces) will be also ignored.
+
+    :param str filename: absolute or relative path including the file name
+    :return: the configuration dictionary
+    :rtype: dict
+    """
+    with open(filename, 'r') as file:
+        input_dict = {}
+        for line in file.readlines():
+            if line[0] != '#':
+                key = line.split()[0]
+
+                if key in ['output_path', 'passbands_path']:
+                    input_dict[key] = [' '.join(line.split()[1:])]
+
+                else:
+                    content = line.split()
+                    value = []
+                    for item in content[1:]:
+                        if item[0] != '!':
+                            value += [sail.str2float(item), ]
+                    input_dict[key] = value
+
+    return input_dict
+
+sail.read_configuration = read_configuration
+
+
 # orbit
 
 def curve_fit(*args, **kwargs):

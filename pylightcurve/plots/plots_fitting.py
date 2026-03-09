@@ -103,7 +103,7 @@ def draw_mcmc_corner(fitting_results):
     traces_counts = []
 
     for i in fitting_results['parameters']:
-        if fitting_results['parameters'][i]['initial']:
+        if fitting_results['parameters'][i]['m_error']:
             names.append(fitting_results['parameters'][i]['print_name'])
             results.append(fitting_results['parameters'][i]['value'])
             print_results.append(fitting_results['parameters'][i]['print_value'])
@@ -240,7 +240,15 @@ def draw_mcmc_traces(fitting_results):
     return fig
 
 
-def plot_transit_fitting_models(data, output_file):
+
+def plot_transit_fitting_models(fitting_results, export_file):
+    fig = draw_transit_fitting_models(fitting_results)
+    fig.savefig(export_file, transparent=False)
+    del fig
+
+
+
+def draw_transit_fitting_models(fitting_results):
 
         f1 = 3
         f2 = 3
@@ -268,15 +276,15 @@ def plot_transit_fitting_models(data, output_file):
         # raw
         ax1 = fig.add_subplot(gs[0:f1, 0:])
 
-        ax1.plot(data['input_series']['time'], data['input_series']['flux'], 'ko', ms=2)
-        ax1.plot(data['input_series']['time'], data['output_series']['model'], 'r-', lw=1)
+        ax1.plot(fitting_results['input_series']['time'], fitting_results['input_series']['flux'], 'ko', ms=2)
+        ax1.plot(fitting_results['input_series']['time'], fitting_results['output_series']['model'], 'r-', lw=1)
 
         fig.text(lebels_right, fbottom + (f3 + f2 + f1 / 2) * frow_height, 'raw', fontsize=fsbig, va='center',
                  ha='center', rotation='vertical')
 
-        data_ymin = (min(data['input_series']['flux']) - 3 * np.std(data['output_series']['residuals']))
+        data_ymin = (min(fitting_results['input_series']['flux']) - 3 * np.std(fitting_results['output_series']['residuals']))
 
-        data_ymax = (max(data['input_series']['flux']) + 2 * np.std(data['output_series']['residuals']))
+        data_ymax = (max(fitting_results['input_series']['flux']) + 2 * np.std(fitting_results['output_series']['residuals']))
 
         ax1.set_yticks(ax1.get_yticks()[np.where(ax1.get_yticks() > data_ymin)])
 
@@ -289,15 +297,15 @@ def plot_transit_fitting_models(data, output_file):
         # de-trended
         ax2 = fig.add_subplot(gs[f1:f1+f2, 0:])
 
-        ax2.plot(data['input_series']['time'], data['detrended_series']['flux'], 'ko', ms=2)
-        ax2.plot(data['input_series']['time'], data['detrended_series']['model'], 'r-', lw=1)
+        ax2.plot(fitting_results['input_series']['time'], fitting_results['detrended_series']['flux'], 'ko', ms=2)
+        ax2.plot(fitting_results['input_series']['time'], fitting_results['detrended_series']['model'], 'r-', lw=1)
 
         fig.text(lebels_right, fbottom + (f3 + f2 / 2) * frow_height, 'de-trended', fontsize=fsbig, va='center',
                  ha='center', rotation='vertical')
 
-        data_ymin = (min(data['detrended_series']['flux']) - 3 * np.std(data['detrended_series']['residuals']))
+        data_ymin = (min(fitting_results['detrended_series']['flux']) - 3 * np.std(fitting_results['detrended_series']['residuals']))
 
-        data_ymax = (max(data['detrended_series']['flux']) + 2 * np.std(data['detrended_series']['residuals']))
+        data_ymax = (max(fitting_results['detrended_series']['flux']) + 2 * np.std(fitting_results['detrended_series']['residuals']))
 
         ax2.set_yticks(ax2.get_yticks()[np.where(ax2.get_yticks() > data_ymin)])
 
@@ -309,11 +317,11 @@ def plot_transit_fitting_models(data, output_file):
 
         # residuals
         ax3 = fig.add_subplot(gs[f1 + f2:f1 + f2 + f3, 0:])
-        ax3.plot(data['input_series']['time'], data['detrended_series']['residuals'], 'ko', ms=2)
-        ax3.plot(data['input_series']['time'], np.zeros_like(data['input_series']['time']), 'r-', lw=1)
+        ax3.plot(fitting_results['input_series']['time'], fitting_results['detrended_series']['residuals'], 'ko', ms=2)
+        ax3.plot(fitting_results['input_series']['time'], np.zeros_like(fitting_results['input_series']['time']), 'r-', lw=1)
 
-        ax3.set_ylim(- 8 * np.std(data['detrended_series']['residuals']),
-                     8 * np.std(data['detrended_series']['residuals']))
+        ax3.set_ylim(- 8 * np.std(fitting_results['detrended_series']['residuals']),
+                     8 * np.std(fitting_results['detrended_series']['residuals']))
 
         ax3.set_xlabel(r'Time (days, BJD$_\mathrm{TDB}$)', fontsize=fsbig)
         fig.text(lebels_right, fbottom + (f3 / 2) * frow_height, 'residuals', fontsize=fsbig, va='center', ha='center',
@@ -322,8 +330,8 @@ def plot_transit_fitting_models(data, output_file):
         ax3.tick_params(labelsize=fsmain)
 
         ax1.set_title('{0} - {1} - {2}'.format(
-            data['model_info']['target'], data['model_info']['obs_id'], data['model_info']['date'])
+            fitting_results['model_info']['target'], fitting_results['model_info']['obs_id'], fitting_results['model_info']['date'])
         )
 
-        fig.savefig(output_file)
+        return fig
 
